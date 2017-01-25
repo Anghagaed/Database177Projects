@@ -38,7 +38,7 @@ void query() {
 
 	sql = "SELECT * FROM region WHERE r_regionkey = ?;";				// Region has the following attributes: r_regionkey, r_name, r_comment
 	
-	cout << "Running the following query: " << endl << "SELECT * FROM region WHERE r_regionkey = ?;";
+	cout << "Running the following query: " << endl << "SELECT * FROM region WHERE r_regionkey = ?;" << endl;
 
 	// Creating Prepared Statement  
 	rv = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);					// Refers to documentation for what the arguments are for
