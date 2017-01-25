@@ -1,7 +1,6 @@
 /*
  * Author: 	Hang V Liang
  * Code: 	Following code is an example of interfacing with a database using sqlite. Intended for usage when there someone forgot how to interface using sqlite.
- aaaaa
 */
 #include <iostream>
 #include <sqlite3.h>
