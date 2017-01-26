@@ -9,8 +9,8 @@ using namespace std;
 
 
 int main () {
-	string table = "region", attribute, type;
-	vector<string> attributes, types;
+	string table = "region", attribute, type;		//defining a table with will have attribute and type
+	vector<string> attributes, types;			//to contain column names and types
 	vector<unsigned int> distincts;
 
 	attribute = "r_regionkey"; attributes.push_back(attribute);
