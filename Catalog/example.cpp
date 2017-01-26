@@ -4,7 +4,7 @@
 */
 #include <iostream>
 #include <sqlite3.h>
-
+//aaaaa
 
 using namespace std;
 
@@ -38,7 +38,7 @@ void query() {
 	if ( rv != SQLITE_OK ) { 											// Error Checking
 		cout << "Error Preparing Query: " << endl;						// SQLITE_OK (0) is global constant from sqlite3.h defined to be no errors
 		cout << sqlite3_errstr(rv) << endl;
-		//return;
+		return;
 	} else { 
 		cout << "Query prepared succesfully." << endl;
 	}
@@ -48,7 +48,7 @@ void query() {
 	if (rv != SQLITE_OK) { 
 		cout << "Error Binding Value to Prepared Statement: " << endl;
 		cout << sqlite3_errstr(rv) << endl;
-		//return;
+		return;
 	} else { 
 		cout<< "Query binded successfully." << endl;
 	}
