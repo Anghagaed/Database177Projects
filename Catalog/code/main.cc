@@ -46,12 +46,12 @@ int main () {
 	cout << s2 << endl;
 
 
-	string dbFile = "catalog.sqlite";
-	Catalog c(dbFile);
+	//string dbFile = "catalog.sqlite";
+	//Catalog c(dbFile);
 
-	c.CreateTable(table, attributes, types);
+	//c.CreateTable(table, attributes, types);
 
-	cout << c << endl;
+	//cout << c << endl;
 
 	return 0;
 }
