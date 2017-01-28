@@ -6,7 +6,7 @@
 #include <iostream>
 
 #include "Schema.h"
-
+#include "DataStructure.h"
 using namespace std;
 
 
@@ -17,7 +17,7 @@ private:
 	 * Efficient data structures are recommended.
 	 * Avoid linear traversals when possible.
 	 */
-
+	vector < tableInfo* > tables;
 public:
 	/* Catalog constructor.
 	 * Initialize the catalog with the persistent data stored in _fileName.
