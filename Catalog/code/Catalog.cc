@@ -127,11 +127,36 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 		atts.Find(_table).setDistinct(*_noDistinct);*/
 }
 
-void Catalog::GetTables(vector<string>& _tables) {
+void Catalog::GetTables(vector<string>& _tables) 
+{//do this, return by reference
+	//string name = this.getname();
+	int i = this.table.size();
+	int j = 0;
+	while (i)
+	{
+		this.table.push_back(_tables.begin + j);
+		j++;
+		i--;
+	}
 }
 
-bool Catalog::GetAttributes(string& _table, vector<string>& _attributes) {
-	return true;
+bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)
+{// do this, return by reference
+	bool check=false;
+	for (int i = 0; i < this.tableesize(); i++)
+	{
+		if (this.begin + i == _table)
+		{
+			check=true;
+			break;
+		}
+	}
+	if (check)
+	{
+		for (int i = 0; i < _attributes.size(); i++)
+			this.attribute.push_back(_attributes.begin + i);
+	}
+	return check;
 }
 
 bool Catalog::GetSchema(string& _table, Schema& _schema) {
