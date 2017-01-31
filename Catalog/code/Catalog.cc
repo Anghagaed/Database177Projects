@@ -49,9 +49,45 @@ bool Catalog::GetSchema(string& _table, Schema& _schema) {
 	return true;
 }
 
-bool Catalog::CreateTable(string& _table, vector<string>& _attributes,
-	vector<string>& _attributeTypes) {
-	return true;
+bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
+	
+	/*int size = 100;
+	String sqlArr[size];
+
+	for (int i = 0; i < size; i++) {
+
+		sql ="SELECT * FROM catalog.sqlitemaster WHERE type = 'table';
+		ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);*/
+
+	/**** Pseudocode 
+
+	sqlite3_stmt* stmt;
+	char* path = "catalog.db";
+
+	// grab all table names from catalog.db
+	// if table already exists, do not create table
+	if (_table == table) {
+		return false;
+	}
+	// if table does not exist, create table
+	else {
+		for (int i = 0; i < _attributes.size(); i++) {
+			sql = "CREATE TABLE " + _table + "("
+				+ _attributes[i] + " " + _attributeTypes[i] + ");";
+		} // continue for all attributes 
+
+		// Execute SQL statement 
+		rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+		if (rc != SQLITE_OK) {
+			cout << "SQL error" << endl;
+		}
+		else {
+			return true;
+		}
+	}
+	
+	****/
+
 }
 
 bool Catalog::DropTable(string& _table) {
