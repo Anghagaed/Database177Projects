@@ -1,0 +1,75 @@
+//Note: The following implementations may change depending on the data structure.
+//Currently, the data structure is based on EfficientMap
+bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
+	//Given: Map Q where key = MetaTable and value = MetaAtts
+	if(!Q.IsThere(_table)) // Check whether the table exists
+		return false
+	end if
+	else
+		MetaAtts* metaAtts = Q.Find(_table) // Get the corresponding MetaAtts
+		//Assume: metaAtts has _noTuples
+		*_noTuples = metaAtts->noTuples
+		return true
+	end else
+}
+
+void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
+	//Given: Map Q where key = MetaTable and value = MetaAtts
+	if(!Q.IsThere(_table)) // Check whether the table exists
+		// Insert error message here
+		return
+	end if
+	else
+		//Assume: metaAtts has _noTuples
+		(Q.Find(_table))->noTuples = *_noTuples
+	end else
+}
+
+bool Catalog::GetDataFile(string& _table, string& _path) {
+	//Given: Map Q where key = MetaTable and value = MetaAtts
+	if(!Q.IsThere(_table)) // Check whether the table exists
+		return false
+	else
+		MetaAtts* metaAtts = Q.Find(_table) // Get the corresponding MetaAtts
+		//Assume: metaAtts has DataFile
+		*_path = metaAtts->path
+		return true
+	end else
+}
+
+void Catalog::SetDataFile(string& _table, string& _path) {
+	//Given: Map Q where key = MetaTable and value = MetaAtts
+	if(!Q.IsThere(_table)) // Check whether the table exists
+		// Insert error message here
+		return
+	end if
+	else
+		//Assume: metaAtts has DataFile
+		(Q.Find(_table))->path = *_path
+	end else
+}
+
+bool Catalog::GetNoDistinct(string& _table, string& _attribute,
+	unsigned int& _noDistinct) {
+	//Given: Map Q where key = MetaTable and value = MetaAtts
+	if(!Q.IsThere(_table)) // Check whether the table exists
+		return false
+	else
+		MetaAtts* metaAtts = Q.Find(_table) // Get the corresponding MetaAtts
+		//Assume: metaAtts has NoDistinct
+		*_attribute = metaAtts->attribute
+		return true
+	end else
+}
+void Catalog::SetNoDistinct(string& _table, string& _attribute,
+	unsigned int& _noDistinct) {
+	//Given: Map Q where key = MetaTable and value = MetaAtts
+	if(!Q.IsThere(_table)) // Check whether the table exists
+		// Insert error message here
+		return
+	end if
+	else
+		//Assume: metaAtts has NoDistinct
+		(Q.Find(_table))->attribute = *_attribute
+	end else
+}
