@@ -97,22 +97,37 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 		sql ="SELECT * FROM catalog.sqlitemaster WHERE type = 'table';
 		ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);*/
 
-	/**** Pseudocode 
-
+	// count # of attributes in table
+	int count = 0;	
 	sqlite3_stmt* stmt;
 	char* path = "catalog.db";
 
-	// grab all table names from catalog.db
+	/*** Part 1: Create Table ***/
+
+	// code to grab all table names from catalog.db
 	// if table already exists, do not create table
 	if (_table == table) {
 		return false;
 	}
 	// if table does not exist, create table
 	else {
+
+
+		sql = "CREATE TABLE " + _table + "(";
+
+		// append to sql string for each table/ type 
 		for (int i = 0; i < _attributes.size(); i++) {
-			sql = "CREATE TABLE " + _table + "("
-				+ _attributes[i] + " " + _attributeTypes[i] + ");";
-		} // continue for all attributes 
+			if (_attributeTypes == int || _attributeTypes = float) {
+				sql += _attributes[i] + " " + _attributeTypes[i] + " (10000) NOT NULL";
+				count++;
+			}
+			else if (_attributeTypes == String) {
+				sql += _attributes[i] + " " + _attributeTypes[i] + " (500) NOT NULL";
+				count++;
+			}
+		} 
+		
+		sql += ");";
 
 		// Execute SQL statement 
 		rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
@@ -123,9 +138,21 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 			return true;
 		}
 	}
-	
-	****/
 
+	/*** Part 2: Create Table ***/
+
+	// insert statement and push data into metaTables table in catalog 
+	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " + 
+			"VALUES (" + _table + ", TestData.db, + 0);";
+
+	// insert statement and push data into metaAttributes table in catalog 
+	// create new insert statement per attribute 
+	for (int i = 0; i < count; i++) {
+		sqlAtt = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) " +
+			"VALUES (" + _table + ", ";
+		sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
+	}
+	
 }
 
 bool Catalog::DropTable(string& _table) {
