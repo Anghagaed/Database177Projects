@@ -6,11 +6,39 @@
 
 using namespace std;
 
+int Catalog::openDatabase(const char * _filename) {
+	rc = sqlite3_open(_filename, &db);
+	// Testing and printing error if it happens
+	if ( rc != SQLITE_OK ) {
+		cout << "Error opening database connection: " << endl;
+		cout << sqlite3_errstr ( rv ) << endl;
+	}
+	// Returning the return code 
+	return rc;
+}
+
+void Catalog::closeDatabase() {
+	sqlite3_close(db);
+}
+
+void Catalog::Query(const char * _sql) {
+	rc = sqlite3_prepare_v2(db, _sql, -1, &stmt, NULL);
+	if ( rc != SQLITE_OK ) {
+		cout << "Error Preparing Query: " << endl;
+		cout << slqite3_errstr ( rc ) << endl;
+	}
+}
 
 Catalog::Catalog(string& _fileName) {
+	openDatabase(_fileName.c_str());
+	// MetaTables
+
+	// MetaAttributes
+
 }
 
 Catalog::~Catalog() {
+	closeDatabase();
 }
 
 bool Catalog::Save() {

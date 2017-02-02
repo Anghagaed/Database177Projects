@@ -27,8 +27,9 @@ private:
 	 EfficientMap<KeyString , attsInfo> atts;
 	 /* SQLITE Interfacing parameters */
 	 sqlite3 *db;
-	 int rv;
+	 int rc;
 	 char* errMsg;
+	 sqlite3_stmt* stmt;
 	 /* SQLITE Interfacing Functions */
 	 void openDatabase(const char * _filename);
 	 void closeDatabase();
