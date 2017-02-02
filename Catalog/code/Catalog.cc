@@ -64,25 +64,64 @@ bool Catalog::Save() {
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
-	return true;
+	if (!tables.IsThere(_table))
+		return false;
+	else
+	{
+		*_noTuples = tables.Find(_table).getTuples();
+		return true;
+	}
 }
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
+	if (!tables.IsThere(_table))
+	{
+		//Insert Error Message Here
+		return;
+	}
+	else
+		tables.Find(_table).setTuples(*_noTuples);
 }
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
-	return true;
+	if (!tables.IsThere(_table))
+		return false;
+	else
+	{
+		*_path = tables.Find(_table).getPath();
+		return true;
+	}
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
+	if (!tables.IsThere(_table))
+	{
+		//Insert Error Message Here
+		return;
+	}
+	else
+		tables.Find(_table).setPath(*_path);
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
-	return true;
+	if (!atts.IsThere(_table))
+		return false;
+	else
+	{
+		*_noDistinct = atts.Find(_table).getDistinct();
+		return true;
+	}
 }
 void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
+	if (!atts.IsThere(_table))
+	{
+		//Insert Error Message Here
+		return;
+	}
+	else
+		atts.Find(_table).setDistinct(*_noDistinct);
 }
 
 void Catalog::GetTables(vector<string>& _tables) {
