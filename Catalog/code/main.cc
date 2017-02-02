@@ -46,8 +46,8 @@ int main () {
 	cout << s2 << endl;
 
 
-	//string dbFile = "catalog.sqlite";
-	//Catalog c(dbFile);
+	string dbFile = "Catalog.sqlite";
+	Catalog c(dbFile);
 
 	//c.CreateTable(table, attributes, types);
 

@@ -34,6 +34,10 @@ void tableInfo::setPath(string pa) {
 	path = pa;
 }
 
+void tableInfo::setTuples(int tu) {
+	nuTuples = tu;
+}
+
 string tableInfo::getName() {
 	return name;
 }

@@ -13,12 +13,17 @@
 using namespace std;
 // Copying from Keyify.h to test how keyify works for various data type
 
+class x {
+public:
+	EfficientMap< KeyString, tableInfo > m;
+};
+
 int main(int argc, char** argv) { 
-	EfficientMap < KeyString, tableInfo > m;
-	cout << m.Length() << endl;
+	x test;
+	cout << test.m.Length() << endl;
 	KeyString key("testing");
 	tableInfo data("test name", "test path", 5);
-	m.Insert(key, data);
-	cout << m.Length() << endl;
+	test.m.Insert(key, data);
+	cout << test.m.Length() << endl;
 	return 0;
 }

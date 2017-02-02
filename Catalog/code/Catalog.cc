@@ -4,7 +4,12 @@
 #include "Schema.h"
 #include "Catalog.h"
 #include <sqlite3.h>
-
+#include "DataStructure.h"
+#include "DataStructure.cc"
+#include "EfficientMap.h"
+#include "EfficientMap.cc"
+#include "Keyify.h"
+#include "Keyify.cc"
 using namespace std;
 
 int Catalog::openDatabase(const char * _filename) {
@@ -42,8 +47,11 @@ Catalog::Catalog(string& _fileName) {
 		pushMe.setName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
 		pushMe.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
 		pushMe.setTuples(sqlite3_column_int(stmt, 2));
+		cout<<pushMe.getName()<<pushMe.getPath()<<pushMe.getTuples()<<endl;
 		rc = sqlite3_step(stmt);
+		cout<<"low"<<endl;
 	}
+	cout<<"high"<<endl;
 	// MetaAttributes
 
 }
@@ -96,14 +104,14 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	for (int i = 0; i < size; i++) {
 
 		sql ="SELECT * FROM catalog.sqlitemaster WHERE type = 'table';
-		ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);*/
+		ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
 	// count # of attributes in table
 	int count = 0;	
 	sqlite3_stmt* stmt;
 	char* path = "catalog.db";
 
-	/*** Part 1: Create Table ***/
+	// Part 1: Create Table 
 
 	// code to grab all table names from catalog.db
 	// if table already exists, do not create table
@@ -140,7 +148,7 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 		}
 	}
 
-	/*** Part 2: Create Table ***/
+	// Part 2: Create Table 
 
 	// insert statement and push data into metaTables table in catalog 
 	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " + 
@@ -153,6 +161,7 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 			"VALUES (" + _table + ", ";
 		sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
 	}
+	*/
 	
 }
 
