@@ -58,13 +58,20 @@ public:
 };
 
 // Catalog objects that holds informations regarding both tables of the catalog
-/*class catalogTables {
+class catalogTables {
 private:
 	// Might swap over to InefficientMap?
 	// Map storage of the master table info
 	EfficientMap<KeyString , tableInfo> tables;
 	// Map storage of the attributes info
 	EfficientMap<KeyString , attsInfo>  atts;
+
+public:
+	//void insert_tables(KeyString key, tableInfo data);
+	//void insert_atts(KeyString key, tableInfo data);
+
+	EfficientMap<KeyString , tableInfo>& getMapTable();
+	EfficientMap<KeyString, attsInfo>& getMapAtts();
 };
-*/
+
 #endif 
