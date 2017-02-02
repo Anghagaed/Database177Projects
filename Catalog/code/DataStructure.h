@@ -5,45 +5,66 @@
 #ifndef _DataStructure_H
 #define _DataStructure_H
 //# include "InefficientMap.h"
-//# include "EffcientMap.h"
-//# include "Keyify.h"
+# include "EfficientMap.h"
+# include "Keyify.h"
 # include "Config.h"
+# include "Swap.h"
 # include <string>
 # include <iostream>
 using namespace std;
-
-struct tableInfo { 
+// Data Structure to stores the Table Info of the Catalog
+// Built with compatibility with EfficientMap and InEfficientMap in mind
+class tableInfo {
+private:
 	string name;
 	string path;
 	int nuTuples;
-
+public:
+	tableInfo();
 	tableInfo(string na, string pa, int tu);
-};
+	void Swap(tableInfo& withMe);
+	void CopyFrom(tableInfo& withMe);
 
-struct attsInfo { 
+	// Interfacing with the object
+	void setName(string na);
+	void setPath(string pa);
+	void setTuples(int tu);
+
+	string getName();
+	string getPath();
+	int getTuples();
+};
+// Data Structure to stores the Atts Info of the Catalog
+// Built with compatibility with EfficientMap and InEfficientMap in mind
+class attsInfo { 
+private:
 	string name;
 	Type type;
 	int disVal;
-
+public:
+	attsInfo();
 	attsInfo(string na, Type ty, int di);
+	void Swap(attsInfo& withMe);
+	void CopyFrom(attsInfo& withMe);
+
+	// Interfacing with the object
+	void setName(string na);
+	void setType(Type ty);
+	void setDistinct(int di);
+
+	string getName();
+	Type getType();
+	int getDistinct();
 };
 
-/* Test to ensure it works
-int main() {  
-	
-	tableInfo x("test", "NULL", 0);
-	
-	cout<<x.name<<endl;
-	cout<<x.path<<endl;
-	cout<<x.nuTuples<<endl;
-
-	attsInfo y("test", Float, 5);
-
-	cout<<y.name<<endl;
-	cout<<y.type<<endl;
-	cout<<y.disVal<<endl;
-
-	return 0;
-}
+// Catalog objects that holds informations regarding both tables of the catalog
+/*class catalogTables {
+private:
+	// Might swap over to InefficientMap?
+	// Map storage of the master table info
+	EfficientMap<KeyString , tableInfo> tables;
+	// Map storage of the attributes info
+	EfficientMap<KeyString , attsInfo>  atts;
+};
 */
 #endif 

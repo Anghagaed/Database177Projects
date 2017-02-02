@@ -28,7 +28,7 @@
 //
 //      bar1 = 12;
 //      bar2 = 43;
-//      foo.Insert (bar1, bar2);
+//      foo.Inser	t (bar1, bar2);
 //      ...
 //
 // SPECIAL NOTE: ONLY USE THESE TEMPLATES WITH SIMPLE TYPES (int, double, etc.)
