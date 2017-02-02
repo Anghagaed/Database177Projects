@@ -21,7 +21,7 @@ void Catalog::closeDatabase() {
 	sqlite3_close(db);
 }
 
-void Catalog::Query(const char * _sql) {
+void Catalog::query(const char * _sql) {
 	rc = sqlite3_prepare_v2(db, _sql, -1, &stmt, NULL);
 	if ( rc != SQLITE_OK ) {
 		cout << "Error Preparing Query: " << endl;
@@ -30,9 +30,19 @@ void Catalog::Query(const char * _sql) {
 }
 
 Catalog::Catalog(string& _fileName) {
+	const int colNum;
 	openDatabase(_fileName.c_str());
 	// MetaTables
-
+	char * sql= "SELECT * FROM metaTables;";
+	query(sql);
+	rc = sqlite3_step(stmt);
+	while ( rc == SQLITE_ROW ) {
+		tableInfo pushMe;
+		pushMe.setName(sqlite3_column_text(stmt, 0));
+		pushMe.setPath(sqlite3_column_text(stmt, 1));
+		pushMe.setTuples(sqlite3_column_int(stmt, 2));
+		rc = sqlite3_step(stmt);
+	}
 	// MetaAttributes
 
 }
