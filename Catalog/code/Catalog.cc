@@ -3,6 +3,7 @@
 
 #include "Schema.h"
 #include "Catalog.h"
+#include <sqlite3.h>
 
 using namespace std;
 
@@ -11,7 +12,7 @@ int Catalog::openDatabase(const char * _filename) {
 	// Testing and printing error if it happens
 	if ( rc != SQLITE_OK ) {
 		cout << "Error opening database connection: " << endl;
-		cout << sqlite3_errstr ( rv ) << endl;
+		cout << sqlite3_errstr(rc) << endl;
 	}
 	// Returning the return code 
 	return rc;
@@ -25,12 +26,12 @@ void Catalog::query(const char * _sql) {
 	rc = sqlite3_prepare_v2(db, _sql, -1, &stmt, NULL);
 	if ( rc != SQLITE_OK ) {
 		cout << "Error Preparing Query: " << endl;
-		cout << slqite3_errstr ( rc ) << endl;
+		cout << sqlite3_errstr(rc) << endl;
 	}
 }
 
 Catalog::Catalog(string& _fileName) {
-	const int colNum;
+	const int colNum = 0;
 	openDatabase(_fileName.c_str());
 	// MetaTables
 	char * sql= "SELECT * FROM metaTables;";
@@ -38,8 +39,8 @@ Catalog::Catalog(string& _fileName) {
 	rc = sqlite3_step(stmt);
 	while ( rc == SQLITE_ROW ) {
 		tableInfo pushMe;
-		pushMe.setName(sqlite3_column_text(stmt, 0));
-		pushMe.setPath(sqlite3_column_text(stmt, 1));
+		pushMe.setName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		pushMe.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
 		pushMe.setTuples(sqlite3_column_int(stmt, 2));
 		rc = sqlite3_step(stmt);
 	}

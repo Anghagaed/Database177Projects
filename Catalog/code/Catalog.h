@@ -2,11 +2,12 @@
 #define _CATALOG_H
 /*
 	makefile ADDED GCC:
-	g++ DataStructure.h DataStructure.cc EfficientMap.h EfficientMap.cc Keyify.h Keyify.cc Config.h Swap.h 
+	g++ DataStructure.h DataStructure.cc EfficientMap.h EfficientMap.cc Keyify.h Keyify.cc Config.h Swap.h Catalog.h Catalog.cc Schema.h Schema.cc main.cc -l sqlite3 -o a
 */
 #include <string>
 #include <vector>
 #include <iostream>
+#include <sqlite3.h>
 
 #include "Schema.h"
 #include "DataStructure.h"
@@ -31,7 +32,7 @@ private:
 	 char* errMsg;
 	 sqlite3_stmt* stmt;
 	 /* SQLITE Interfacing Functions */
-	 void openDatabase(const char * _filename);
+	 int openDatabase(const char * _filename);
 	 void closeDatabase();
 	 void query(const char * _sql);
 public:
