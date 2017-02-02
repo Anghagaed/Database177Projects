@@ -5,8 +5,6 @@
 #ifndef _DataStructure_H
 #define _DataStructure_H
 //# include "InefficientMap.h"
-# include "EfficientMap.h"
-# include "Keyify.h"
 # include "Config.h"
 # include "Swap.h"
 # include <string>
@@ -56,7 +54,7 @@ public:
 	Type getType();
 	int getDistinct();
 };
-
+/*
 // Catalog objects that holds informations regarding both tables of the catalog
 class catalogTables {
 private:
@@ -73,5 +71,5 @@ public:
 	EfficientMap<KeyString , tableInfo>& getMapTable();
 	EfficientMap<KeyString, attsInfo>& getMapAtts();
 };
-
+*/
 #endif 
