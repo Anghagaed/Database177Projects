@@ -36,6 +36,7 @@ public:
 	int getTuples();
 	Schema& getSchema();
 };
+/* Made Obselete by Attributes in Schema.h
 // Data Structure to stores the Atts Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
 class attsInfo { 
@@ -59,6 +60,7 @@ public:
 	Type getType();
 	int getDistinct();
 };
+*/
 /*
 // Catalog objects that holds informations regarding both tables of the catalog
 class catalogTables {

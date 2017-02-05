@@ -57,7 +57,7 @@ int tableInfo::getTuples() {
 Schema& tableInfo::getSchema() {
 	return listOfAtts;
 }
-
+/*
 attsInfo::attsInfo() {
 	name = "";
 	disVal = 0;
@@ -104,3 +104,4 @@ Type attsInfo::getType() {
 int attsInfo::getDistinct() {
 	return disVal;
 }
+*/
