@@ -4,8 +4,8 @@
 */
 #ifndef _DataStructure_H
 #define _DataStructure_H
-//# include "InefficientMap.h"
 # include "Config.h"
+# include "Schema.h"
 # include "Swap.h"
 # include <string>
 # include <iostream>
@@ -17,6 +17,8 @@ private:
 	string name;
 	string path;
 	int nuTuples;
+	Schema listOfAtts;
+	
 public:
 	tableInfo();
 	tableInfo(string na, string pa, int tu);
@@ -27,10 +29,12 @@ public:
 	void setName(string na);
 	void setPath(string pa);
 	void setTuples(int tu);
-
+	void setSchema(const Schema& _other);
+	
 	string getName();
 	string getPath();
 	int getTuples();
+	Schema& getSchema();
 };
 // Data Structure to stores the Atts Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
@@ -39,6 +43,7 @@ private:
 	string name;
 	Type type;
 	int disVal;
+	
 public:
 	attsInfo();
 	attsInfo(string na, Type ty, int di);

@@ -38,6 +38,10 @@ void tableInfo::setTuples(int tu) {
 	nuTuples = tu;
 }
 
+void tableInfo::setSchema(const Schema& _other) {
+	listOfAtts = _other;
+}
+
 string tableInfo::getName() {
 	return name;
 }
@@ -48,6 +52,10 @@ string tableInfo::getPath() {
 
 int tableInfo::getTuples() {
 	return nuTuples;
+}
+
+Schema& tableInfo::getSchema() {
+	return listOfAtts;
 }
 
 attsInfo::attsInfo() {
