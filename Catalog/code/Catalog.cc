@@ -129,27 +129,29 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
-	//string name = this.getname();
-	int i = this.table.size();
-	int j = 0;
-	while (i)
+	int i = 0;//used to traverse vector of strings called _tables
+	this.MoveToStart();//set catalog iterator to starting position
+	while (i<this.curDepth)//while iterator is less than depth of catalog
 	{
-		this.table.push_back(_tables.begin + j);
-		j++;
-		i--;
+		_tables.begin() + i = this.current.name;
+		this.Advance();
+		i++;
 	}
+	this.MoveToStart();//resetting the traverser to be nice
 }
 
-bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)
-{// do this, return by reference
+bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
+{// do this
 	bool check=false;
-	for (int i = 0; i < this.tableesize(); i++)
+	int i = 0;
+	while(i<this.curDepth)
 	{
 		if (this.begin + i == _table)
 		{
 			check=true;
 			break;
 		}
+		i++;
 	}
 	if (check)
 	{
