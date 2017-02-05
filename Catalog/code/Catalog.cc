@@ -125,36 +125,32 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
-	int i = 0;//used to traverse vector of strings called _tables
 	this.MoveToStart();//set catalog iterator to starting position
-	while (i<this.curDepth)//while iterator is less than depth of catalog
+	while (this.list.current!=this.list.end)//while iterator is less than depth of catalog
 	{
-		_tables.begin() + i = this.current.name;
+		_tables.push_back(this.current.name);
 		this.Advance();
-		i++;
 	}
 	this.MoveToStart();//resetting the traverser to be nice
 }
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
 {// do this
-	bool check=false;
-	int i = 0;
-	while(i<this.curDepth)
+	//int i = 0;
+	this.MoveToStart();
+	KeyString key(_table);
+	Data check = find(key);
+	if (check!=NULL)
 	{
-		if (this.begin + i == _table)
+		while (this.list.current != this.list.end)
 		{
-			check=true;
-			break;
+			_attributes.push_back(check.list.);//this is not correct, need more explanation of how datastructure works. Supposed to add attribute to _attributes
+			check.list.Advance();//same
 		}
-		i++;
+			
+		return true;
 	}
-	if (check)
-	{
-		for (int i = 0; i < _attributes.size(); i++)
-			this.attribute.push_back(_attributes.begin + i);
-	}
-	return check;
+	return false;
 }
 
 bool Catalog::GetSchema(string& _table, Schema& _schema) {
