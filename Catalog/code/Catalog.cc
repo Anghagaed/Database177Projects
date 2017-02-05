@@ -49,11 +49,7 @@ Catalog::Catalog(string& _fileName) {
 		pushMe.setTuples(sqlite3_column_int(stmt, 2));
 		cout<<pushMe.getName()<<pushMe.getPath()<<pushMe.getTuples()<<endl;
 		rc = sqlite3_step(stmt);
-		cout<<"low"<<endl;
 	}
-	cout<<"high"<<endl;
-	// MetaAttributes
-
 }
 
 Catalog::~Catalog() {
