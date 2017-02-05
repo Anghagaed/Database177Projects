@@ -42,21 +42,84 @@ Catalog::Catalog(string& _fileName) {
 	char * sql= "SELECT * FROM metaTables;";
 	query(sql);
 	rc = sqlite3_step(stmt);
+	cout << endl << "Now at metaTables " << endl;
+	while ( rc == SQLITE_ROW ) {	
+		tableInfo pushData;
+		
+		// Getting the information from SQLITE
+		// Organize in SQLITE in the following order:
+		// table_name | data_Location | total_Tuples
+		pushData.setName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		pushData.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+		pushData.setTuples(sqlite3_column_int(stmt, 2));
+		KeyString pushKey(pushData.getName());
+		
+		// Testing printing purpose
+		cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
+		
+		// Pushing stuff into map
+		tables.Insert(pushKey, pushData);
+		// Step to new tuples if it exist
+		rc = sqlite3_step(stmt);
+	}
+	
+	cout << endl << "Testing if Map was successfully inserted" << endl;
+	KeyString test("nation");
+	if (tables.IsThere(test))
+		cout<<"nations exist in Map"<<endl;
+	KeyString kep("region");
+	if (tables.IsThere(kep))
+		cout<<"region exist in Map"<<endl;
+	
+	cout << endl << "Now at metaAttributes" << endl;
+	cout << "Values of type: " << endl;
+	cout << "Integer: " << Integer << endl;
+	cout << "Float: " << Float << endl;
+	cout << "String: " << String << endl;
+	cout << "Name: " << Name << endl;
+	sql = "SELECT * from metaAttributes;";
+	query(sql);
+	rc = sqlite3_step(stmt);
 	while ( rc == SQLITE_ROW ) {
-		tableInfo pushMe;
-		pushMe.setName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-		pushMe.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-		pushMe.setTuples(sqlite3_column_int(stmt, 2));
-		cout<<pushMe.getName()<<pushMe.getPath()<<pushMe.getTuples()<<endl;
+		Attribute pushData;
+		
+		// Getting the information from SQLITE
+		// Organize in SQLITE in the following order:
+		// table_name | attribute_name | type | total_distinct
+		KeyString tableName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		pushData.name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+		pushData.noDistinct = sqlite3_column_int(stmt, 3);
+		
+		// Figure out which enum it falls under
+		string test = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+		
+		if (test == "Integer") pushData.type = Integer;
+		else if (test == "Float") pushData.type = Float;
+		else if (test == "String") pushData.type = String;
+		else if (test == "Name") pushData.type = Name;
+		
+		// Testing printing purpose
+		cout << tableName << ": ";
+		cout << pushData.name << " " << pushData.type << " " << pushData.noDistinct << endl;
+		
+		// Pushing attributes into schema
+		if (tables.IsThere(tableName)) {
+			tableInfo& toUse = tables.Find(tableName);
+			Schema& schem = toUse.getSchema();
+			Schema toPush(pushData);
+			schem.append(Schema )
+		}
 		rc = sqlite3_step(stmt);
 	}
 }
 
 Catalog::~Catalog() {
+	
 	closeDatabase();
 }
 
 bool Catalog::Save() {
+	return true;
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
@@ -102,7 +165,8 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
-	/*unsigned int& _noDistinct) {
+	unsigned int& _noDistinct) {
+	/*
 	if (!atts.IsThere(_table))
 		return false;
 	else
@@ -125,6 +189,7 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
+
 	int i = 0;//used to traverse vector of strings called _tables
 	this.MoveToStart();//set catalog iterator to starting position
 	while (i<this.curDepth)//while iterator is less than depth of catalog
@@ -134,10 +199,12 @@ void Catalog::GetTables(vector<string>& _tables)
 		i++;
 	}
 	this.MoveToStart();//resetting the traverser to be nice
+
 }
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
 {// do this
+
 	bool check=false;
 	int i = 0;
 	while(i<this.curDepth)
@@ -155,6 +222,7 @@ bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assumi
 			this.attribute.push_back(_attributes.begin + i);
 	}
 	return check;
+
 }
 
 bool Catalog::GetSchema(string& _table, Schema& _schema) {
@@ -163,7 +231,7 @@ bool Catalog::GetSchema(string& _table, Schema& _schema) {
 
 bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
 	
-	/*int size = 100;
+	int size = 100;
 	String sqlArr[size];
 
 	for (int i = 0; i < size; i++) {
@@ -226,8 +294,8 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 			"VALUES (" + _table + ", ";
 		sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
 	}
-	*/
 	
+	return true;
 }
 
 bool Catalog::DropTable(string& _table) {
