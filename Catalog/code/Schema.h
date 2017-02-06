@@ -51,7 +51,8 @@ public:
 	Schema& operator=(const Schema& _other);
 	// swap function
 	void Swap(Schema& _other);
-
+	// clear function
+	void Clear();
 	// destructor
 	virtual ~Schema() {atts.clear();}
 

@@ -66,6 +66,10 @@ void Schema::Swap(Schema& _other) {
 	atts.swap(_other.atts);
 }
 
+void Schema::Clear() {
+	atts.clear();
+}
+
 int Schema::Append(Schema& _other) {
 	for (int i = 0; i < _other.atts.size(); i++) {
 		int pos = Index(_other.atts[i].name);
