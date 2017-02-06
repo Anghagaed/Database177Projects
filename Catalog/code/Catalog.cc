@@ -10,6 +10,7 @@
 #include "EfficientMap.cc"
 #include "Keyify.h"
 #include "Keyify.cc"
+//#include ""
 using namespace std;
 
 int Catalog::openDatabase(const char * _filename) {
@@ -43,7 +44,7 @@ Catalog::Catalog(string& _fileName) {
 	query(sql);
 	rc = sqlite3_step(stmt);
 
-	cout << endl << "Now at metaTables " << endl;
+	//cout << endl << "Now at metaTables " << endl;
 	while ( rc == SQLITE_ROW ) {	
 		tableInfo pushData;
 		
@@ -56,14 +57,14 @@ Catalog::Catalog(string& _fileName) {
 		KeyString pushKey(pushData.getName());
 		
 		// Testing printing purpose
-		cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
+		//cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
 		
 		// Pushing stuff into map
 		tables.Insert(pushKey, pushData);
 		// Step to new tuples if it exist
 		rc = sqlite3_step(stmt);
 	}
-	
+	/*
 	cout << endl << "Testing if Map was successfully inserted" << endl;
 	KeyString nation("nation");
 	if (tables.IsThere(nation))
@@ -81,26 +82,15 @@ Catalog::Catalog(string& _fileName) {
 	sql = "SELECT * from metaAttributes;";
 	query(sql);
 	rc = sqlite3_step(stmt);
-	
-	tableInfo& toUse = tables.Find(nation);
-	Schema* schem1 = &(toUse.getSchema());
-	//cout<<"Nations: "<<schem1.GetNumAtts()<<endl;
-	toUse = tables.Find(region);
-	Schema* schem2 = &(toUse.getSchema());
-	//cout<<"Regions: "<<schem2.GetNumAtts()<<endl;
-	cout<<"Two tableInfo object address"<<endl;
-	tableInfo* p1 = &(tables.Find(nation));
-	tableInfo* p2 = &(tables.Find(region));
-	cout<<p1<<endl;
-	cout<<p2<<endl;
-	cout<<"The schema object address that each tableInfo object has"<<endl;
-	cout<<schem1<<endl;
-	cout<<schem2<<endl;
-	
-	// Vector for appending into schema
-	//vector<string> name, type;
-	//vector<string> tableName;
-	//vector<unsigned int> distinct;
+	*/
+	/*
+	tableInfo& toUse1 = tables.Find(nation);
+	Schema* schem1 = &(toUse1.getSchema());
+	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
+	tableInfo& toUse2 = tables.Find(region);
+	Schema* schem2 = &(toUse2.getSchema());
+	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
+	*/
 	while ( rc == SQLITE_ROW ) {
 		
 		// Getting the information from SQLITE
@@ -119,13 +109,19 @@ Catalog::Catalog(string& _fileName) {
 			tableInfo& toUse = tables.Find(tableName);
 			Schema& schem = toUse.getSchema();
 			Schema toPush(name, type, distinct);
+			//cout<<toPush<<endl;
 			schem.Append(toPush);
 		}
 		name.clear();
 		type.clear();
 		distinct.clear();
 	}
-		
+	/*
+	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
+	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
+	cout<<toUse1.getSchema()<<endl;
+	cout<<toUse2.getSchema()<<endl;
+	*/
 }
 
 Catalog::~Catalog() {
@@ -181,7 +177,8 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
-	/*unsigned int& _noDistinct) {
+	unsigned int& _noDistinct) {
+	/*
 	if (!atts.IsThere(_table))
 		return false;
 	else
@@ -194,6 +191,7 @@ bool Catalog::GetNoDistinct(string& _table, string& _attribute,
 }
 void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
+		/*
 	Keyify<string> key(_table);
 	if (!atts.IsThere(key))
 	{
@@ -202,6 +200,7 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	}
 	else
 		atts.Find(key).setDistinct(_noDistinct);
+	*/
 }
 
 void Catalog::GetTables(vector<string>& _tables) 
@@ -220,6 +219,7 @@ void Catalog::GetTables(vector<string>& _tables)
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
 {// do this
+/*
 	//int i = 0;
 	//this.MoveToStart();
 	KeyString key(_table);
@@ -236,6 +236,7 @@ bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assumi
 			
 		return true;
 	}
+	*/
 	return false;
 }
 
@@ -244,7 +245,7 @@ bool Catalog::GetSchema(string& _table, Schema& _schema) {
 }
 
 bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
-
+/*
 	String sqlArr[size];
 
 	for (int i = 0; i < size; i++) {
@@ -307,6 +308,7 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	"VALUES (" + _table + ", ";
 	sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
 	}
+	*/
 	return true;
 
 }

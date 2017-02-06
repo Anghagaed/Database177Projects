@@ -15,15 +15,18 @@ tableInfo::tableInfo(string na, string pa, int tu) {
 };
 
 void tableInfo::Swap(tableInfo& withMe) {
-	SWAP(name, withMe.name);
-	SWAP(path, withMe.path);
-	SWAP(nuTuples, withMe.nuTuples);
+	SWAP(name, withMe.getName());
+	SWAP(path, withMe.getPath());
+	SWAP(nuTuples, withMe.getTuples());
+	SWAP(listOfAtts, withMe.getSchema());
 }
 
 void tableInfo::CopyFrom(tableInfo& withMe) {
-	this->name = withMe.name;
-	this->path = withMe.path;
-	this->nuTuples = withMe.nuTuples;
+	this->name = withMe.getName();
+	this->path = withMe.getPath();
+	this->nuTuples = withMe.getTuples();
+	this->listOfAtts.Clear();
+	this->listOfAtts = withMe.getSchema();
 }
 
 void tableInfo::setName(string na) {
@@ -42,15 +45,15 @@ void tableInfo::setSchema(const Schema& _other) {
 	listOfAtts = _other;
 }
 
-string tableInfo::getName() {
+string& tableInfo::getName() {
 	return name;
 }
 
-string tableInfo::getPath() {
+string& tableInfo::getPath() {
 	return path;
 }
 
-int tableInfo::getTuples() {
+int& tableInfo::getTuples() {
 	return nuTuples;
 }
 
