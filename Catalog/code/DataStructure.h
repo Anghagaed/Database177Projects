@@ -13,11 +13,11 @@ using namespace std;
 // Data Structure to stores the Table Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
 class tableInfo {
-private:
-	string name;
-	string path;
-	int nuTuples;
-	Schema listOfAtts;
+private:	
+	string name;																							// metaTable info 
+	string path;																							// metaTable info
+	int nuTuples;																							// metaTable info
+	Schema listOfAtts;																						// This schema class is used to stores information regarding the metaAtrtibutes
 	
 public:
 	tableInfo();

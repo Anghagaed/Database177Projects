@@ -126,7 +126,6 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
 	this.MoveToStart();//set catalog iterator to starting position
-	while (this.list.current!=this.list.end)//while iterator is less than depth of catalog
 	{
 		_tables.push_back(this.current.name);
 		this.Advance();
@@ -142,7 +141,6 @@ bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assumi
 	Data check = find(key);
 	if (check!=NULL)
 	{
-		while (this.list.current != this.list.end)
 		{
 			_attributes.push_back(check.list.);//this is not correct, need more explanation of how datastructure works. Supposed to add attribute to _attributes
 			check.list.Advance();//same
