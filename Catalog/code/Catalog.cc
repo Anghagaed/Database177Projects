@@ -269,11 +269,11 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 	// append to sql string for each table/ type
 	for (int i = 0; i < _attributes.size(); i++) {
-	if (_attributeTypes == int || _attributeTypes = float) {
+	if (_attributeTypes == SQLITE_INTEGER || _attributeTypes = SQLITE_FLOAT) {
 	sql += _attributes[i] + " " + _attributeTypes[i] + " (10000) NOT NULL";
 	count++;
 	}
-	else if (_attributeTypes == String) {
+	else if (_attributeTypes == SQLITE_TEXT) {
 	sql += _attributes[i] + " " + _attributeTypes[i] + " (500) NOT NULL";
 	count++;
 	}
@@ -291,7 +291,7 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	}
 	}
 
-	// Part 2: Create Table
+	// Part 2: Insert to Meta Table
 
 	// insert statement and push data into metaTables table in catalog
 	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " +
