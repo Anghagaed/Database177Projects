@@ -79,11 +79,7 @@ Catalog::Catalog(string& _fileName) {
 	cout << "Float: " << Float << endl;
 	cout << "String: " << String << endl;
 	cout << "Name: " << Name << endl;
-	sql = "SELECT * from metaAttributes;";
-	query(sql);
-	rc = sqlite3_step(stmt);
-	*/
-	/*
+	
 	tableInfo& toUse1 = tables.Find(nation);
 	Schema* schem1 = &(toUse1.getSchema());
 	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
@@ -91,6 +87,9 @@ Catalog::Catalog(string& _fileName) {
 	Schema* schem2 = &(toUse2.getSchema());
 	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
 	*/
+	sql = "SELECT * from metaAttributes;";
+	query(sql);
+	rc = sqlite3_step(stmt);
 	while ( rc == SQLITE_ROW ) {
 		
 		// Getting the information from SQLITE
