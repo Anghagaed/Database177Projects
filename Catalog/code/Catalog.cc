@@ -15,7 +15,7 @@ using namespace std;
 int Catalog::openDatabase(const char * _filename) {
 	rc = sqlite3_open(_filename, &db);
 	// Testing and printing error if it happens
-	if ( rc != SQLITE_OK ) {
+	if (rc != SQLITE_OK) {
 		cout << "Error opening database connection: " << endl;
 		cout << sqlite3_errstr(rc) << endl;
 	}
@@ -29,7 +29,7 @@ void Catalog::closeDatabase() {
 
 void Catalog::query(const char * _sql) {
 	rc = sqlite3_prepare_v2(db, _sql, -1, &stmt, NULL);
-	if ( rc != SQLITE_OK ) {
+	if (rc != SQLITE_OK) {
 		cout << "Error Preparing Query: " << endl;
 		cout << sqlite3_errstr(rc) << endl;
 	}
@@ -39,17 +39,93 @@ Catalog::Catalog(string& _fileName) {
 	const int colNum = 0;
 	openDatabase(_fileName.c_str());
 	// MetaTables
-	char * sql= "SELECT * FROM metaTables;";
+	char * sql = "SELECT * FROM metaTables;";
 	query(sql);
 	rc = sqlite3_step(stmt);
-	while ( rc == SQLITE_ROW ) {
-		tableInfo pushMe;
-		pushMe.setName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
-		pushMe.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
-		pushMe.setTuples(sqlite3_column_int(stmt, 2));
-		cout<<pushMe.getName()<<pushMe.getPath()<<pushMe.getTuples()<<endl;
+
+	cout << endl << "Now at metaTables " << endl;
+	while ( rc == SQLITE_ROW ) {	
+		tableInfo pushData;
+		
+		// Getting the information from SQLITE
+		// Organize in SQLITE in the following order:
+		// table_name | data_Location | total_Tuples
+		pushData.setName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		pushData.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+		pushData.setTuples(sqlite3_column_int(stmt, 2));
+		KeyString pushKey(pushData.getName());
+		
+		// Testing printing purpose
+		cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
+		
+		// Pushing stuff into map
+		tables.Insert(pushKey, pushData);
+		// Step to new tuples if it exist
 		rc = sqlite3_step(stmt);
 	}
+	
+	cout << endl << "Testing if Map was successfully inserted" << endl;
+	KeyString nation("nation");
+	if (tables.IsThere(nation))
+		cout<<"nations exist in Map"<<endl;
+	KeyString region("region");
+	if (tables.IsThere(region))
+		cout<<"region exist in Map"<<endl;
+	
+	cout << endl << "Now at metaAttributes" << endl;
+	cout << "Values of type: " << endl;
+	cout << "Integer: " << Integer << endl;
+	cout << "Float: " << Float << endl;
+	cout << "String: " << String << endl;
+	cout << "Name: " << Name << endl;
+	sql = "SELECT * from metaAttributes;";
+	query(sql);
+	rc = sqlite3_step(stmt);
+	
+	tableInfo& toUse = tables.Find(nation);
+	Schema* schem1 = &(toUse.getSchema());
+	//cout<<"Nations: "<<schem1.GetNumAtts()<<endl;
+	toUse = tables.Find(region);
+	Schema* schem2 = &(toUse.getSchema());
+	//cout<<"Regions: "<<schem2.GetNumAtts()<<endl;
+	cout<<"Two tableInfo object address"<<endl;
+	tableInfo* p1 = &(tables.Find(nation));
+	tableInfo* p2 = &(tables.Find(region));
+	cout<<p1<<endl;
+	cout<<p2<<endl;
+	cout<<"The schema object address that each tableInfo object has"<<endl;
+	cout<<schem1<<endl;
+	cout<<schem2<<endl;
+	
+	// Vector for appending into schema
+	//vector<string> name, type;
+	//vector<string> tableName;
+	//vector<unsigned int> distinct;
+	while ( rc == SQLITE_ROW ) {
+		
+		// Getting the information from SQLITE
+		// Organize in SQLITE in the following order:
+		// table_name | attribute_name | type | total_distinct
+		//tableName.push_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		vector<string> name, type;
+		vector<unsigned int> distinct;
+		KeyString tableName(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0)));
+		name.push_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
+		distinct.push_back(sqlite3_column_int(stmt, 3));
+		type.push_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)));
+		rc = sqlite3_step(stmt);
+
+		if (tables.IsThere(tableName)) {
+			tableInfo& toUse = tables.Find(tableName);
+			Schema& schem = toUse.getSchema();
+			Schema toPush(name, type, distinct);
+			schem.Append(toPush);
+		}
+		name.clear();
+		type.clear();
+		distinct.clear();
+	}
+		
 }
 
 Catalog::~Catalog() {
@@ -60,45 +136,48 @@ bool Catalog::Save() {
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
-	/*if (!tables.IsThere(_table))
+	Keyify<string> key(_table);
+	if (!tables.IsThere(key))
 		return false;
 	else
 	{
-		*_noTuples = tables.Find(_table).getTuples();
+		_noTuples = tables.Find(key).getTuples();
 		return true;
-	}*/
-	return true;
+	}
 }
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
-	/*if (!tables.IsThere(_table))
+	Keyify<string> key(_table);
+	if (!tables.IsThere(key))
 	{
 		//Insert Error Message Here
 		return;
 	}
 	else
-		tables.Find(_table).setTuples(*_noTuples);*/
+		tables.Find(key).setTuples(_noTuples);
 }
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
-	/*if (!tables.IsThere(_table))
+	Keyify<string> key(_table);
+	if (!tables.IsThere(key))
 		return false;
 	else
 	{
-		*_path = tables.Find(_table).getPath();
+		_path = tables.Find(key).getPath();
 		return true;
-	}*/
+	}
 	return true;
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
-	/*if (!tables.IsThere(_table))
+	Keyify<string> key(_table);
+	if (!tables.IsThere(key))
 	{
 		//Insert Error Message Here
 		return;
 	}
 	else
-		tables.Find(_table).setPath(*_path);*/
+		tables.Find(key).setPath(_path);
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
@@ -107,30 +186,35 @@ bool Catalog::GetNoDistinct(string& _table, string& _attribute,
 		return false;
 	else
 	{
-		*_noDistinct = atts.Find(_table).getDistinct();
+		_noDistinct = atts.Find(key).getDistinct();
 		return true;
-	}*/
+	}
+	*/
 	return true;
 }
 void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
-	/*if (!atts.IsThere(_table))
+	Keyify<string> key(_table);
+	if (!atts.IsThere(key))
 	{
 		//Insert Error Message Here
 		return;
 	}
 	else
-		atts.Find(_table).setDistinct(*_noDistinct);*/
+		atts.Find(key).setDistinct(_noDistinct);
 }
 
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
+
+/*
 	this.MoveToStart();//set catalog iterator to starting position
 	{
 		_tables.push_back(this.current.name);
 		this.Advance();
 	}
 	this.MoveToStart();//resetting the traverser to be nice
+*/
 }
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
@@ -156,72 +240,71 @@ bool Catalog::GetSchema(string& _table, Schema& _schema) {
 }
 
 bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
-	
-	/*int size = 100;
+
 	String sqlArr[size];
 
 	for (int i = 0; i < size; i++) {
 
-		sql ="SELECT * FROM catalog.sqlitemaster WHERE type = 'table';
-		ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+	sql ="SELECT * FROM catalog.sqlitemaster WHERE type = 'table';
+	ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
 
 	// count # of attributes in table
-	int count = 0;	
+	int count = 0;
 	sqlite3_stmt* stmt;
 	char* path = "catalog.db";
 
-	// Part 1: Create Table 
+	// Part 1: Create Table
 
 	// code to grab all table names from catalog.db
 	// if table already exists, do not create table
 	if (_table == table) {
-		return false;
+	return false;
 	}
 	// if table does not exist, create table
 	else {
 
 
-		sql = "CREATE TABLE " + _table + "(";
+	sql = "CREATE TABLE " + _table + "(";
 
-		// append to sql string for each table/ type 
-		for (int i = 0; i < _attributes.size(); i++) {
-			if (_attributeTypes == int || _attributeTypes = float) {
-				sql += _attributes[i] + " " + _attributeTypes[i] + " (10000) NOT NULL";
-				count++;
-			}
-			else if (_attributeTypes == String) {
-				sql += _attributes[i] + " " + _attributeTypes[i] + " (500) NOT NULL";
-				count++;
-			}
-		} 
-		
-		sql += ");";
-
-		// Execute SQL statement 
-		rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
-		if (rc != SQLITE_OK) {
-			cout << "SQL error" << endl;
-		}
-		else {
-			return true;
-		}
+	// append to sql string for each table/ type
+	for (int i = 0; i < _attributes.size(); i++) {
+	if (_attributeTypes == int || _attributeTypes = float) {
+	sql += _attributes[i] + " " + _attributeTypes[i] + " (10000) NOT NULL";
+	count++;
+	}
+	else if (_attributeTypes == String) {
+	sql += _attributes[i] + " " + _attributeTypes[i] + " (500) NOT NULL";
+	count++;
+	}
 	}
 
-	// Part 2: Create Table 
+	sql += ");";
 
-	// insert statement and push data into metaTables table in catalog 
-	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " + 
-			"VALUES (" + _table + ", TestData.db, + 0);";
+	// Execute SQL statement
+	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+	if (rc != SQLITE_OK) {
+	cout << "SQL error" << endl;
+	}
+	else {
+	return true;
+	}
+	}
 
-	// insert statement and push data into metaAttributes table in catalog 
-	// create new insert statement per attribute 
+	// Part 2: Create Table
+
+	// insert statement and push data into metaTables table in catalog
+	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " +
+	"VALUES (" + _table + ", TestData.db, + 0);";
+
+	// insert statement and push data into metaAttributes table in catalog
+	// create new insert statement per attribute
 	for (int i = 0; i < count; i++) {
-		sqlAtt = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) " +
-			"VALUES (" + _table + ", ";
-		sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
+	sqlAtt = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) " +
+	"VALUES (" + _table + ", ";
+	sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
 	}
-	*/
-	
+	return true;
+
 }
 
 bool Catalog::DropTable(string& _table) {
