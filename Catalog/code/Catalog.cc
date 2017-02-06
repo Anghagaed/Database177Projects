@@ -207,27 +207,31 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
 
-/*
+
 	this.MoveToStart();//set catalog iterator to starting position
+	while(this.list.current!=this.list.end)
 	{
 		_tables.push_back(this.current.name);
 		this.Advance();
 	}
 	this.MoveToStart();//resetting the traverser to be nice
-*/
+
 }
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
 {// do this
 	//int i = 0;
-	this.MoveToStart();
+	//this.MoveToStart();
 	KeyString key(_table);
-	Data check = find(key);
-	if (check!=NULL)
+	if (isThere(key))
 	{
+		tableInfo check = find(key);
+		Schema temp = check.getSchema();
+		vector<Attribute> fart = temp.getAtts();
+		vector<Attrribute>::iterator it;
+		for(it=fart.begin(); it!= fart.end(); it++)
 		{
-			_attributes.push_back(check.list.);//this is not correct, need more explanation of how datastructure works. Supposed to add attribute to _attributes
-			check.list.Advance();//same
+			_attributes.push_back(it.name);
 		}
 			
 		return true;
