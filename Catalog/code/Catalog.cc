@@ -138,7 +138,7 @@ bool Catalog::Save() {
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
-	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
 	else
@@ -150,9 +150,10 @@ bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		//Insert Error Message Here
+		cout << "Error: _table not found!" << endl;
 		return;
 	}
 	else
@@ -161,6 +162,7 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
 	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
 	else
@@ -168,14 +170,14 @@ bool Catalog::GetDataFile(string& _table, string& _path) {
 		_path = tables.Find(key).getPath();
 		return true;
 	}
-	return true;
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
 	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		//Insert Error Message Here
+		cout << "Error: _table not found!" << endl;
 		return;
 	}
 	else
@@ -184,27 +186,31 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
-	/*
-	if (!atts.IsThere(_table))
+	KeyString key(_table);
+	if (!tables.IsThere(key))
 		return false;
 	else
 	{
-		_noDistinct = atts.Find(key).getDistinct();
+		Schema schema = tables.Find(key).getSchema();
+		_noDistinct = schema.GetDistincts(_attribute);
 		return true;
 	}
-	*/
-	return true;
 }
 void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
-	Keyify<string> key(_table);
-	if (!atts.IsThere(key))
+	KeyString key(_table);
+	if (!tables.IsThere(key))
 	{
-		//Insert Error Message Here
+		cout << "Error: _table not found!" << endl;
 		return;
 	}
 	else
-		atts.Find(key).setDistinct(_noDistinct);
+	{
+		Schema schema = tables.Find(key).getSchema();
+		int index = schema.Index(_attribute);
+		vector<Attribute> atts = schema.GetAtts();
+		atts[index].noDistinct = _noDistinct;
+	}
 }
 
 void Catalog::GetTables(vector<string>& _tables) 
