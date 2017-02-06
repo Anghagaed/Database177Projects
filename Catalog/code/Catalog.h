@@ -25,7 +25,6 @@ private:
 	 * Avoid linear traversals when possible.
 	 */
 	 EfficientMap<KeyString , tableInfo> tables;
-	 EfficientMap<KeyString , attsInfo> atts;
 	 /* SQLITE Interfacing parameters */
 	 sqlite3 *db;
 	 int rc;

@@ -4,8 +4,8 @@
 */
 #ifndef _DataStructure_H
 #define _DataStructure_H
-//# include "InefficientMap.h"
 # include "Config.h"
+# include "Schema.h"
 # include "Swap.h"
 # include <string>
 # include <iostream>
@@ -13,10 +13,12 @@ using namespace std;
 // Data Structure to stores the Table Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
 class tableInfo {
-private:
-	string name;
-	string path;
-	int nuTuples;
+private:	
+	string name;																							// metaTable info 
+	string path;																							// metaTable info
+	int nuTuples;																							// metaTable info
+	Schema listOfAtts;																						// This schema class is used to stores information regarding the metaAtrtibutes
+	
 public:
 	tableInfo();
 	tableInfo(string na, string pa, int tu);
@@ -27,11 +29,14 @@ public:
 	void setName(string na);
 	void setPath(string pa);
 	void setTuples(int tu);
-
+	void setSchema(const Schema& _other);
+	
 	string getName();
 	string getPath();
 	int getTuples();
+	Schema& getSchema();
 };
+/* Made Obselete by Attributes in Schema.h
 // Data Structure to stores the Atts Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
 class attsInfo { 
@@ -39,6 +44,7 @@ private:
 	string name;
 	Type type;
 	int disVal;
+	
 public:
 	attsInfo();
 	attsInfo(string na, Type ty, int di);
@@ -54,6 +60,7 @@ public:
 	Type getType();
 	int getDistinct();
 };
+*/
 /*
 // Catalog objects that holds informations regarding both tables of the catalog
 class catalogTables {
