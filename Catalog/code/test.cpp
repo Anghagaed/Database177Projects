@@ -10,6 +10,8 @@
 #include "DataStructure.h"
 #include <iostream>
 #include <string>
+//#include <Catalog.h>
+#include <Catalog.cc>
 
 using namespace std;
 
@@ -49,5 +51,9 @@ int main(int argc, char** argv) {
 	string testString = "r_regionkey";
 	if (kk.GetDistincts(testString) == s.GetDistincts(testString)) 
 		cout<<"testString 1: True"<<endl;
+	Catalog derp=Catalog(test);
+	vector<string> Shitter;//empty string to store getTables in
+	derp.getTables(Shitter);
+	//derp.getAttributes();
 	return 0;
 }
