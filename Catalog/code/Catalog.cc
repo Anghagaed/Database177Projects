@@ -10,6 +10,7 @@
 #include "EfficientMap.cc"
 #include "Keyify.h"
 #include "Keyify.cc"
+//#include ""
 using namespace std;
 
 int Catalog::openDatabase(const char * _filename) {
@@ -43,7 +44,7 @@ Catalog::Catalog(string& _fileName) {
 	query(sql);
 	rc = sqlite3_step(stmt);
 
-	cout << endl << "Now at metaTables " << endl;
+	//cout << endl << "Now at metaTables " << endl;
 	while ( rc == SQLITE_ROW ) {	
 		tableInfo pushData;
 		
@@ -56,14 +57,14 @@ Catalog::Catalog(string& _fileName) {
 		KeyString pushKey(pushData.getName());
 		
 		// Testing printing purpose
-		cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
+		//cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
 		
 		// Pushing stuff into map
 		tables.Insert(pushKey, pushData);
 		// Step to new tuples if it exist
 		rc = sqlite3_step(stmt);
 	}
-	
+	/*
 	cout << endl << "Testing if Map was successfully inserted" << endl;
 	KeyString nation("nation");
 	if (tables.IsThere(nation))
@@ -78,29 +79,17 @@ Catalog::Catalog(string& _fileName) {
 	cout << "Float: " << Float << endl;
 	cout << "String: " << String << endl;
 	cout << "Name: " << Name << endl;
+	
+	tableInfo& toUse1 = tables.Find(nation);
+	Schema* schem1 = &(toUse1.getSchema());
+	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
+	tableInfo& toUse2 = tables.Find(region);
+	Schema* schem2 = &(toUse2.getSchema());
+	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
+	*/
 	sql = "SELECT * from metaAttributes;";
 	query(sql);
 	rc = sqlite3_step(stmt);
-	
-	tableInfo& toUse = tables.Find(nation);
-	Schema* schem1 = &(toUse.getSchema());
-	//cout<<"Nations: "<<schem1.GetNumAtts()<<endl;
-	toUse = tables.Find(region);
-	Schema* schem2 = &(toUse.getSchema());
-	//cout<<"Regions: "<<schem2.GetNumAtts()<<endl;
-	cout<<"Two tableInfo object address"<<endl;
-	tableInfo* p1 = &(tables.Find(nation));
-	tableInfo* p2 = &(tables.Find(region));
-	cout<<p1<<endl;
-	cout<<p2<<endl;
-	cout<<"The schema object address that each tableInfo object has"<<endl;
-	cout<<schem1<<endl;
-	cout<<schem2<<endl;
-	
-	// Vector for appending into schema
-	//vector<string> name, type;
-	//vector<string> tableName;
-	//vector<unsigned int> distinct;
 	while ( rc == SQLITE_ROW ) {
 		
 		// Getting the information from SQLITE
@@ -119,22 +108,26 @@ Catalog::Catalog(string& _fileName) {
 			tableInfo& toUse = tables.Find(tableName);
 			Schema& schem = toUse.getSchema();
 			Schema toPush(name, type, distinct);
+			//cout<<toPush<<endl;
 			schem.Append(toPush);
 		}
 		name.clear();
 		type.clear();
 		distinct.clear();
 	}
-		
+	/*
+	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
+	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
+	cout<<toUse1.getSchema()<<endl;
+	cout<<toUse2.getSchema()<<endl;
+	*/
 }
 
 Catalog::~Catalog() {
-	
 	closeDatabase();
 }
 
 bool Catalog::Save() {
-	return true;
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
@@ -215,42 +208,39 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 
 void Catalog::GetTables(vector<string>& _tables) 
 {//do this, return by reference
-/*
-	int i = 0;//used to traverse vector of strings called _tables
+
+
 	this.MoveToStart();//set catalog iterator to starting position
-	while (i<this.curDepth)//while iterator is less than depth of catalog
+	while(this.list.current!=this.list.end)
 	{
-		_tables.begin() + i = this.current.name;
+		_tables.push_back(this.current.name);
 		this.Advance();
-		i++;
 	}
 	this.MoveToStart();//resetting the traverser to be nice
-*/
+
 }
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
 {// do this
-/* delete this line
-	bool check=false;
-	int i = 0;
-	while(i<this.curDepth)
+/*
+	//int i = 0;
+	//this.MoveToStart();
+	KeyString key(_table);
+	if (isThere(key))
 	{
-		if (this.begin + i == _table)
+		tableInfo check = find(key);
+		Schema temp = check.getSchema();
+		vector<Attribute> fart = temp.getAtts();
+		vector<Attrribute>::iterator it;
+		for(it=fart.begin(); it!= fart.end(); it++)
 		{
-			check=true;
-			break;
+			_attributes.push_back(it.name);
 		}
-		i++;
+			
+		return true;
 	}
-	if (check)
-	{
-		for (int i = 0; i < _attributes.size(); i++)
-			this.attribute.push_back(_attributes.begin + i);
-	}
-	return check;
-delete this line */
-	return true;
-
+	*/
+	return false;
 }
 
 bool Catalog::GetSchema(string& _table, Schema& _schema) {
@@ -258,6 +248,7 @@ bool Catalog::GetSchema(string& _table, Schema& _schema) {
 }
 
 bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
+/*
 	String sqlArr[size];
 
 	for (int i = 0; i < size; i++) {
@@ -320,7 +311,9 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	"VALUES (" + _table + ", ";
 	sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
 	}
+	*/
 	return true;
+
 }
 
 bool Catalog::DropTable(string& _table) {

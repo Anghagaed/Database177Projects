@@ -31,9 +31,9 @@ public:
 	void setTuples(int tu);
 	void setSchema(const Schema& _other);
 	
-	string getName();
-	string getPath();
-	int getTuples();
+	string& getName();
+	string& getPath();
+	int& getTuples();
 	Schema& getSchema();
 };
 /* Made Obselete by Attributes in Schema.h

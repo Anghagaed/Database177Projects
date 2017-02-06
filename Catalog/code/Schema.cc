@@ -35,9 +35,9 @@ Schema::Schema(vector<string>& _attributes,	vector<string>& _attributeTypes,
 		Attribute a;
 		a.name = _attributes[i];
 		a.noDistinct = _distincts[i];
-		if (_attributeTypes[i] == "INTEGER") a.type = Integer;
-		else if (_attributeTypes[i] == "FLOAT") a.type = Float;
-		else if (_attributeTypes[i] == "STRING") a.type = String;
+		if (_attributeTypes[i] == "Integer") a.type = Integer;
+		else if (_attributeTypes[i] == "Float") a.type = Float;
+		else if (_attributeTypes[i] == "String") a.type = String;
 		
 		atts.push_back(a);
 	}
@@ -64,6 +64,10 @@ Schema& Schema::operator=(const Schema& _other) {
 
 void Schema::Swap(Schema& _other) {
 	atts.swap(_other.atts);
+}
+
+void Schema::Clear() {
+	atts.clear();
 }
 
 int Schema::Append(Schema& _other) {
