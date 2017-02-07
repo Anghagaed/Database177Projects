@@ -142,7 +142,7 @@ bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
 }
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
-	Keyify<string> key(_table);
+	/*Keyify<string> key(_table);
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
@@ -150,11 +150,11 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 		return;
 	}
 	else
-		tables.Find(key).setTuples(_noTuples);
+		tables.Find(key).setTuples(_noTuples);*/
 }
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
-	Keyify<string> key(_table);
+	/*Keyify<string> key(_table);
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
@@ -162,11 +162,11 @@ bool Catalog::GetDataFile(string& _table, string& _path) {
 	{
 		_path = tables.Find(key).getPath();
 		return true;
-	}
+	}*/
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
-	Keyify<string> key(_table);
+	/*Keyify<string> key(_table);
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
@@ -174,7 +174,7 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 		return;
 	}
 	else
-		tables.Find(key).setPath(_path);
+		tables.Find(key).setPath(_path);*/
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
@@ -221,24 +221,23 @@ void Catalog::GetTables(vector<string>& _tables)
 
 bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assuming _table is already filled and we need to fill _attributes and _table is a key
 {// do this
-/*
+
 	//int i = 0;
-	//this.->tables.MoveToStart();
+	
 	KeyString key(_table);
-	if (this.tables.isThere(key))
+	if (tables.IsThere(key))
 	{
-		tableInfo check = this.tables.find(key);
+		tableInfo check = tables.Find(key);
 		Schema temp = check.getSchema();
-		vector<Attribute> fart = temp.getAtts();
-		vector<Attrribute>::iterator it;
-		for(it=fart.begin(); it!= fart.end(); it++)
+		vector<Attribute> fart = temp.GetAtts();
+		for(int i = 0; i<fart.size(); i++)
 		{
-			_attributes.push_back(it.name);
+			_attributes.push_back(fart[i].name);
 		}
 			
 		return true;
 	}
-	*/
+	
 	return false;
 }
 
