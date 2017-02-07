@@ -142,7 +142,7 @@ bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
 }
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
-	/*Keyify<string> key(_table);
+
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
@@ -150,11 +150,11 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 		return;
 	}
 	else
-		tables.Find(key).setTuples(_noTuples);*/
+		tables.Find(key).setTuples(_noTuples);
 }
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
-	/*Keyify<string> key(_table);
+
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
@@ -162,11 +162,11 @@ bool Catalog::GetDataFile(string& _table, string& _path) {
 	{
 		_path = tables.Find(key).getPath();
 		return true;
-	}*/
+	}
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
-	/*Keyify<string> key(_table);
+
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
@@ -174,7 +174,7 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 		return;
 	}
 	else
-		tables.Find(key).setPath(_path);*/
+		tables.Find(key).setPath(_path);
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
