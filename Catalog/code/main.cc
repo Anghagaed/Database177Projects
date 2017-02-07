@@ -40,11 +40,11 @@ int main () {
 	keep.push_back(5);
 	keep.push_back(0);
 	s2.Project(keep);
-
+/*
 	cout << s << endl;
 	cout << s1 << endl;
 	cout << s2 << endl;
-
+*/
 
 	string dbFile = "Catalog.sqlite";
 	Catalog c(dbFile);

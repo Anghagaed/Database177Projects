@@ -79,11 +79,7 @@ Catalog::Catalog(string& _fileName) {
 	cout << "Float: " << Float << endl;
 	cout << "String: " << String << endl;
 	cout << "Name: " << Name << endl;
-	sql = "SELECT * from metaAttributes;";
-	query(sql);
-	rc = sqlite3_step(stmt);
-	*/
-	/*
+	
 	tableInfo& toUse1 = tables.Find(nation);
 	Schema* schem1 = &(toUse1.getSchema());
 	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
@@ -91,6 +87,9 @@ Catalog::Catalog(string& _fileName) {
 	Schema* schem2 = &(toUse2.getSchema());
 	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
 	*/
+	sql = "SELECT * from metaAttributes;";
+	query(sql);
+	rc = sqlite3_step(stmt);
 	while ( rc == SQLITE_ROW ) {
 		
 		// Getting the information from SQLITE
@@ -132,7 +131,7 @@ bool Catalog::Save() {
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
-	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
 	else
@@ -144,9 +143,10 @@ bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		//Insert Error Message Here
+		cout << "Error: _table not found!" << endl;
 		return;
 	}
 	else
@@ -155,6 +155,7 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
 	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
 	else
@@ -162,14 +163,14 @@ bool Catalog::GetDataFile(string& _table, string& _path) {
 		_path = tables.Find(key).getPath();
 		return true;
 	}
-	return true;
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
 	Keyify<string> key(_table);
+	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		//Insert Error Message Here
+		cout << "Error: _table not found!" << endl;
 		return;
 	}
 	else
@@ -178,29 +179,31 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
-	/*
-	if (!atts.IsThere(_table))
+	KeyString key(_table);
+	if (!tables.IsThere(key))
 		return false;
 	else
 	{
-		_noDistinct = atts.Find(key).getDistinct();
+		Schema schema = tables.Find(key).getSchema();
+		_noDistinct = schema.GetDistincts(_attribute);
 		return true;
 	}
-	*/
-	return true;
 }
 void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
-		/*
-	Keyify<string> key(_table);
-	if (!atts.IsThere(key))
+	KeyString key(_table);
+	if (!tables.IsThere(key))
 	{
-		//Insert Error Message Here
+		cout << "Error: _table not found!" << endl;
 		return;
 	}
 	else
-		atts.Find(key).setDistinct(_noDistinct);
-	*/
+	{
+		Schema schema = tables.Find(key).getSchema();
+		int index = schema.Index(_attribute);
+		vector<Attribute> atts = schema.GetAtts();
+		atts[index].noDistinct = _noDistinct;
+	}
 }
 
 void Catalog::GetTables(vector<string>& _tables) 
@@ -272,11 +275,11 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 	// append to sql string for each table/ type
 	for (int i = 0; i < _attributes.size(); i++) {
-	if (_attributeTypes == int || _attributeTypes = float) {
+	if (_attributeTypes == SQLITE_INTEGER || _attributeTypes = SQLITE_FLOAT) {
 	sql += _attributes[i] + " " + _attributeTypes[i] + " (10000) NOT NULL";
 	count++;
 	}
-	else if (_attributeTypes == String) {
+	else if (_attributeTypes == SQLITE_TEXT) {
 	sql += _attributes[i] + " " + _attributeTypes[i] + " (500) NOT NULL";
 	count++;
 	}
@@ -294,7 +297,7 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	}
 	}
 
-	// Part 2: Create Table
+	// Part 2: Insert to Meta Table
 
 	// insert statement and push data into metaTables table in catalog
 	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " +
