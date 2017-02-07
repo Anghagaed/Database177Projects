@@ -142,7 +142,6 @@ bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
 }
 
 void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
-	Keyify<string> key(_table);
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
@@ -154,7 +153,6 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 }
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
-	Keyify<string> key(_table);
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 		return false;
@@ -166,7 +164,6 @@ bool Catalog::GetDataFile(string& _table, string& _path) {
 }
 
 void Catalog::SetDataFile(string& _table, string& _path) {
-	Keyify<string> key(_table);
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
