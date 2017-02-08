@@ -1,6 +1,0 @@
-Specification of the requirements is expressed in Project-1-Requirements.pdf
-
-Leaders:		Amar Saini
-Supporting Members:	Hang Liang, Jaspal Sing, Jacob Cavish, Yun Chul Chang, Anne-Sophie Nguyen
-
-Hang Liang provided codes (example.cpp) detailing basics on interfacing with a database using sqlite on C++. 

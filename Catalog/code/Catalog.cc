@@ -132,8 +132,11 @@ bool Catalog::Save() {
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
 	KeyString key(_table);
-	if (!tables.IsThere(key))
+	if (!tables.IsThere(key)) {
+		cout << "Error --- " << _table << " not found!" << endl;
 		return false;
+	}
+
 	else
 	{
 		_noTuples = tables.Find(key).getTuples();
@@ -146,7 +149,7 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		cout << "Error: _table not found!" << endl;
+		cout << "Error --- " << _table << " not found!" << endl;
 		return;
 	}
 	else
@@ -156,8 +159,11 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 bool Catalog::GetDataFile(string& _table, string& _path) {
 
 	KeyString key(_table);
-	if (!tables.IsThere(key))
+	if (!tables.IsThere(key)) {
+		cout << "Error --- " << _table << " not found!" << endl;
 		return false;
+	}
+
 	else
 	{
 		_path = tables.Find(key).getPath();
@@ -170,7 +176,7 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		cout << "Error: _table not found!" << endl;
+		cout << "Error --- " << _table << " not found!" << endl;
 		return;
 	}
 	else
@@ -180,12 +186,14 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
 	unsigned int& _noDistinct) {
 	KeyString key(_table);
-	if (!tables.IsThere(key))
+	if (!tables.IsThere(key)) {
+		cout << "Error --- " << _table << " not found!" << endl;
 		return false;
+	}
+
 	else
 	{
-		Schema schema = tables.Find(key).getSchema();
-		_noDistinct = schema.GetDistincts(_attribute);
+		_noDistinct = tables.Find(key).getSchema().GetDistincts(_attribute);
 		return true;
 	}
 }
@@ -194,15 +202,13 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	KeyString key(_table);
 	if (!tables.IsThere(key))
 	{
-		cout << "Error: _table not found!" << endl;
+		cout << "Error --- " << _table << " not found!" << endl;
 		return;
 	}
 	else
 	{
-		Schema schema = tables.Find(key).getSchema();
-		int index = schema.Index(_attribute);
-		vector<Attribute> atts = schema.GetAtts();
-		atts[index].noDistinct = _noDistinct;
+		int index = tables.Find(key).getSchema().Index(_attribute);
+		tables.Find(key).getSchema().GetAtts()[index].noDistinct = _noDistinct;
 	}
 }
 
@@ -227,9 +233,7 @@ bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assumi
 	KeyString key(_table);
 	if (tables.IsThere(key))
 	{
-		tableInfo check = tables.Find(key);
-		Schema temp = check.getSchema();
-		vector<Attribute> fart = temp.GetAtts();
+		vector<Attribute> fart = tables.Find(key).getSchema().GetAtts();
 		for(int i = 0; i<fart.size(); i++)
 		{
 			_attributes.push_back(fart[i].name);
@@ -237,16 +241,59 @@ bool Catalog::GetAttributes(string& _table, vector<string>& _attributes)//assumi
 			
 		return true;
 	}
-	
+	cout << "Error --- " << _table << " not found!" << endl;
 	return false;
 }
 
 bool Catalog::GetSchema(string& _table, Schema& _schema) {
+
+	KeyString key(_table);
+	if (!tables.IsThere(key)) {
+		cout << "Error --- " << _table << " not found!" << endl;
+		return false;
+	}
+
+	else
+	{
+		_schema = tables.Find(key).getSchema();
+		return true;
+	}
+
 	return true;
 }
 
 bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
-/*
+
+	KeyString tableKey(_table);
+
+	if (tables.IsThere(tableKey) == 1) {
+		cout << "Error --- " << _table << " already exists!" << endl;
+		return false;
+	}
+
+
+	tableInfo tableData;
+
+	tableData.setName(_table);
+	tableData.setTuples(0);
+	tableData.setPath("New Path");
+
+	vector<unsigned int> distincts;
+	for (int i = 0; i < _attributes.size(); i++) {
+		distincts.push_back(0);
+	}
+
+
+	Schema tableSchema(_attributes, _attributeTypes, distincts);
+
+	tableData.setSchema(tableSchema);
+
+
+	tables.Insert(tableKey, tableData);
+	
+	return true;
+
+	/*
 	String sqlArr[size];
 
 	for (int i = 0; i < size; i++) {
@@ -310,14 +357,54 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
 	}
 	*/
-	return true;
 
 }
 
 bool Catalog::DropTable(string& _table) {
+
+	KeyString tableKey(_table);
+
+	if (tables.IsThere(tableKey) == 0) {
+		cout << "Error --- " << _table << " not found!" << endl;
+		return false;
+	}
+
+	KeyString tempK;
+	tableInfo tempT;
+
+	tables.Remove(tableKey, tempK, tempT);
+
 	return true;
 }
 
 ostream& operator<<(ostream& _os, Catalog& _c) {
+
+	cout << endl;
+	_os << "-------------------Printing Catalog-------------------" << endl;
+
+	_c.tables.MoveToStart();
+
+	while (!_c.tables.AtEnd()) {
+
+		_os << "Table: " << _c.tables.CurrentData().getName() << "\t";
+		_os << "noTuples: " << _c.tables.CurrentData().getTuples() << "\t";
+		_os << "dataPath: " << _c.tables.CurrentData().getPath() << endl;
+
+		vector<Attribute> atts = _c.tables.CurrentData().getSchema().GetAtts();
+
+		for (int i = 0; i < atts.size(); i++) {
+
+			cout << "\t" << "Attribute: " << atts[i].name << "\t";
+			cout << "Type: " << convertType(atts[i].type) << "\t\t";
+			cout << "noDistincts: " << atts[i].noDistinct << endl;
+
+		}
+
+		_c.tables.Advance();
+
+	}
+
+	_c.tables.MoveToStart();
+
 	return _os;
 }

@@ -60,6 +60,27 @@ int& tableInfo::getTuples() {
 Schema& tableInfo::getSchema() {
 	return listOfAtts;
 }
+
+string convertType(Type typeI) {
+	string typeS;
+
+	switch (typeI) {
+	case Integer:
+		typeS = "INTEGER";
+		break;
+	case Float:
+		typeS = "FLOAT";
+		break;
+	case String:
+		typeS = "STRING";
+		break;
+	default:
+		typeS = "Unknown";
+		break;
+	}
+
+	return typeS;
+}
 /*
 attsInfo::attsInfo() {
 	name = "";

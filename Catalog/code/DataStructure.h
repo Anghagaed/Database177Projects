@@ -35,7 +35,11 @@ public:
 	string& getPath();
 	int& getTuples();
 	Schema& getSchema();
+
 };
+
+string convertType(Type typeI);
+
 /* Made Obselete by Attributes in Schema.h
 // Data Structure to stores the Atts Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
