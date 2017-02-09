@@ -153,7 +153,28 @@ void Catalog::saveDrop(string& t_name) {
 }
 
 void Catalog::saveAdd(string& t_name) {
-	
+	KeyString key(t_name);
+	tableInfo& toUse = tables.Find(key);
+
+	string sql = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) VALUES (?,?,?);";
+	query(sql.c_str());
+
+	sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
+	sqlite3_bind_text(stmt, 2, toUse.getPath(), -1, NULL);
+	sqlite3_bind_int(stmt, 3, toUse.getTuples());
+
+	rc = sqlite3_step(stmt);
+
+	vector <Attribute> attribute = toUse.getSchema().GetAtts();
+	for (int i = 0; i < attribute.size(); ++i)
+	{
+		sql = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) VALUES (?,?,?,?);";
+		sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
+		sqlite3_bind_text(stmt, 2, attribute[i].name.c_str(), -1, NULL);
+		sqlite3_bind_text(stmt, 3, convertType(attribute[i].getType()).c_str(), -1 , NULL);
+		sqlite3_bind_int(stmt, 4, attribute[i].noDistinct);
+		rc = sqlite3_step(stmt);
+	}
 }
 
 void Catalog::saveUpdate(string& t_name) {
