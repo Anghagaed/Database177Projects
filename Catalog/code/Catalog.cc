@@ -145,23 +145,31 @@ void Catalog::saveAdd(string& t_name) {
 void Catalog::saveUpdate(string& t_name) {
 	KeyString key(t_name);
 	tableInfo& toUse = tables.Find(key);
-	Schem& schem = toUse.getSchema();
+	Schema& schem = toUse.getSchema();
 	if (toUse.getChangedT()) {
 		char * sql = "UPDATE metaTables SET dataLocation = ?, totalTuples = ? WHERE t_name=?;";
 		query(sql);
 		
 		sqlite3_bind_text(stmt, 1, (toUse.getPath()).c_str(), -1, NULL);
-		sqlite3_bind_int(stmt, 2, (toUse.getTuples()), -1, NULL);
+		sqlite3_bind_int(stmt, 2, (toUse.getTuples()));
 		sqlite3_bind_text(stmt, 3, (toUse.getName()).c_str(), -1, NULL);
 		
 		rc = sqlite3_step(stmt);
 	}
-	
+	vector<Attribute>& atts = schem.GetAtts();
 	if (toUse.getChangedA()) {
-		char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name = ? AND a_name = ?;";
-		query(sql);
-		
-		sqlite3_bind_int(stmt, 1, schem.)
+		unsigned int size = schem.GetNumAtts();
+		for (int i = 0; i < size; ++i) {
+			if (atts[i].changed) {
+				char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name=? AND a_name=?;";
+				
+				sqlite3_bind_int(stmt, 1, (atts[i].noDistinct));
+				sqlite3_bind_text(stmt, 2, toUse.getName().c_str(), -1, NULL);
+				sqlite3_bind_text(stmt, 3, atts[i].name);
+				
+				rc = sqlite3_step(stmt);
+			}
+		}
 	}
 }
 
