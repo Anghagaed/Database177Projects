@@ -129,6 +129,8 @@ bool Catalog::Save() {
 
 		}
 
+		tables.Advance();
+
 		
 
 	}
@@ -348,13 +350,16 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 	tableData.setSchema(tableSchema);
 
+	tableData.setAdd(true);
 
 	tables.Insert(tableKey, tableData);
-
-	tables.Find(tableKey).setAdd(true);
 	
+	string fileName = "../Binary Files/";
+	fileName += _table;
+	fileName += ".bin";
+
 	ofstream newFile;
-	newFile.open("a.bin", ios::binary);
+	newFile.open(fileName.c_str(), ios::binary);
 	if (newFile.is_open()) {
 		cout << "YAY";
 	}
