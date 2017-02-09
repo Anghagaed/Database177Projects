@@ -27,7 +27,6 @@ void tableInfo::Swap(tableInfo& withMe) {
 	SWAP(listOfAtts, withMe.getSchema());
 	SWAP(changedTables, withMe.getChangedT());
 	SWAP(changedAttributes, withMe.getChangedA());
-	SWAP(drop, withMe.getDrop());
 	SWAP(add, withMe.getAdd());
 }
 
@@ -40,7 +39,6 @@ void tableInfo::CopyFrom(tableInfo& withMe) {
 	this->changedTables = withMe.getChangedT();
 	this->changedAttributes = withMe.getChangedA();
 	this->add = withMe.getAdd();
-	this->drop = withMe.getDrop();
 }
 
 void tableInfo::setName(string na) {
@@ -65,10 +63,6 @@ void tableInfo::setChangedA(bool changed) {
 
 void tableInfo::setChangedT(bool changed) {
 	this->changedTables = changed;
-}
-
-void tableInfo::setDrop(bool drop) {
-	this->drop = drop;
 }
 
 void tableInfo::setAdd(bool add) {
@@ -101,10 +95,6 @@ bool& tableInfo::getChangedT() {
 
 bool& tableInfo::getAdd() {
 	return add;
-}
-
-bool& tableInfo::getDrop() {
-	return drop;
 }
 
 string convertType(Type typeI) {
