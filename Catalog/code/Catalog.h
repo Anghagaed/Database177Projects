@@ -24,16 +24,24 @@ private:
 	 * Efficient data structures are recommended.
 	 * Avoid linear traversals when possible.
 	 */
+	 string _filePath;
 	 EfficientMap<KeyString , tableInfo> tables;
+	 
 	 /* SQLITE Interfacing parameters */
 	 sqlite3 *db;
 	 int rc;
 	 char* errMsg;
 	 sqlite3_stmt* stmt;
+	 
 	 /* SQLITE Interfacing Functions */
 	 int openDatabase(const char * _filename);
 	 void closeDatabase();
 	 void query(const char * _sql);
+	 
+	 // Functions for save
+	 void saveDrop();
+	 void saveAdd();
+	 void saveUpdate();
 public:
 	/* Catalog constructor.
 	 * Initialize the catalog with the persistent data stored in _fileName.

@@ -38,7 +38,8 @@ void Catalog::query(const char * _sql) {
 
 Catalog::Catalog(string& _fileName) {
 	const int colNum = 0;
-	openDatabase(_fileName.c_str());
+	_filePath = _fileName;
+	openDatabase(_filePath.c_str());
 	// MetaTables
 	char * sql = "SELECT * FROM metaTables;";
 	query(sql);
@@ -55,38 +56,12 @@ Catalog::Catalog(string& _fileName) {
 		pushData.setPath(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)));
 		pushData.setTuples(sqlite3_column_int(stmt, 2));
 		KeyString pushKey(pushData.getName());
-		
-		// Testing printing purpose
-		//cout << pushData.getName() << " " << pushData.getPath() << " " << pushData.getTuples() << endl;
-		
+
 		// Pushing stuff into map
 		tables.Insert(pushKey, pushData);
 		// Step to new tuples if it exist
 		rc = sqlite3_step(stmt);
 	}
-	/*
-	cout << endl << "Testing if Map was successfully inserted" << endl;
-	KeyString nation("nation");
-	if (tables.IsThere(nation))
-		cout<<"nations exist in Map"<<endl;
-	KeyString region("region");
-	if (tables.IsThere(region))
-		cout<<"region exist in Map"<<endl;
-	
-	cout << endl << "Now at metaAttributes" << endl;
-	cout << "Values of type: " << endl;
-	cout << "Integer: " << Integer << endl;
-	cout << "Float: " << Float << endl;
-	cout << "String: " << String << endl;
-	cout << "Name: " << Name << endl;
-	
-	tableInfo& toUse1 = tables.Find(nation);
-	Schema* schem1 = &(toUse1.getSchema());
-	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
-	tableInfo& toUse2 = tables.Find(region);
-	Schema* schem2 = &(toUse2.getSchema());
-	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
-	*/
 	sql = "SELECT * from metaAttributes;";
 	query(sql);
 	rc = sqlite3_step(stmt);
@@ -115,19 +90,26 @@ Catalog::Catalog(string& _fileName) {
 		type.clear();
 		distinct.clear();
 	}
-	/*
-	cout<<"Nations: "<<schem1->GetNumAtts()<<endl;
-	cout<<"Regions: "<<schem2->GetNumAtts()<<endl;
-	cout<<toUse1.getSchema()<<endl;
-	cout<<toUse2.getSchema()<<endl;
-	*/
-}
-
-Catalog::~Catalog() {
 	closeDatabase();
 }
 
+Catalog::~Catalog() {
+}
+
 bool Catalog::Save() {
+	
+}
+
+void Catalog::saveDrop() {
+	
+}
+
+void Catalog::saveAdd() {
+	
+}
+
+void Catalog::saveUpdate() {
+	
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
