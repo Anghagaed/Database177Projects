@@ -27,6 +27,7 @@ private:
 	 string _filePath;
 	 EfficientMap<KeyString , tableInfo> tables;
 
+	 vector<string> currentTables;
 	 vector<string> droppedTables;
 	 
 

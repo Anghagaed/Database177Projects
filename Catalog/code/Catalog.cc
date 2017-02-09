@@ -59,6 +59,7 @@ Catalog::Catalog(string& _fileName) {
 		KeyString pushKey(pushData.getName());
 
 		// Pushing stuff into map
+		currentTables.push_back(pushData.getName());
 		tables.Insert(pushKey, pushData);
 		// Step to new tuples if it exist
 		rc = sqlite3_step(stmt);
@@ -101,6 +102,7 @@ bool Catalog::Save() {
 	
 	cout << "Saving... Please Wait..." << endl;
 
+
 	openDatabase(_filePath.c_str());
 
 	for (int i = 0; i < droppedTables.size(); i++) {
@@ -115,31 +117,32 @@ bool Catalog::Save() {
 
 	}
 
-	tables.MoveToStart();
+	for (int i = 0; i < currentTables.size(); i++) {
 
-	while (!tables.AtEnd()) {
+		KeyString tableKey(currentTables[i]);
 
-		if (tables.CurrentData().getAdd()) {
+		if (tables.IsThere(tableKey)) {
 
-			saveAdd(tables.CurrentData().getName());
+			tableInfo& myTable = tables.Find(tableKey);
+
+			if (myTable.getAdd()) {
+
+				saveAdd(myTable.getName());
+
+			}
+
+			else if (myTable.getChangedT()) {
+
+				saveUpdate(myTable.getName());
+
+			}
 
 		}
-
-		else if (tables.CurrentData().getChangedT()) {
-
-			saveUpdate(tables.CurrentData().getName());
-
-		}
-
-		tables.Advance();
-
-		
 
 	}
 
-	tables.MoveToStart();
 
-	cout << "Done Saving!";
+	cout << "Done Saving!" << endl;
 
 }
 
@@ -382,6 +385,8 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	tableData.setSchema(tableSchema);
 
 	tableData.setAdd(true);
+
+	currentTables.push_back(_table);
 
 	tables.Insert(tableKey, tableData);
 	
