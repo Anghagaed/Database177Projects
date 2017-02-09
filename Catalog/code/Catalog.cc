@@ -111,13 +111,23 @@ void Catalog::saveAdd(string& t_name) {
 void Catalog::saveUpdate(string& t_name) {
 	KeyString key(t_name);
 	tableInfo& toUse = tables.Find(key);
-	
+	Schem& schem = toUse.getSchema();
 	if (toUse.getChangedT()) {
-		sql = "UPDATE ? SET t_name = ?, dataLocation = ?, totalTuples = ? WHERE t_name=?;";
+		char * sql = "UPDATE metaTables SET dataLocation = ?, totalTuples = ? WHERE t_name=?;";
+		query(sql);
+		
+		sqlite3_bind_text(stmt, 1, (toUse.getPath()).c_str(), -1, NULL);
+		sqlite3_bind_int(stmt, 2, (toUse.getTuples()), -1, NULL);
+		sqlite3_bind_text(stmt, 3, (toUse.getName()).c_str(), -1, NULL);
+		
+		rc = sqlite3_step(stmt);
 	}
 	
 	if (toUse.getChangedA()) {
+		char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name = ? AND a_name = ?;";
+		query(sql);
 		
+		sqlite3_bind_int(stmt, 1, schem.)
 	}
 }
 

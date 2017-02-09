@@ -6,10 +6,10 @@
 using namespace std;
 
 
-Attribute::Attribute() : name(""), type(Name), noDistinct(0) {}
+Attribute::Attribute() : name(""), type(Name), noDistinct(0), changed(false) {}
 
 Attribute::Attribute(const Attribute& _other) :
-	name(_other.name), type(_other.type), noDistinct(_other.noDistinct) {}
+	name(_other.name), type(_other.type), noDistinct(_other.noDistinct), changed(false) {}
 
 Attribute& Attribute::operator=(const Attribute& _other) {
 	// handle self-assignment first
@@ -18,6 +18,7 @@ Attribute& Attribute::operator=(const Attribute& _other) {
 	name = _other.name;
 	type = _other.type;
 	noDistinct = _other.noDistinct;
+	changed = _other.changed;
 
 	return *this;
 }
@@ -26,6 +27,7 @@ void Attribute::Swap(Attribute& _other) {
 	STL_SWAP(name, _other.name);
 	SWAP(type, _other.type);
 	SWAP(noDistinct, _other.noDistinct);
+	SWAP(changed, _other.changed);
 }
 
 
