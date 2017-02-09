@@ -98,7 +98,7 @@ bool& tableInfo::getChangedA() {
 }
 
 bool& tableInfo::getChangedT() {
-	return changedTables
+	return changedTables;
 }
 
 bool& tableInfo::getAdd() {

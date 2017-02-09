@@ -20,7 +20,7 @@ private:
 	bool add;																								// Table was added
 	bool drop;																								// Table was dropped
 	bool changedAttributes;																					// Attributes was changed
-	bool changedTable;																						// Table was changed
+	bool changedTables;																						// Table was changed
 	Schema listOfAtts;																						// This schema class is used to stores information regarding the metaAtrtibutes
 	
 public:
