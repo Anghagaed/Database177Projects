@@ -17,6 +17,10 @@ private:
 	string name;																							// metaTable info 
 	string path;																							// metaTable info
 	int nuTuples;																							// metaTable info
+	bool add;																								// Table was added
+	bool drop;																								// Table was dropped
+	bool changedAttributes;																					// Attributes was changed
+	bool changedTable;																						// Table was changed
 	Schema listOfAtts;																						// This schema class is used to stores information regarding the metaAtrtibutes
 	
 public:
@@ -30,11 +34,19 @@ public:
 	void setPath(string pa);
 	void setTuples(int tu);
 	void setSchema(const Schema& _other);
+	void setChangedT(bool changed);
+	void setDrop(bool drop);
+	void setAdd(bool add);
+	void setChangedA(bool changed);
 	
 	string& getName();
 	string& getPath();
 	int& getTuples();
 	Schema& getSchema();
+	bool& getChangedT();
+	bool& getChangedA();
+	bool& getAdd();
+	bool& getDrop();
 
 };
 

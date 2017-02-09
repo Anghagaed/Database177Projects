@@ -6,12 +6,20 @@ tableInfo::tableInfo() {
 	name = "";
 	path = "";
 	nuTuples = 0;
+	changedAttributes = false;
+	drop = false;
+	add = false;
+	changedTables = false;
 }
 
 tableInfo::tableInfo(string na, string pa, int tu) { 
 	name = na;
 	path = pa;
 	nuTuples = tu;
+	changedAttributes = false;
+	drop = false;
+	add = false;
+	changedTables = false;
 };
 
 void tableInfo::Swap(tableInfo& withMe) {
@@ -19,6 +27,10 @@ void tableInfo::Swap(tableInfo& withMe) {
 	SWAP(path, withMe.getPath());
 	SWAP(nuTuples, withMe.getTuples());
 	SWAP(listOfAtts, withMe.getSchema());
+	SWAP(changedTables, withMe.getChangedT());
+	SWAP(changedAttributes, withMe.getChangedA());
+	SWAP(drop, withMe.getDrop());
+	SWAP(add, withMe.getAdd());
 }
 
 void tableInfo::CopyFrom(tableInfo& withMe) {
@@ -27,6 +39,10 @@ void tableInfo::CopyFrom(tableInfo& withMe) {
 	this->nuTuples = withMe.getTuples();
 	this->listOfAtts.Clear();
 	this->listOfAtts = withMe.getSchema();
+	this->changedTables = withMe.getChangedT();
+	this->changedAttributes = withMe.getChangedA();
+	this->add = withMe.getAdd();
+	this->drop = withMe.getDrop();
 }
 
 void tableInfo::setName(string na) {
@@ -45,6 +61,22 @@ void tableInfo::setSchema(const Schema& _other) {
 	listOfAtts = _other;
 }
 
+void tableInfo::setChangedA(bool changed) {
+	this->changedAttributes = changed;
+}
+
+void tableInfo::setChangedT(bool changed) {
+	this->changedTables = changed;
+}
+
+void tableInfo::setDrop(bool drop) {
+	this->drop = drop;
+}
+
+void tableInfo::setAdd(bool add) {
+	this->add = add;
+}
+
 string& tableInfo::getName() {
 	return name;
 }
@@ -59,6 +91,18 @@ int& tableInfo::getTuples() {
 
 Schema& tableInfo::getSchema() {
 	return listOfAtts;
+}
+
+bool& tableInfo::getChanged() {
+	return changed;
+}
+
+bool& tableInfo::getAdd() {
+	return add;
+}
+
+bool& tableInfo::getDrop() {
+	return drop;
 }
 
 string convertType(Type typeI) {
