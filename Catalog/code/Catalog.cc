@@ -167,9 +167,10 @@ void Catalog::saveUpdate(string& t_name) {
 				sqlite3_bind_text(stmt, 2, toUse.getName().c_str(), -1, NULL);
 				sqlite3_bind_text(stmt, 3, atts[i].name);
 				
-				rc = sqlite3_step(stmt);
+				rc = sqlite3_step(stmt)
 			}
 		}
+		
 	}
 }
 
