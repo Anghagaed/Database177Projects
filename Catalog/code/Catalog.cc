@@ -138,7 +138,11 @@ bool Catalog::Save() {
 }
 
 void Catalog::saveDrop(string& t_name) {
+	KeyString key(t_name);
+	tableInfo& toUse = tables.Find(key);
+	Schema& schem = toUse.getSchema();
 	
+	char * sql = "DELETE FROM ";
 }
 
 void Catalog::saveAdd(string& t_name) {
@@ -168,9 +172,9 @@ void Catalog::saveUpdate(string& t_name) {
 				
 				sqlite3_bind_int(stmt, 1, (atts[i].noDistinct));
 				sqlite3_bind_text(stmt, 2, toUse.getName().c_str(), -1, NULL);
-				sqlite3_bind_text(stmt, 3, atts[i].name);
+				sqlite3_bind_text(stmt, 3, atts[i].name.c_str(), -1, NULL);
 				
-				rc = sqlite3_step(stmt)
+				rc = sqlite3_step(stmt);
 			}
 		}
 		
