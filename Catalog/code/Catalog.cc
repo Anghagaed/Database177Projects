@@ -99,6 +99,8 @@ Catalog::~Catalog() {
 
 bool Catalog::Save() {
 	
+	cout << "Saving... Please Wait..." << endl;
+
 	openDatabase(_filePath.c_str());
 
 	for (int i = 0; i < droppedTables.size(); i++) {
@@ -137,6 +139,8 @@ bool Catalog::Save() {
 
 	tables.MoveToStart();
 
+	cout << "Done Saving!";
+
 }
 
 void Catalog::saveDrop(string& t_name) {
@@ -160,18 +164,19 @@ void Catalog::saveAdd(string& t_name) {
 	query(sql.c_str());
 
 	sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
-	sqlite3_bind_text(stmt, 2, toUse.getPath(), -1, NULL);
+	sqlite3_bind_text(stmt, 2, toUse.getPath().c_str(), -1, NULL);
 	sqlite3_bind_int(stmt, 3, toUse.getTuples());
 
 	rc = sqlite3_step(stmt);
 
 	vector <Attribute> attribute = toUse.getSchema().GetAtts();
+	sql = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) VALUES (?,?,?,?);";
+	query(sql.c_str());
 	for (int i = 0; i < attribute.size(); ++i)
 	{
-		sql = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) VALUES (?,?,?,?);";
 		sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
 		sqlite3_bind_text(stmt, 2, attribute[i].name.c_str(), -1, NULL);
-		sqlite3_bind_text(stmt, 3, convertType(attribute[i].getType()).c_str(), -1 , NULL);
+		sqlite3_bind_text(stmt, 3, convertType(attribute[i].type).c_str(), -1 , NULL);
 		sqlite3_bind_int(stmt, 4, attribute[i].noDistinct);
 		rc = sqlite3_step(stmt);
 	}
@@ -194,11 +199,10 @@ void Catalog::saveUpdate(string& t_name) {
 	vector<Attribute>& atts = schem.GetAtts();
 	if (toUse.getChangedA()) {
 		unsigned int size = schem.GetNumAtts();
+		string sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name=? AND a_name=?;";
+		query(sql.c_str());
 		for (int i = 0; i < size; ++i) {
 			if (atts[i].changed) {
-				string sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name=? AND a_name=?;";
-				query(sql.c_str());
-				
 				sqlite3_bind_int(stmt, 1, (atts[i].noDistinct));
 				sqlite3_bind_text(stmt, 2, toUse.getName().c_str(), -1, NULL);
 				sqlite3_bind_text(stmt, 3, atts[i].name.c_str(), -1, NULL);
@@ -387,9 +391,6 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 	ofstream newFile;
 	newFile.open(fileName.c_str(), ios::binary);
-	if (newFile.is_open()) {
-		cout << "YAY";
-	}
 
 	newFile.close();
 

@@ -23,22 +23,7 @@ int main (int argc, char* argv[]) {
 	Catalog catalog(dbFile);
 	cout << catalog << endl; cout.flush();
 
-	string name = "nation";
-	unsigned int tuples = 6000;
 
-	catalog.SetNoTuples(name, tuples);
-
-	cout << catalog << endl; cout.flush();
-
-	name = "region";
-
-	catalog.DropTable(name);
-
-	cout << catalog << endl; cout.flush();
-
-	catalog.Save();
-
-	/*
 	////////////////////////////////
 	for (int i = 0; i < tNo; i++) {
 		char tN[20]; sprintf(tN, "T_%d", i);
@@ -135,7 +120,6 @@ int main (int argc, char* argv[]) {
 		}
 	}
 
-	cout << catalog << endl; cout.flush();
 
 	////////////////////////////////
 	for (int i = 0; i < 5; i++) {
@@ -150,8 +134,6 @@ int main (int argc, char* argv[]) {
 			cout << "DROP TABLE " << tName << " FAIL" << endl;
 		}
 	}
-	
-	cout << catalog << endl; cout.flush();*/
 
 	return 0;
 }
