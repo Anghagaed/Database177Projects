@@ -109,7 +109,16 @@ void Catalog::saveAdd(string& t_name) {
 }
 
 void Catalog::saveUpdate(string& t_name) {
+	KeyString key(t_name);
+	tableInfo& toUse = tables.Find(key);
 	
+	if (toUse.getChangedT()) {
+		sql = "UPDATE ? SET t_name = ?, dataLocation = ?, totalTuples = ? WHERE t_name=?;";
+	}
+	
+	if (toUse.getChangedA()) {
+		
+	}
 }
 
 bool Catalog::GetNoTuples(string& _table, unsigned int& _noTuples) {
