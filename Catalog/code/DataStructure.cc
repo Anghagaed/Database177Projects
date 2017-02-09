@@ -7,7 +7,6 @@ tableInfo::tableInfo() {
 	path = "";
 	nuTuples = 0;
 	changedAttributes = false;
-	drop = false;
 	add = false;
 	changedTables = false;
 }
@@ -17,7 +16,6 @@ tableInfo::tableInfo(string na, string pa, int tu) {
 	path = pa;
 	nuTuples = tu;
 	changedAttributes = false;
-	drop = false;
 	add = false;
 	changedTables = false;
 };
@@ -129,6 +127,7 @@ string convertType(Type typeI) {
 
 	return typeS;
 }
+
 /*
 attsInfo::attsInfo() {
 	name = "";
