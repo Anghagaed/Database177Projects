@@ -42,8 +42,8 @@ Catalog::Catalog(string& _fileName) {
 	_filePath = _fileName;
 	openDatabase(_filePath.c_str());
 	// MetaTables
-	char * sql = "SELECT * FROM metaTables;";
-	query(sql);
+	string sql = "SELECT * FROM metaTables;";
+	query(sql.c_str());
 	rc = sqlite3_step(stmt);
 
 	//cout << endl << "Now at metaTables " << endl;
@@ -144,7 +144,15 @@ void Catalog::saveDrop(string& t_name) {
 	tableInfo& toUse = tables.Find(key);
 	Schema& schem = toUse.getSchema();
 	
-	char * sql = "DELETE FROM ";
+	string sql1 = "DELETE FROM metaAttributes WHERE t_name = ?;";
+	query(sql1.c_str());
+	sqlite3_bind_text(stmt, 1, toUse.getName().c_str(), -1, NULL);
+	sqlite3_step(stmt);
+	
+	string sql2 = "DELETE FROM metaTables WHERE t_name = ?;";
+	query(sql2.c_str());
+	sqlite3_bind_text(stmt, 1, toUse.getName().c_str(), -1, NULL);
+	sqlite3_step(stmt);
 }
 
 void Catalog::saveAdd(string& t_name) {
@@ -156,8 +164,8 @@ void Catalog::saveUpdate(string& t_name) {
 	tableInfo& toUse = tables.Find(key);
 	Schema& schem = toUse.getSchema();
 	if (toUse.getChangedT()) {
-		char * sql = "UPDATE metaTables SET dataLocation = ?, totalTuples = ? WHERE t_name=?;";
-		query(sql);
+		string sql = "UPDATE metaTables SET dataLocation = ?, totalTuples = ? WHERE t_name=?;";
+		query(sql.c_str());
 		
 		sqlite3_bind_text(stmt, 1, (toUse.getPath()).c_str(), -1, NULL);
 		sqlite3_bind_int(stmt, 2, toUse.getTuples());
@@ -170,7 +178,8 @@ void Catalog::saveUpdate(string& t_name) {
 		unsigned int size = schem.GetNumAtts();
 		for (int i = 0; i < size; ++i) {
 			if (atts[i].changed) {
-				char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name=? AND a_name=?;";
+				string sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name=? AND a_name=?;";
+				query(sql.c_str());
 				
 				sqlite3_bind_int(stmt, 1, (atts[i].noDistinct));
 				sqlite3_bind_text(stmt, 2, toUse.getName().c_str(), -1, NULL);
