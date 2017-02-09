@@ -93,8 +93,12 @@ Schema& tableInfo::getSchema() {
 	return listOfAtts;
 }
 
-bool& tableInfo::getChanged() {
-	return changed;
+bool& tableInfo::getChangedA() {
+	return changedAttributes;
+}
+
+bool& tableInfo::getChangedT() {
+	return changedTables
 }
 
 bool& tableInfo::getAdd() {
