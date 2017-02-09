@@ -159,12 +159,20 @@ void Catalog::saveUpdate(string& t_name) {
 		
 		rc = sqlite3_step(stmt);
 	}
-	
+	vector<Attribute>& atts = schem.GetAtts();
 	if (toUse.getChangedA()) {
-		char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name = ? AND a_name = ?;";
-		query(sql);
-		
-		//sqlite3_bind_int(stmt, 1, schem.)
+		unsigned int size = schem.GetNumAtts();
+		for (int i = 0; i < size; ++i) {
+			if (atts[i].changed) {
+				char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name=? AND a_name=?;";
+				
+				sqlite3_bind_int(stmt, 1, (atts[i].noDistinct));
+				sqlite3_bind_text(stmt, 2, toUse.getName().c_str(), -1, NULL);
+				sqlite3_bind_text(stmt, 3, atts[i].name);
+				
+				rc = sqlite3_step(stmt);
+			}
+		}
 	}
 }
 
