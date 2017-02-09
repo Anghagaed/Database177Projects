@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include "sqlite3.h"
 
@@ -98,11 +99,13 @@ Catalog::~Catalog() {
 
 bool Catalog::Save() {
 	
-	openDatabase(_filename);
+	openDatabase(_filePath.c_str());
 
-	for (int i = 0; i < droppedTables.size() i++) {
+	for (int i = 0; i < droppedTables.size(); i++) {
 
-		if (!(tables.IsThere(droppedTables[i]))) {
+		KeyString tableKey(droppedTables[i]);
+
+		if (!(tables.IsThere(tableKey))) {
 
 			saveDrop(droppedTables[i]);
 
@@ -145,13 +148,13 @@ void Catalog::saveAdd(string& t_name) {
 void Catalog::saveUpdate(string& t_name) {
 	KeyString key(t_name);
 	tableInfo& toUse = tables.Find(key);
-	Schem& schem = toUse.getSchema();
+	Schema& schem = toUse.getSchema();
 	if (toUse.getChangedT()) {
 		char * sql = "UPDATE metaTables SET dataLocation = ?, totalTuples = ? WHERE t_name=?;";
 		query(sql);
 		
 		sqlite3_bind_text(stmt, 1, (toUse.getPath()).c_str(), -1, NULL);
-		sqlite3_bind_int(stmt, 2, (toUse.getTuples()), -1, NULL);
+		sqlite3_bind_int(stmt, 2, toUse.getTuples());
 		sqlite3_bind_text(stmt, 3, (toUse.getName()).c_str(), -1, NULL);
 		
 		rc = sqlite3_step(stmt);
@@ -161,7 +164,7 @@ void Catalog::saveUpdate(string& t_name) {
 		char * sql = "UPDATE metaAttributes SET totalDistinct = ? WHERE t_name = ? AND a_name = ?;";
 		query(sql);
 		
-		sqlite3_bind_int(stmt, 1, schem.)
+		//sqlite3_bind_int(stmt, 1, schem.)
 	}
 }
 
@@ -252,6 +255,7 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 		tables.Find(key).getSchema().GetAtts()[index].noDistinct = _noDistinct;
 		tables.Find(key).setChangedT(true);
 		tables.Find(key).setChangedA(true);
+		tables.Find(key).getSchema().GetAtts()[index].changed = true;
 	}
 }
 
@@ -333,76 +337,21 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 
 	tables.Insert(tableKey, tableData);
-	tables.Find(_table).setAdd(true);
+
+	tables.Find(tableKey).setAdd(true);
 	
+	ofstream newFile;
+	newFile.open("a.bin", ios::binary);
+	if (newFile.is_open()) {
+		cout << "YAY";
+	}
+
+	newFile.close();
+
 	return true;
 
-	/*
-	String sqlArr[size];
-
-	for (int i = 0; i < size; i++) {
-
-	sql ="SELECT * FROM catalog.sqlitemaster WHERE type = 'table';
-	ps = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
-
-	// count # of attributes in table
-	int count = 0;
-	sqlite3_stmt* stmt;
-	char* path = "catalog.db";
-
-	// Part 1: Create Table
-
-	// code to grab all table names from catalog.db
-	// if table already exists, do not create table
-	if (_table == table) {
-	return false;
-	}
-	// if table does not exist, create table
-	else {
-
-
-	sql = "CREATE TABLE " + _table + "(";
-
-	// append to sql string for each table/ type
-	for (int i = 0; i < _attributes.size(); i++) {
-	if (_attributeTypes == SQLITE_INTEGER || _attributeTypes = SQLITE_FLOAT) {
-	sql += _attributes[i] + " " + _attributeTypes[i] + " (10000) NOT NULL";
-	count++;
-	}
-	else if (_attributeTypes == SQLITE_TEXT) {
-	sql += _attributes[i] + " " + _attributeTypes[i] + " (500) NOT NULL";
-	count++;
-	}
 	}
 
-	sql += ");";
-
-	// Execute SQL statement
-	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
-	if (rc != SQLITE_OK) {
-	cout << "SQL error" << endl;
-	}
-	else {
-	return true;
-	}
-	}
-
-	// Part 2: Insert to Meta Table
-
-	// insert statement and push data into metaTables table in catalog
-	sqlTab = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) " +
-	"VALUES (" + _table + ", TestData.db, + 0);";
-
-	// insert statement and push data into metaAttributes table in catalog
-	// create new insert statement per attribute
-	for (int i = 0; i < count; i++) {
-	sqlAtt = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) " +
-	"VALUES (" + _table + ", ";
-	sqlAtt += _attributes[i] + ", " + _attributeTypes[i] + ", 0);";
-	}
-	*/
-
-}
 
 bool Catalog::DropTable(string& _table) {
 

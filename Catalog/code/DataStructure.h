@@ -34,7 +34,6 @@ public:
 	void setTuples(int tu);
 	void setSchema(const Schema& _other);
 	void setChangedT(bool changed);
-	void setDrop(bool drop);
 	void setAdd(bool add);
 	void setChangedA(bool changed);
 	
@@ -45,7 +44,6 @@ public:
 	bool& getChangedT();
 	bool& getChangedA();
 	bool& getAdd();
-	bool& getDrop();
 
 };
 
