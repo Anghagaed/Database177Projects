@@ -39,9 +39,9 @@ private:
 	 void query(const char * _sql);
 	 
 	 // Functions for save
-	 void saveDrop();
-	 void saveAdd();
-	 void saveUpdate();
+	 void saveDrop(string& t_name);
+	 void saveAdd(string& t_name);
+	 void saveUpdate(string& t_name);
 public:
 	/* Catalog constructor.
 	 * Initialize the catalog with the persistent data stored in _fileName.

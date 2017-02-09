@@ -100,15 +100,15 @@ bool Catalog::Save() {
 	
 }
 
-void Catalog::saveDrop() {
+void Catalog::saveDrop(string& t_name) {
 	
 }
 
-void Catalog::saveAdd() {
+void Catalog::saveAdd(string& t_name) {
 	
 }
 
-void Catalog::saveUpdate() {
+void Catalog::saveUpdate(string& t_name) {
 	
 }
 
