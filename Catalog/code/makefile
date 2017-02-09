@@ -33,3 +33,7 @@ clean:
 	rm -f *.o
 	rm -f *.out
 	rm -f *.gch
+
+recopy:
+	rm catalog.sqlite
+	cp master.sqlite catalog.sqlite
