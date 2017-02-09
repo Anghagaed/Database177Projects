@@ -38,9 +38,11 @@ void Catalog::query(const char * _sql) {
 }
 
 Catalog::Catalog(string& _fileName) {
+	
 	const int colNum = 0;
 	_filePath = _fileName;
 	openDatabase(_filePath.c_str());
+	sqlite3_exec(db, "PRAGMA schema.page_size = 16384", NULL, NULL, NULL);
 	// MetaTables
 	string sql = "SELECT * FROM metaTables;";
 	query(sql.c_str());
