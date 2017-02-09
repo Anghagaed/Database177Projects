@@ -26,7 +26,10 @@ private:
 	 */
 	 string _filePath;
 	 EfficientMap<KeyString , tableInfo> tables;
+
+	 vector<string> droppedTables;
 	 
+
 	 /* SQLITE Interfacing parameters */
 	 sqlite3 *db;
 	 int rc;

@@ -98,6 +98,40 @@ Catalog::~Catalog() {
 
 bool Catalog::Save() {
 	
+	openDatabase(_filename);
+
+	for (int i = 0; i < droppedTables.size() i++) {
+
+		if (!(tables.IsThere(droppedTables[i]))) {
+
+			saveDrop(droppedTables[i]);
+
+		}
+
+	}
+
+	tables.MoveToStart();
+
+	while (!tables.AtEnd()) {
+
+		if (tables.CurrentData().getAdd()) {
+
+			saveAdd(tables.CurrentData().getName());
+
+		}
+
+		else if (tables.CurrentData().getChangedT()) {
+
+			saveUpdate(tables.CurrentData().getName());
+
+		}
+
+		
+
+	}
+
+	tables.MoveToStart();
+
 }
 
 void Catalog::saveDrop(string& t_name) {
@@ -153,8 +187,11 @@ void Catalog::SetNoTuples(string& _table, unsigned int& _noTuples) {
 		cout << "Error --- " << _table << " not found!" << endl;
 		return;
 	}
-	else
+	else {
 		tables.Find(key).setTuples(_noTuples);
+		tables.Find(key).setChangedT(true);
+	}
+
 }
 
 bool Catalog::GetDataFile(string& _table, string& _path) {
@@ -180,8 +217,11 @@ void Catalog::SetDataFile(string& _table, string& _path) {
 		cout << "Error --- " << _table << " not found!" << endl;
 		return;
 	}
-	else
+	else {
 		tables.Find(key).setPath(_path);
+		tables.Find(key).setChangedT(true);
+	}
+		
 }
 
 bool Catalog::GetNoDistinct(string& _table, string& _attribute,
@@ -210,6 +250,8 @@ void Catalog::SetNoDistinct(string& _table, string& _attribute,
 	{
 		int index = tables.Find(key).getSchema().Index(_attribute);
 		tables.Find(key).getSchema().GetAtts()[index].noDistinct = _noDistinct;
+		tables.Find(key).setChangedT(true);
+		tables.Find(key).setChangedA(true);
 	}
 }
 
@@ -291,6 +333,7 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 
 	tables.Insert(tableKey, tableData);
+	tables.Find(_table).setAdd(true);
 	
 	return true;
 
@@ -374,6 +417,7 @@ bool Catalog::DropTable(string& _table) {
 	tableInfo tempT;
 
 	tables.Remove(tableKey, tempK, tempT);
+	droppedTables.push_back(_table);
 
 	return true;
 }
