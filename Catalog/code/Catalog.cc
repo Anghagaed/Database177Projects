@@ -104,7 +104,7 @@ bool Catalog::Save() {
 
 
 	openDatabase(_filePath.c_str());
-
+	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 	for (int i = 0; i < droppedTables.size(); i++) {
 
 		KeyString tableKey(droppedTables[i]);
@@ -114,7 +114,6 @@ bool Catalog::Save() {
 			saveDrop(droppedTables[i]);
 
 		}
-
 	}
 
 	for (int i = 0; i < currentTables.size(); i++) {
@@ -138,9 +137,8 @@ bool Catalog::Save() {
 			}
 
 		}
-
 	}
-
+	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
 
 	cout << "Done Saving!" << endl;
 
@@ -163,7 +161,6 @@ void Catalog::saveAdd(string& t_name) {
 	KeyString key(t_name);
 	tableInfo& toUse = tables.Find(key);
 	
-	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 	string sql = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) VALUES (?,?,?);";
 	query(sql.c_str());
 
@@ -179,18 +176,19 @@ void Catalog::saveAdd(string& t_name) {
 	for (int i = 0; i < attribute.size(); ++i)
 	{
 		sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
-		sqlite3_bind_text(stmt, 2, attribute[i].name.c_str(), -1, NULL);
+		string test = attribute[i].name + " ";
+		sqlite3_bind_text(stmt, 2, test.c_str(), -1, NULL);
 		sqlite3_bind_text(stmt, 3, convertType(attribute[i].type).c_str(), -1 , NULL);
 		sqlite3_bind_int(stmt, 4, attribute[i].noDistinct);
 		rc = sqlite3_step(stmt);
 	}
-	sqlite3_exec(db, "End TRANSACTION;", NULL, NULL, NULL);
 }
 
 void Catalog::saveUpdate(string& t_name) {
 	KeyString key(t_name);
 	tableInfo& toUse = tables.Find(key);
 	Schema& schem = toUse.getSchema();
+
 	if (toUse.getChangedT()) {
 		string sql = "UPDATE metaTables SET dataLocation = ?, totalTuples = ? WHERE t_name=?;";
 		query(sql.c_str());
@@ -362,6 +360,13 @@ bool Catalog::GetSchema(string& _table, Schema& _schema) {
 
 bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<string>& _attributeTypes) {
 
+	vector<unsigned int> distincts;
+	for (int i = 0; i < _attributes.size(); i++) {
+		distincts.push_back(0);
+	}
+
+	Schema tableSchema(_attributes, _attributeTypes, distincts);
+
 	KeyString tableKey(_table);
 
 	if (tables.IsThere(tableKey) == 1) {
@@ -369,20 +374,11 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 		return false;
 	}
 
-
 	tableInfo tableData;
 
 	tableData.setName(_table);
 	tableData.setTuples(0);
 	tableData.setPath("New Path");
-
-	vector<unsigned int> distincts;
-	for (int i = 0; i < _attributes.size(); i++) {
-		distincts.push_back(0);
-	}
-
-
-	Schema tableSchema(_attributes, _attributeTypes, distincts);
 
 	tableData.setSchema(tableSchema);
 
