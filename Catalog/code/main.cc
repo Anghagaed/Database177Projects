@@ -30,6 +30,12 @@ int main (int argc, char* argv[]) {
 
 	cout << catalog << endl; cout.flush();
 
+	name = "region";
+
+	catalog.DropTable(name);
+
+	cout << catalog << endl; cout.flush();
+
 	catalog.Save();
 
 	/*

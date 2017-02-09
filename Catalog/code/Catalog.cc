@@ -64,7 +64,7 @@ Catalog::Catalog(string& _fileName) {
 		rc = sqlite3_step(stmt);
 	}
 	sql = "SELECT * from metaAttributes;";
-	query(sql);
+	query(sql.c_str());
 	rc = sqlite3_step(stmt);
 	while ( rc == SQLITE_ROW ) {
 		
@@ -140,18 +140,15 @@ bool Catalog::Save() {
 }
 
 void Catalog::saveDrop(string& t_name) {
-	KeyString key(t_name);
-	tableInfo& toUse = tables.Find(key);
-	Schema& schem = toUse.getSchema();
 	
 	string sql1 = "DELETE FROM metaAttributes WHERE t_name = ?;";
 	query(sql1.c_str());
-	sqlite3_bind_text(stmt, 1, toUse.getName().c_str(), -1, NULL);
+	sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
 	sqlite3_step(stmt);
 	
 	string sql2 = "DELETE FROM metaTables WHERE t_name = ?;";
 	query(sql2.c_str());
-	sqlite3_bind_text(stmt, 1, toUse.getName().c_str(), -1, NULL);
+	sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
 	sqlite3_step(stmt);
 }
 
