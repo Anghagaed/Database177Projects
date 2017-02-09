@@ -162,7 +162,8 @@ void Catalog::saveDrop(string& t_name) {
 void Catalog::saveAdd(string& t_name) {
 	KeyString key(t_name);
 	tableInfo& toUse = tables.Find(key);
-
+	
+	sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 	string sql = "INSERT INTO metaTables (t_name, dataLocation, totalTuples) VALUES (?,?,?);";
 	query(sql.c_str());
 
@@ -183,6 +184,7 @@ void Catalog::saveAdd(string& t_name) {
 		sqlite3_bind_int(stmt, 4, attribute[i].noDistinct);
 		rc = sqlite3_step(stmt);
 	}
+	sqlite3_exec(db, "End TRANSACTION;", NULL, NULL, NULL);
 }
 
 void Catalog::saveUpdate(string& t_name) {
