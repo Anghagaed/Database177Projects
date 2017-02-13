@@ -12,7 +12,7 @@
 using namespace std;
 // Data Structure to stores the Table Info of the Catalog
 // Built with compatibility with EfficientMap and InEfficientMap in mind
-class tableInfo {
+struct tableInfo {
 private:	
 	string name;																							// metaTable info 
 	string path;																							// metaTable info
