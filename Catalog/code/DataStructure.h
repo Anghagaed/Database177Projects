@@ -14,13 +14,13 @@ using namespace std;
 // Built with compatibility with EfficientMap and InEfficientMap in mind
 struct tableInfo {
 private:	
-	string name;																							// metaTable info 
-	string path;																							// metaTable info
-	int nuTuples;																							// metaTable info
-	bool add;																								// Table was added
-	bool changedAttributes;																					// Attributes was changed
-	bool changedTables;																						// Table was changed
-	Schema listOfAtts;																						// This schema class is used to stores information regarding the metaAtrtibutes
+	string name;																			// metaTable info 
+	string path;																			// metaTable info
+	int nuTuples;																			// metaTable info
+	bool add;																				// Table was added
+	bool changedAttributes;																	// Attributes was changed
+	bool changedTables;																		// Table was changed
+	Schema listOfAtts;																		// This schema class is used to stores information regarding the metaAtrtibutes
 	
 public:
 	tableInfo();

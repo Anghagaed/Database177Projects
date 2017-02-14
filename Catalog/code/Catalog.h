@@ -1,9 +1,5 @@
 #ifndef _CATALOG_H
 #define _CATALOG_H
-/*
-	makefile ADDED GCC:
-	g++ DataStructure.h DataStructure.cc EfficientMap.h EfficientMap.cc Keyify.h Keyify.cc Config.h Swap.h Catalog.h Catalog.cc Schema.h Schema.cc main.cc -l sqlite3 -o a
-*/
 #include <string>
 #include <vector>
 #include <iostream>

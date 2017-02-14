@@ -141,7 +141,8 @@ bool Catalog::Save() {
 		}
 	}
 	sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
-
+	closeDatabase();
+	
 	cout << "Done Saving!" << endl;
 
 }
