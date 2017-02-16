@@ -79,11 +79,14 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 
 Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 	RelationalOp* _producer) {
-
+	schemaIn = _schemaIn;
+	schemaOut = _schemaOut;
+	compute = _compute;
+	producer = _producer;
 }
 
 Sum::~Sum() {
-
+	//schemaIn
 }
 
 ostream& Sum::print(ostream& _os) {
@@ -93,7 +96,11 @@ ostream& Sum::print(ostream& _os) {
 
 GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtts,
 	Function& _compute,	RelationalOp* _producer) {
-
+	schemaIn = _schemaIn;
+	schemaOut = _schemaOut;
+	groupingAtts = _groupingAtts;
+	compute = _compute;
+	producer = _producer;
 }
 
 GroupBy::~GroupBy() {
