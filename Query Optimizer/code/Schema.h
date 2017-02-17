@@ -19,6 +19,7 @@ public:
 	string name;
 	Type type;
 	unsigned int noDistinct;
+	bool changed;
 
 	// constructors and destructor
 	Attribute();
@@ -38,7 +39,7 @@ class Schema {
 private:
 	// attributes in schema
 	vector<Attribute> atts;
-
+	
 public:
 	// default constructor
 	Schema() {}
@@ -51,7 +52,8 @@ public:
 	Schema& operator=(const Schema& _other);
 	// swap function
 	void Swap(Schema& _other);
-
+	// clear function
+	void Clear();
 	// destructor
 	virtual ~Schema() {atts.clear();}
 

@@ -6,10 +6,10 @@
 using namespace std;
 
 
-Attribute::Attribute() : name(""), type(Name), noDistinct(0) {}
+Attribute::Attribute() : name(""), type(Name), noDistinct(0), changed(false) {}
 
 Attribute::Attribute(const Attribute& _other) :
-	name(_other.name), type(_other.type), noDistinct(_other.noDistinct) {}
+	name(_other.name), type(_other.type), noDistinct(_other.noDistinct), changed(false) {}
 
 Attribute& Attribute::operator=(const Attribute& _other) {
 	// handle self-assignment first
@@ -18,6 +18,7 @@ Attribute& Attribute::operator=(const Attribute& _other) {
 	name = _other.name;
 	type = _other.type;
 	noDistinct = _other.noDistinct;
+	changed = _other.changed;
 
 	return *this;
 }
@@ -26,6 +27,7 @@ void Attribute::Swap(Attribute& _other) {
 	STL_SWAP(name, _other.name);
 	SWAP(type, _other.type);
 	SWAP(noDistinct, _other.noDistinct);
+	SWAP(changed, _other.changed);
 }
 
 
@@ -35,9 +37,9 @@ Schema::Schema(vector<string>& _attributes,	vector<string>& _attributeTypes,
 		Attribute a;
 		a.name = _attributes[i];
 		a.noDistinct = _distincts[i];
-		if (_attributeTypes[i] == "INTEGER") a.type = Integer;
-		else if (_attributeTypes[i] == "FLOAT") a.type = Float;
-		else if (_attributeTypes[i] == "STRING") a.type = String;
+		if (_attributeTypes[i] == "Integer" || _attributeTypes[i] == "INTEGER") a.type = Integer;
+		else if (_attributeTypes[i] == "Float" || _attributeTypes[i] == "FLOAT") a.type = Float;
+		else if (_attributeTypes[i] == "String" || _attributeTypes[i] == "STRING") a.type = String;
 		
 		atts.push_back(a);
 	}
@@ -64,6 +66,10 @@ Schema& Schema::operator=(const Schema& _other) {
 
 void Schema::Swap(Schema& _other) {
 	atts.swap(_other.atts);
+}
+
+void Schema::Clear() {
+	atts.clear();
 }
 
 int Schema::Append(Schema& _other) {
