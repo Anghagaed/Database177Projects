@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-
+#include <unistd.h>
 #include "Config.h"
 #include "Record.h"
 #include "TwoWayList.cc"
