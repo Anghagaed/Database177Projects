@@ -52,7 +52,12 @@ ostream& Project::print(ostream& _os) {
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	CNF& _predicate, RelationalOp* _left, RelationalOp* _right) {
-
+	schemaLeft = _schemaLeft;
+	schemaRight = _schemaRight;
+	schemaOut = _schemaOut;
+	predicate = _predicate;
+	left = _left;
+	right = _right;
 }
 
 Join::~Join() {
@@ -60,12 +65,13 @@ Join::~Join() {
 }
 
 ostream& Join::print(ostream& _os) {
-	return _os << "JOIN";
+	return _os << "JOIN" << schemaLeft << schemaRight << schemaOut << predicate << *left << *right;
 }
 
 
 DuplicateRemoval::DuplicateRemoval(Schema& _schema, RelationalOp* _producer) {
-
+	schema = _schema;
+	producer = _producer;
 }
 
 DuplicateRemoval::~DuplicateRemoval() {
@@ -73,7 +79,7 @@ DuplicateRemoval::~DuplicateRemoval() {
 }
 
 ostream& DuplicateRemoval::print(ostream& _os) {
-	return _os << "DISTINCT";
+	return _os << "DISTINCT" << schema << *producer;
 }
 
 
