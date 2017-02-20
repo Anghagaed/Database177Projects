@@ -29,6 +29,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	QueryExecutionTree& _queryTree) {
 
 	// create a SCAN operator for each table in the query
+	/* Scan needs to be implemented first
 	vector<Scan> scans;										// SCAN operator for each table? Better use a vector
 	TableList* i_table = _tables;
 	string datapath, tablename;
@@ -40,6 +41,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		catalog.getDataPath(tablename, datapath)			// get data path
 		scans.push_back(Scan(schema, datapath));
 	}
+	*/
 	// push-down selections: create a SELECT operator wherever necessary
 
 	// call the optimizer to compute the join order
