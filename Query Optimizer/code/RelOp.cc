@@ -92,10 +92,14 @@ Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 }
 
 Sum::~Sum() {
-	//schemaIn
+	
 }
 
-ostream& Sum::print(ostream& _os) {
+ostream& Sum::print(ostream& _os) {/*
+	cout << "schemaIn = " << schemaIn << endl;
+	cout << "schemaOut = " << schemaOut << endl;
+	//cout << "compute = " << compute << endl;
+	cout << "producer = " << producer << endl;*/
 	return _os << "SUM";
 }
 
@@ -113,7 +117,12 @@ GroupBy::~GroupBy() {
 
 }
 
-ostream& GroupBy::print(ostream& _os) {
+ostream& GroupBy::print(ostream& _os) {/*
+	cout << "schemaIn = " << schemaIn << endl;
+	cout << "schemaOut = " << schemaOut << endl;
+	cout << "groupingAtts = " << groupingAtts << endl;
+	//cout << "compute = " << compute << endl;
+	cout << "producer = " << producer << endl;*/
 	return _os << "GROUP BY";
 }
 
