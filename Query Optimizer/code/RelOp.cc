@@ -10,7 +10,8 @@ ostream& operator<<(ostream& _os, RelationalOp& _op) {
 
 
 Scan::Scan(Schema& _schema, DBFile& _file) {
-
+	schema = _schema;
+	file = _file;
 }
 
 Scan::~Scan() {
@@ -95,12 +96,12 @@ Sum::~Sum() {
 	
 }
 
-ostream& Sum::print(ostream& _os) {
+ostream& Sum::print(ostream& _os) {/*
 	cout << "schemaIn = " << (_os, schemaIn) << endl;
 	cout << "schemaOut = " << (_os,schemaOut) << endl;
 	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
-	cout << "producer = " << producer.print(_os) << endl;
-	return _os << "SUM";
+	cout << "producer = " << producer.print(_os) << endl;*/
+	return _os << "SUM" << schemaIn << schemaOut << " Function" << producer;//told by TA to just use "Function"
 }
 
 
@@ -117,13 +118,13 @@ GroupBy::~GroupBy() {
 
 }
 
-ostream& GroupBy::print(ostream& _os) {
+ostream& GroupBy::print(ostream& _os) {/*
 	cout << "schemaIn = " << (_os, schemaIn) << endl;
 	cout << "schemaOut = " << (_os, schemaOut) << endl;
 	cout << "groupingAtts = " << (_os,groupingAtts) << endl;
 	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
-	cout << "producer = " << producer.print(_os) << endl;
-	return _os << "GROUP BY";
+	cout << "producer = " << producer.print(_os) << endl;*/
+	return _os << "GROUP BY" << schemaIn << schemaOut << groupingAtts << " Function" << producer;//told by TA to just use "Function"
 }
 
 

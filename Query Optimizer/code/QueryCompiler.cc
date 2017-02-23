@@ -8,6 +8,7 @@
 #include "Function.h"
 #include "RelOp.h"
 #include <vector>
+#include <EfficientMap.h>
 
 using namespace std;
 
@@ -29,19 +30,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	QueryExecutionTree& _queryTree) {
 
 	// create a SCAN operator for each table in the query
-	/* Scan needs to be implemented first
-	vector<Scan> scans;										// SCAN operator for each table? Better use a vector
-	TableList* i_table = _tables;
-	string datapath, tablename;
-	Schema schema;
-	while (i_table != 0)
-	{
-		tablename = i_table->tableName;						// get table name
-		catalog.getSchema(tablename, schema);				// get schema
-		catalog.getDataPath(tablename, datapath)			// get data path
-		scans.push_back(Scan(schema, datapath));
-	}
-	*/
+	
 	// push-down selections: create a SELECT operator wherever necessary
 
 	// call the optimizer to compute the join order
