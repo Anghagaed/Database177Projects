@@ -95,11 +95,11 @@ Sum::~Sum() {
 	
 }
 
-ostream& Sum::print(ostream& _os) {/*
-	cout << "schemaIn = " << schemaIn << endl;
-	cout << "schemaOut = " << schemaOut << endl;
-	//cout << "compute = " << compute << endl;
-	cout << "producer = " << producer << endl;*/
+ostream& Sum::print(ostream& _os) {
+	cout << "schemaIn = " << (_os, schemaIn) << endl;
+	cout << "schemaOut = " << (_os,schemaOut) << endl;
+	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
+	cout << "producer = " << producer.print(_os) << endl;
 	return _os << "SUM";
 }
 
@@ -117,12 +117,12 @@ GroupBy::~GroupBy() {
 
 }
 
-ostream& GroupBy::print(ostream& _os) {/*
-	cout << "schemaIn = " << schemaIn << endl;
-	cout << "schemaOut = " << schemaOut << endl;
-	cout << "groupingAtts = " << groupingAtts << endl;
-	//cout << "compute = " << compute << endl;
-	cout << "producer = " << producer << endl;*/
+ostream& GroupBy::print(ostream& _os) {
+	cout << "schemaIn = " << (_os, schemaIn) << endl;
+	cout << "schemaOut = " << (_os, schemaOut) << endl;
+	cout << "groupingAtts = " << (_os,groupingAtts) << endl;
+	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
+	cout << "producer = " << producer.print(_os) << endl;
 	return _os << "GROUP BY";
 }
 
