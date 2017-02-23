@@ -19,13 +19,16 @@ Scan::~Scan() {
 }
 
 ostream& Scan::print(ostream& _os) {
-	return _os << "SCAN";
+	return _os << "SCAN"<<schema<<" File";
 }
 
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
 	RelationalOp* _producer) {
-
+	schema = _schema;
+	predicate = _predicate;
+	constants = _constants;
+	producer = _producer;
 }
 
 Select::~Select() {
@@ -33,7 +36,7 @@ Select::~Select() {
 }
 
 ostream& Select::print(ostream& _os) {
-	return _os << "SELECT";
+	return _os << "SELECT"<<schema<<predicate<<constants.print(_os,schema)<<producer;
 }
 
 
