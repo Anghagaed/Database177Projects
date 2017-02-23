@@ -17,6 +17,8 @@ Pre-processing
 -- Map<(T)> = (size from catalog, 0, (T))
 2. push-down selections: update the size for each table based on the estimation of
    number of tuples following the application of selection predicates
+	- Equality Selection: Divide total by number of distinct
+	- Non Equality Selection: Divide total by 3
 -- Map<(T)> = (size after push-down selection, 0, (T))
 3. fill the map for every pair of two tables (T1,T2)
 -- sort ascending T1, T2 (no need to have entries in Map for (T1,T2) and (T2,T1)
@@ -53,3 +55,6 @@ Partition (N, array[tables])
 				 min_cost = cost
 5. Map<sort-asc(T1,T2,...,Tn)> = (size,min_cost,order)
 
+Greedy Algorithm (Left-Deep Algorithm)
+- consider the best ordering for every order
+- Build a single tree
