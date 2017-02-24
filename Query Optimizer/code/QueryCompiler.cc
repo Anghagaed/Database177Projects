@@ -8,7 +8,7 @@
 #include "Function.h"
 #include "RelOp.h"
 #include <vector>
-//#include <EfficientMap.h>
+#include "EfficientMap.h"
 
 using namespace std;
 
@@ -30,7 +30,13 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	QueryExecutionTree& _queryTree) {
 
 	// create a SCAN operator for each table in the query
-	
+	Schema mySchema;
+	string temp = _tables->tableName;
+	catalog->GetSchema(temp, mySchema);
+	DBFile myFile = DBFile();
+	//char* path = "catalog.txt";
+	myFile.Open("catalog.txt");
+	Scan myScan = Scan(mySchema, myFile);
 	// push-down selections: create a SELECT operator wherever necessary
 
 	// call the optimizer to compute the join order
