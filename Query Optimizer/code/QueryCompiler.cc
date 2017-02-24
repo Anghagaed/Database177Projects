@@ -42,6 +42,39 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// create the remaining operators based on the query
 
 	// connect everything in the query execution tree and return
+	if (_groupingAtts != 0)									// Non-empty _groupingAtts -> GroupBy
+	{
+		// Create GroupBy here
+		// Code here...
+		
+		// Create WriteOut here
+		// Code here...
+	}
+	else
+	if (_finalFunction != 0)								// Non-empty _finalFunction -> Sum
+	{
+		// Create Sum here
+		// Code here...
 
+		// Create WriteOut here
+		// Code here...
+	}
+	else
+	if (_distinctAtts == 0)									// _distinctAtts == 0 -> Project
+	{
+		// Create Project here
+		// Code here...
+
+		// Create WriteOut here
+		// Code here...
+	}
+	else													// Else -> Project then DuplicateRemoval
+	{
+		// Create Project then create DuplicateRemoval
+		// Code here...
+
+		// Create WriteOut here
+		// Code here...
+	}
 	// free the memory occupied by the parse tree since it is not necessary anymore
 }
