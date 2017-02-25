@@ -48,13 +48,28 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// create the remaining operators based on the query
 
 	// connect everything in the query execution tree and return
-	if (_groupingAtts != 0)									// Non-empty _groupingAtts -> GroupBy
+	// Create WriteOut here
+	/*
+	WriteOut* writeout;
+	*/
+	if (_groupingAtts != 0)														// Non-empty _groupingAtts -> GroupBy
 	{
 		// Create GroupBy here
-		// Code here...
-		
-		// Create WriteOut here
-		// Code here...
+		/*
+		Schema _schemaIn = ...;													// Set it equal to join's final schema
+		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
+		vector<Attribute> att = _schemaIn.GetAtts();							// Get the Attributes
+		int _atts_no = att.size();												// Get the Attribute size
+		int _atts[_atts_no];													// Create an array of indices of Attributes
+		for(int i = 0; i < att.size(); i++)
+			_atts[i] = _schemaIn.Index(att[i]);									// Receive indices of all Attributes in the Schema
+		OrderMaker _groupingAtts = new OrderMaker(_schemaIn, _atts, _atts_no);	// Insert all relevant values into OrderMaker
+		Function _compute;
+		_compute->GrowFromParseTree (_finalFunction, _schemaIn);				// Insert all relevant values into Function
+		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupingAtts, _compute,	...);		// ... = Final join operator
+		writeout = new WriteOut(_schemaOut, "", groupby);						// Insert all relevant values into WriteOut
+																				// outFile is "" because we are not using it yet
+		*/
 	}
 	else
 	if (_finalFunction != 0)								// Non-empty _finalFunction -> Sum
