@@ -72,30 +72,50 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		*/
 	}
 	else
-	if (_finalFunction != 0)								// Non-empty _finalFunction -> Sum
+	if (_finalFunction != 0)													// Non-empty _finalFunction -> Sum
 	{
 		// Create Sum here
-		// Code here...
-
-		// Create WriteOut here
-		// Code here...
+		/*
+		Schema _schemaIn = ...;													// Set it equal to join's final schema
+		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
+		Function _compute;
+		_compute->GrowFromParseTree (_finalFunction, _schemaIn);				// Insert all relevant values into Function
+		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute,	...);				// ... = Final join operator
+		writeout = new WriteOut(_schemaOut, "", sum);							// Insert all relevant values into WriteOut
+																				// outFile is "" because we are not using it yet
+		*/
 	}
-	else
-	if (_distinctAtts == 0)									// _distinctAtts == 0 -> Project
+	else																		// Project or Project + DuplicateRemoval
 	{
 		// Create Project here
-		// Code here...
-
-		// Create WriteOut here
-		// Code here...
-	}
-	else													// Else -> Project then DuplicateRemoval
-	{
-		// Create Project then create DuplicateRemoval
-		// Code here...
-
-		// Create WriteOut here
-		// Code here...
+		/*
+		Schema _schemaIn = ...;													// Set it equal to join's final schema
+		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
+		int _numAttsInput = _schemaIn.GetAtts().size();							// Get input size
+		int _numAttsOutput = 0;													// Set it equal to 0 because we aren't doing that yet
+		int _keepMe[_numAttsOutput];											// Same as above
+		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, ...);		// ... = Final join operator 
+		*/
+		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
+		{
+			// Create DuplicateRemoval
+			/*
+			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);	
+			writeout = new WriteOut(_schemaIn, "", duplicateRemoval);			// Insert all relevant values into WriteOut
+																				// outFile is "" because we are not using it yet
+			*/
+		}
+		else
+		{
+			/*
+			writeout = new WriteOut(_schemaIn, "", project);					// Insert all relevant values into WriteOut
+																				// outFile is "" because we are not using it yet
+			*/
+		}
+		// Create the QueryExecutionTree
+		/*
+		_queryTree = writeout;
+		*/
 	}
 	// free the memory occupied by the parse tree since it is not necessary anymore
 }
