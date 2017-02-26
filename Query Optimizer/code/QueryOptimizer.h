@@ -5,6 +5,9 @@
 #include "Catalog.h"
 #include "ParseTree.h"
 #include "RelOp.h"
+#include "EfficientMap.h"
+#include "InEfficientMap.h"
+#include "Keyify.h" 
 
 #include <string>
 #include <vector>
@@ -25,12 +28,20 @@ struct OptimizationTree {
 	OptimizationTree* parent;
 	OptimizationTree* leftChild;
 	OptimizationTree* rightChild;
+	
+	// Swap and CopyFrom for EfficientMap
+	void Swap(OptimizationTree _withMe);
+	void CopyFrom(OptimizationTree _withMe);
 };
 
 class QueryOptimizer {
 private:
 	Catalog* catalog;
-
+	vector<OptimizationTree*> toBeDelete;
+private:
+	int tableSize(TableList* _tables);
+	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
+	void partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
