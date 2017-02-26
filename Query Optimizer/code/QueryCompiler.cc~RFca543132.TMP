@@ -58,15 +58,11 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		_tables = _tables->next;
 		// push-down selections: create a SELECT operator wherever necessary
 		Record recTemp;
-		CNF cnfTemp;
-		if (cnfTemp.ExtractCNF(*_predicate, myScan.getSchema(), recTemp) == 0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
+		if (ExtractCNF(_predicate, scanMap.currentData().getSchema, recTemp) == 0)
 		{
-			Select mySelect = Select(myScan.getSchema(), cnfTemp, recTemp, &myScan);
-			SelectMap.Insert(newKey, mySelect);
+
 		}
 	}
-
-	cout<<SelectMap.Length();
 
 	// call the optimizer to compute the join order
 	OptimizationTree* root;
