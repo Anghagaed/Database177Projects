@@ -13,6 +13,8 @@
 #include "ParseTree.h"
 #include "QueryOptimizer.h"
 #include "RelOp.h"
+#include "EfficientMap.h"
+#include "Keyify.h"
 
 using namespace std;
 
@@ -21,6 +23,8 @@ class QueryCompiler {
 private:
 	Catalog* catalog;
 	QueryOptimizer* optimizer;
+	EfficientMap <KeyString, Scan> ScanMap;
+	EfficientMap <KeyString, Select> ScanSelect;
 
 public:
 	QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer);
@@ -30,6 +34,8 @@ public:
 		FuncOperator* _finalFunction, AndList* _predicate,
 		NameList* _groupingAtts, int& _distinctAtts,
 		QueryExecutionTree& _queryTree);
+	
+	int tableSize(TableList* _tables);//makes it easy to iterate
 };
 
 #endif // _QUERY_COMPILER_H

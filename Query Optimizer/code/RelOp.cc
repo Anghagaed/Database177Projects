@@ -8,20 +8,46 @@ ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);
 }
 
-
 Scan::Scan(Schema& _schema, DBFile& _file) {
 	schema = _schema;
 	file = _file;
+}
+
+Scan::Scan()
+{
+	schema = Schema();
+	file =  DBFile();
 }
 
 Scan::~Scan() {
 
 }
 
+Schema& Scan::getSchema()
+{
+	return schema;
+}
+
+DBFile& Scan::getFile()
+{
+	return file;
+}
+
+void Scan::Swap(Scan& withMe)
+{
+	SWAP(schema, withMe.getSchema());
+	SWAP(file, withMe.getFile());
+}
+
+void Scan::CopyFrom(Scan& withMe)
+{
+	this->schema = withMe.schema;
+	this->file = withMe.file;
+}
+
 ostream& Scan::print(ostream& _os) {
 	return _os << "SCAN"<<schema<<" File";
 }
-
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
 	RelationalOp* _producer) {
@@ -31,8 +57,39 @@ Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
 	producer = _producer;
 }
 
+Select::Select()
+{}
+
 Select::~Select() {
 
+}
+
+Schema& Select::getSchema()
+{
+	return schema;
+}
+
+CNF& Select::getCNF()
+{
+	return predicate;
+}
+
+Record& Select::getRecord()
+{
+	return constants;
+}
+
+RelationalOp* Select::getRelational()
+{
+	return producer;
+}
+
+void Select::Swap(Select& withMe)
+{
+	SWAP(schema, withMe.schema);
+	SWAP(predicate, withMe.predicate);
+	SWAP(constants, withMe.constants);
+	SWAP(producer, withMe.producer);
 }
 
 ostream& Select::print(ostream& _os) {

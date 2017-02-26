@@ -47,9 +47,16 @@ private:
 
 public:
 	Scan(Schema& _schema, DBFile& _file);
+	Scan();
 	virtual ~Scan();
 
+	void Swap(Scan& withMe);
+	void CopyFrom(Scan& withMe);
+
 	virtual bool GetNext(Record& _record) {}
+
+	Schema& getSchema();
+	DBFile& getFile();
 
 	virtual ostream& print(ostream& _os);
 };
@@ -71,6 +78,16 @@ public:
 	Select(Schema& _schema, CNF& _predicate, Record& _constants,
 		RelationalOp* _producer);
 	virtual ~Select();
+
+	Select();
+
+	void Swap(Select& withMe);
+	void CopyFrom(Select& withMe);
+
+	Schema& getSchema();
+	CNF& getCNF();
+	Record& getRecord();
+	RelationalOp* getRelational();
 
 	virtual bool GetNext(Record& _record) {}
 

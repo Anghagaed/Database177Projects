@@ -6,9 +6,11 @@
 #include "DBFile.h"
 #include "Comparison.h"
 #include "Function.h"
-#include "RelOp.h"
 #include <vector>
 #include "EfficientMap.h"
+#include "EfficientMap.cc"
+#include "Keyify.h"
+#include "Keyify.cc"
 
 using namespace std;
 
@@ -23,20 +25,38 @@ QueryCompiler::~QueryCompiler() {
 	delete catalog;
 	delete optimizer;
 }
-
+int QueryCompiler::tableSize(TableList* _tables)
+{
+	int size = 0;
+	while (_tables != NULL)
+	{
+		_tables = _tables->next;
+		size++;
+	}
+	return size;
+}
 void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	FuncOperator* _finalFunction, AndList* _predicate,
 	NameList* _groupingAtts, int& _distinctAtts,
 	QueryExecutionTree& _queryTree) {
-
+	
 	// create a SCAN operator for each table in the query
-	Schema mySchema;
-	string temp = _tables->tableName;
-	catalog->GetSchema(temp, mySchema);
-	DBFile myFile = DBFile();
-	//char* path = "catalog.txt";
-	myFile.Open("catalog.txt");
-	Scan myScan = Scan(mySchema, myFile);
+	int size = tableSize(_tables);
+	for(int i = 0;  i<=size; i++)
+	{
+		Schema mySchema;
+		string temp = _tables->tableName;
+		catalog->GetSchema(temp, mySchema);
+		DBFile myFile = DBFile();
+		string pathConvert = "catalog.txt";//going to be converted to char *
+		char* path = new char[pathConvert.length() + 1];
+		strcpy(path, pathConvert.c_str());
+		myFile.Open(path);
+		Scan myScan = Scan(mySchema, myFile);
+		KeyString newKey(temp);
+		ScanMap.Insert(newKey, myScan);
+		_tables = _tables->next;
+	}
 	// push-down selections: create a SELECT operator wherever necessary
 
 	// call the optimizer to compute the join order
