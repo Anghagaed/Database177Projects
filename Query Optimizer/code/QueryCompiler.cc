@@ -28,7 +28,7 @@ QueryCompiler::~QueryCompiler() {
 int QueryCompiler::tableSize(TableList* _tables)
 {
 	int size = 0;
-	TableList* iterator;
+	TableList* iterator = _tables;
 	while (iterator != NULL)
 	{
 		iterator = iterator->next;
