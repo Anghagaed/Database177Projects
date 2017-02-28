@@ -73,12 +73,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	OptimizationTree* root;
 	optimizer->Optimize(_tables, _predicate, root);
 
-	/*
+	
 	// create join operators based on the optimal order computed by the optimizer
 	// ONLY WORKS FOR LEFT-DEEP TREES CURRENTLY
-	// currently only produces final schema
 
 	// create first join
+
 	// get join predicate
 	CNF predicate;
 	Schema s1, s2;	//s1 will eventually be our final schema after appending everything in the right order
@@ -90,29 +90,28 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	//get left relational op
 	RelationalOp *left;
 	KeyString key(root->tables[0]);
-	if (push_down_map.IsThere(key)) {	//check if there was a push-down selection
-		left = push_down_map.Find(key);
+	if (SelectMap.IsThere(key)) {	//check if there was a push-down selection
+		left = SelectMap.Find(key);
 	}
-	else if (scan_map.IsThere(key)) {
-		left = scan_map.Find(key);
+	else if (ScanMap.IsThere(key)) {
+		left = ScanMap.Find(key);
 	}
 	//get right relational op
 	RelationalOp *right;
 	KeyString key_right(root->tables[1]);
-	if (push_down_map.IsThere(key_right)) {	//check if there was a push-down selection
-		right = push_down_map.Find(key_right);
+	if (SelectMap.IsThere(key_right)) {	//check if there was a push-down selection
+		right = SelectMap.Find(key_right);
 	}
-	else if (scan_map.IsThere(key)) {	//otherwise check for the scan
-		right = scan_map.Find(key);
+	else if (ScanMap.IsThere(key)) {	//otherwise check for the scan
+		right = ScanMap.Find(key);
 	}
 
 	Schema schema_temp = s1;	//save first schema
 	s1.Append(s2);	//get schema after join operation
 
-	Join *j = new Join(schema_temp, s2, s1, predicate, left, right);	//create join operator
-	
-	//add relational operators and join into tree
-
+	//create join operator
+	//will point to the root at the end
+	Join *j = new Join(schema_temp, s2, s1, predicate, left, right);
 
 	// go through ordered table of vectors produced by optimizer joining s1 with the next tables
 	for (int i = 2; i < root->tables.size(); i++) {
@@ -124,20 +123,21 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		//j is our left relational op
 		//get the right table's relational op
 		KeyString key(root->tables[i]);
-		if (push_down_map.IsThere(key)) {	//check if there was a push-down selection
-			right = push_down_map.Find(key);
+		if (SelectMap.IsThere(key)) {	//check if there was a push-down selection
+			right = SelectMap.Find(key);
 		}
-		else if (scan_map.IsThere(key)) {	//otherwise check for the scan
-			right = scan_map.Find(key);
+		else if (ScanMap.IsThere(key)) {	//otherwise check for the scan
+			right = ScanMap.Find(key);
 		}
-		schema_temp = s1;
-		s1.Append(s2);
-		j = new Join(schema_temp, s2, s1, predicate, (RelationalOp*)j, right);
 
-		//add relational op and join to tree
+		schema_temp = s1;	//save left schema
+		s1.Append(s2);	//get schema out
+
+		j = new Join(schema_temp, s2, s1, predicate, (RelationalOp*)j, right);	//join constructor takes in a relational op, so upcast j
 	}
 	//s1 is final schema
-	*/
+	//j points to the root of the join tree
+	
 
 	// create the remaining operators based on the query
 
