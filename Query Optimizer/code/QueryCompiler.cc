@@ -28,9 +28,10 @@ QueryCompiler::~QueryCompiler() {
 int QueryCompiler::tableSize(TableList* _tables)
 {
 	int size = 0;
-	while (_tables != NULL)
+	TableList* iterator;
+	while (iterator != NULL)
 	{
-		_tables = _tables->next;
+		iterator = iterator->next;
 		size++;
 	}
 	return size;
@@ -42,7 +43,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
-	for(int i = 0;  i<=size; i++)
+	for(int i = 0;  i < size; i++)
 	{
 		Schema mySchema;
 		string temp = _tables->tableName;
