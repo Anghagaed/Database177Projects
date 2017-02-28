@@ -79,7 +79,6 @@ int QueryOptimizer::tableSize(TableList* _tables) {
 */
 void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
 	EfficientMap<KeyString, OptimizationTree> OptiMap;
-	OptimizationTree* optimal;
 	vector<string> currentKey;
 	vector<int> popKey;
 	int size = tableSize(_tables);
@@ -109,83 +108,83 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	// Preprocessing step 2 : Push-Down Selections
 	
 	// Preprocessing step 3 : Join for 2 tables
-	// Greedy repeating step 3 ad infinitum
 	KeyString key;
+	OptimizationTree* optimal, currentOptimal;
 	key = KeyString(currentKey[0]);
-	optimal = OptiMap.Find(key);
-	optimal.noTuples = UINT_MAX;
-	
-	for (int i = 0; i < size - 1; ++i) {
-		int startingSize = AvailKey.size() - 2;
-		OptimizationTree* bestOptimal;
-		int noTuples1 = UINT_MAX;
-		for (int i = 1; i < startingSize; ++i) {
-			string joinT1 = currentKey[i];
-			OptimizationTree* currentOptimal;
-			int noTuples2 = UINT_MAX;
-			for (int j = i + 1; j < startingSize + 1; ++j) {
-				if (popKey[j]) {
-					string joinT2 = currentKey[j];
-					OptimizationTree* newOptimal = new OptimizationTree();						// Yun tells me to do this
-					newOptimal->CopyFrom(optimal);
-					key = KeyString(currentKey[j]);
-					OptimizationTree* toPush = new OptimizationTree();
-					toPush.CopyFrom(OptiMap.Find(key));
-					
-					newOptimal->tables.push_back(toPush->tables[0]);
-					newOptimal->tuples.push_back(toPush->tuples[0]);
-					
-					// Compute cost using join 
-					
-					// Memory Leak management
-					// Possible bug, needs to triple check
-					// if I can do this
-					toBeDelete.push_back(newOptimal);
-					toBeDelete.push_back(toPush);
-					
-					newOptimal->rightChild = toPush;
-					toPush->parent = newOptimal;
-					if (noTuples2 > newOptimal->noTuples) {
-						currentOptimal = newOptimal;
-						noTuples2 = newOptimal->noTuples;
-					}
-					
-					popKey[j] = 0;
-				}
+	int startingSize = AvailKey.size();
+	int J1, J2;
+	unsigned int noTuples = UINT_MAX;
+	for (int i = 0; i < startingSize; ++i) {
+		currentOptimal = &(OptiMap.Find(KeyString(currentKey[i])));
+		for (int j = i + 1; j < startingSize - 1; ++j) {
+			OptimizationTree* newOptimal = new OptimizationTree();
+			OptimizationTree* right = new OptimizationTree();
+			OptimizationTree* left = new OptimizationTree();
+			
+			newOptimal->CopyFrom(*currentOptimal);
+			left->CopyFrom(*currentOptimal);
+			right->CopyFrom(&(OptiMap.Find(KeyString(currentKey[j]))));
+			
+			// setting up the tree to be joined
+			newOptimal->tables.push_back(right->tables[0]);
+			newOptimal->tuples.push_back(right->tuples[0]);
+			
+			// compute cost using join
+			
+			// stores cost of this join in newOptimal->noTuples
+			newOptimal->rightChild = right;
+			newOptimal->leftChild = left;
+			right->parent = newOptimal;
+			left->parent = newOptimal;
+			if (noTuples > newOptimal->noTuples) {
+				optimal = newOptimal;
+				noTuples = newOptimal->noTuples;
+				J1 = i;
+				J2 = j;
 			}
-			if (noTuples1 > currentOptimal->noTuples) {
-				noTuples1 = currentOptimal->noTuples;
-				bestOptimal = currentOptimal;
+			
+			// Storing pointers to be deleted in destructor
+			toBeDelete.push_back(right);
+			toBeDelete.push_back(newOptimal);
+			toBeDelete.push_back(left);
+		}
+	}
+	popKey[J1] = 0;
+	popKey[J2] = 0;
+	_root = optimal;
+	// Greedy repeating step 3 ad infinitum
+	for (int i = 0; i < size - 2; ++i) {
+		// Reset noTuples
+		noTuples = UINT_MAX;
+		currentOptimal = 0;
+		for (int j = 0; j < currentKey.size(); ++j) {
+			if (popKey[j]) {
+				OptimizationTree* newOptimal = new OptimizationTree();
+				OptimizationTree* right = new OptimizationTree();
+				
+				newOptimal->CopyFrom(*optimal);
+				right->CopyFrom(&(OptiMap.Find(KeyString(currentKey[j]))));
+				
+				newOptimal->tables.push_back(right->tables[0]);
+				newOptimal->tuples.push_back(right->tuples[0]);
+				
+				// compute join cost
+				
+				// stores cost of this join in newOptimal->noTuples
+				if (noTuples > newOptimal->noTuples) {
+					currentOptimal = newOptimal;
+					noTuples = newOptimal->noTuples;
+					currentOptimal->rightChild = right;
+					right->parent = currentOptimal;
+					J2 = j;
+				}
+				
+				toBeDelete.push_back(right);
+				toBeDelete.push_back(newOptimal);
 			}
 		}
-		optimal->parent = bestOptimal;
-		bestOptimal->leftChild = optimal;
-		optimal = bestOptimal;
+		optimal.parent = newOptimal;
+		newOptimal.leftChild = optimal;
+		
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
