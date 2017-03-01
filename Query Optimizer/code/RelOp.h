@@ -45,8 +45,10 @@ private:
 	// physical file where data to be scanned are stored
 	DBFile file;
 
+	string table;
+
 public:
-	Scan(Schema& _schema, DBFile& _file);
+	Scan(Schema& _schema, DBFile& _file, string table);
 	Scan();
 	virtual ~Scan();
 
@@ -57,6 +59,7 @@ public:
 
 	Schema& getSchema();
 	DBFile& getFile();
+	string getTable();
 
 	virtual ostream& print(ostream& _os);
 };
@@ -74,9 +77,11 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
+	string table;
+
 public:
 	Select(Schema& _schema, CNF& _predicate, Record& _constants,
-		RelationalOp* _producer);
+		RelationalOp* _producer, string table);
 	virtual ~Select();
 
 	Select();
@@ -88,6 +93,7 @@ public:
 	CNF& getCNF();
 	Record& getRecord();
 	RelationalOp* getRelational();
+	string getTable();
 
 	virtual bool GetNext(Record& _record) {}
 
@@ -144,6 +150,8 @@ public:
 	virtual ~Join();
 
 	virtual bool GetNext(Record& _record) {}
+
+	Schema& getSchema();	//function to get schemaOut
 
 	virtual ostream& print(ostream& _os);
 };

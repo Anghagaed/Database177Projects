@@ -23,8 +23,10 @@ class QueryCompiler {
 private:
 	Catalog* catalog;
 	QueryOptimizer* optimizer;
-	EfficientMap <KeyString, Scan> ScanMap;
-	EfficientMap <KeyString, Select> SelectMap;
+	//EfficientMap <KeyString, Scan> ScanMap;
+	//EfficientMap <KeyString, Select> SelectMap;
+	vector<Scan> ScanMap;
+	vector<Select> SelectMap;
 
 public:
 	QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer);
@@ -36,6 +38,8 @@ public:
 		QueryExecutionTree& _queryTree);
 	
 	int tableSize(TableList* _tables);//makes it easy to iterate
+	RelationalOp* JoinTree(OptimizationTree* root, AndList* _predicate);	//recursive function to create join tree for non-left deep trees
+	RelationalOp* GetRelOp(string table);	//goes through select/scan maps to get relational operator associated with table
 };
 
 #endif // _QUERY_COMPILER_H

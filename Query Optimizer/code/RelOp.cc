@@ -8,9 +8,10 @@ ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);
 }
 
-Scan::Scan(Schema& _schema, DBFile& _file) {
+Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 	schema = _schema;
 	file = _file;
+	table = table;
 }
 
 Scan::Scan()
@@ -33,6 +34,10 @@ DBFile& Scan::getFile()
 	return file;
 }
 
+string Scan::getTable() {
+	return table;
+}
+
 void Scan::Swap(Scan& withMe)
 {
 	SWAP(schema, withMe.getSchema());
@@ -50,11 +55,12 @@ ostream& Scan::print(ostream& _os) {
 }
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
-	RelationalOp* _producer) {
+	RelationalOp* _producer, string table) {
 	schema = _schema;
 	predicate = _predicate;
 	constants = _constants;
 	producer = _producer;
+	table = table;
 }
 
 Select::Select()
@@ -82,6 +88,10 @@ Record& Select::getRecord()
 RelationalOp* Select::getRelational()
 {
 	return producer;
+}
+
+string Select::getTable() {
+	return table;
 }
 
 void Select::Swap(Select& withMe)
@@ -123,6 +133,10 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 
 Join::~Join() {
 
+}
+
+Schema & Join::getSchema(){
+	return schemaOut;
 }
 
 ostream& Join::print(ostream& _os) {
