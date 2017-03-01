@@ -16,7 +16,8 @@ using namespace std;
 
 
 // data structure used by the optimizer to compute join ordering
-struct OptimizationTree {
+class OptimizationTree {
+	public:
 	// list of tables joined up to this node
 	vector<string> tables;
 	// number of tuples in each of the tables (after selection predicates)
@@ -30,8 +31,8 @@ struct OptimizationTree {
 	OptimizationTree* rightChild;
 	
 	// Swap and CopyFrom for EfficientMap
-	void Swap(OptimizationTree _withMe);
-	void CopyFrom(OptimizationTree _withMe);
+	void Swap(OptimizationTree& _withMe);
+	void CopyFrom(OptimizationTree& _withMe);
 };
 
 struct pushDown {
@@ -56,6 +57,7 @@ private:
 	
 	vector<pushDown>  pushDownList;
 	vector<joinStuff> joinList;
+	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
 	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
