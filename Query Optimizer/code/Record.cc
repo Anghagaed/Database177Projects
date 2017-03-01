@@ -433,3 +433,45 @@ ostream& Record :: print(ostream& _os, Schema& mySchema) {
 
 	return _os;
 }
+
+//void Record::print(Schema& mySchema) {
+//	int n = mySchema.GetNumAtts();
+//	vector<Attribute> atts = mySchema.GetAtts();
+//
+//	cout << '{';
+//
+//	// loop through all of the attributes
+//	for (int i = 0; i < n; i++) {
+//		// print the attribute name
+//		cout << atts[i].name << ": ";
+//
+//		// use the i^th slot at the head of the record to get the
+//		// offset to the correct attribute in the record
+//		int pointer = ((int *)bits)[i + 1];
+//
+//		// here we determine the type, which given in the schema;
+//		// depending on the type we then print out the contents
+//		// first is integer
+//		if (atts[i].type == Integer) {
+//			int *myInt = (int *) &(bits[pointer]);
+//			cout << *myInt;
+//		}
+//		// then is a double
+//		else if (atts[i].type == Float) {
+//			double *myDouble = (double *) &(bits[pointer]);
+//			cout << *myDouble;
+//		}
+//		// then is a character string
+//		else if (atts[i].type == String) {
+//			char *myString = (char *) &(bits[pointer]);
+//			cout << myString;
+//		}
+//
+//		// print out a comma as needed to make things pretty
+//		if (i != n - 1) {
+//			cout << ", ";
+//		}
+//	}
+//
+//	return;
+//}

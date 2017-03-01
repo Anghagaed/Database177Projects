@@ -136,10 +136,11 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
+	TableList *amarlikesthepenis=_tables;
 	for (int i = 0; i < size; i++)
 	{
 		Schema mySchema;
-		string temp = _tables->tableName;
+		string temp = amarlikesthepenis->tableName;
 		//string temp = iterator->tableName;
 		catalog->GetSchema(temp, mySchema);
 		DBFile myFile = DBFile();
@@ -149,16 +150,28 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		myFile.Open(path);
 		Scan *myScan = new Scan(mySchema, myFile, temp);
 		ScanMap.push_back(*myScan);
-		_tables = _tables->next;
 		// push-down selections: create a SELECT operator wherever necessary
 		Record recTemp;
 		CNF cnfTemp;
 		cnfTemp.ExtractCNF(*_predicate, myScan->getSchema(), recTemp);
-		if (cnfTemp.ExtractCNF(*_predicate, myScan->getSchema(), recTemp) == 0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
+		Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);
+		//cout << (mySelect->getCNF()) << endl;
+		if ((mySelect->getCNF()).numAnds!=0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
 		{
-			Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);
 			SelectMap.push_back(*mySelect);
 		}
+		amarlikesthepenis = amarlikesthepenis->next;
+	}
+
+	for (int k = 0; k < ScanMap.size(); k++)
+	{
+		cout << ScanMap[k] << "\n\n" << endl;
+	}
+
+	// Should only print 1: (supplier)
+	for (int j = 0; j < SelectMap.size(); j++)
+	{
+		cout << SelectMap[j] << "\n\n" << endl;
 	}
 
 	// call the optimizer to compute the join order
@@ -226,12 +239,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	/*
 	WriteOut* writeout;
 	*/
-	// ASSUME: Final Join's Schema = Jschema; Final Join's Pointer = root
+	// ASSUME: Final Join's Schema = s1; Final Join's Pointer = j
 	if (_groupingAtts != 0)														// Non-empty _groupingAtts -> GroupBy
 	{
 		// Create GroupBy here
 		/*
-		Schema _schemaIn = Jschema;												// Set it equal to join's final schema
+		Schema _schemaIn = s1;												// Set it equal to join's final schema
 		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
 		vector<Attribute> att = _schemaIn.GetAtts();							// Get the Attributes
 		int _atts_no = att.size();												// Get the Attribute size
@@ -241,9 +254,10 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		OrderMaker _groupingAtts = OrderMaker(_schemaIn, _atts, _atts_no);		// Insert all relevant values into OrderMaker
 		Function _compute;
 		_compute.GrowFromParseTree (_finalFunction, _schemaIn);					// Insert all relevant values into Function
-		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupingAtts, _compute,	root);		// root = Final join operator
+		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupingAtts, _compute,	j);		// j = Final join operator
 		string outFile = "outfile";
 		writeout = new WriteOut(_schemaOut, outFile, groupby);						// Insert all relevant values into WriteOut
+																					// outFile is "outfile" because we are not using it yet
 		*/
 	}
 	else
@@ -251,40 +265,43 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	{
 		// Create Sum here
 		/*
-		Schema _schemaIn = ...;													// Set it equal to join's final schema
+		Schema _schemaIn = s1;													// Set it equal to join's final schema
 		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
 		Function _compute;
-		_compute->GrowFromParseTree (_finalFunction, _schemaIn);				// Insert all relevant values into Function
-		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute,	...);				// ... = Final join operator
-		writeout = new WriteOut(_schemaOut, "", sum);							// Insert all relevant values into WriteOut
-																				// outFile is "" because we are not using it yet
+		_compute.GrowFromParseTree (_finalFunction, _schemaIn);				// Insert all relevant values into Function
+		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute,	j);				// j = Final join operator
+		string outFile = "outfile";
+		writeout = new WriteOut(_schemaOut, outFile, sum);							// Insert all relevant values into WriteOut
+																					// outFile is "outfile" because we are not using it yet
 		*/
 	}
 	else																		// Project or Project + DuplicateRemoval
 	{
 		// Create Project here
 		/*
-		Schema _schemaIn = ...;													// Set it equal to join's final schema
+		Schema _schemaIn = s1;													// Set it equal to join's final schema
 		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
 		int _numAttsInput = _schemaIn.GetAtts().size();							// Get input size
 		int _numAttsOutput = 0;													// Set it equal to 0 because we aren't doing that yet
 		int _keepMe[_numAttsOutput];											// Same as above
-		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, ...);		// ... = Final join operator 
+		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);		// ... = Final join operator
 		*/
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
 			// Create DuplicateRemoval
 			/*
-			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);	
-			writeout = new WriteOut(_schemaIn, "", duplicateRemoval);			// Insert all relevant values into WriteOut
-																				// outFile is "" because we are not using it yet
+			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);
+			string outFile = "outfile";
+			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);			// Insert all relevant values into WriteOut
+			// outFile is "outfile" because we are not using it yet
 			*/
 		}
 		else
 		{
 			/*
-			writeout = new WriteOut(_schemaIn, "", project);					// Insert all relevant values into WriteOut
-																				// outFile is "" because we are not using it yet
+			string outFile = "outfile";
+			writeout = new WriteOut(_schemaOut, outFile, project);					// Insert all relevant values into WriteOut
+																					// outFile is "outfile" because we are not using it yet
 			*/
 		}
 		// Create the QueryExecutionTree
