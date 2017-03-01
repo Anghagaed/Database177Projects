@@ -77,6 +77,7 @@ public:
 
 	// print record content based on schema
     ostream& print(ostream& _os, Schema& mySchema);
+	//void print(Schema& mySchema);
 };
 
 #endif //_RECORD_H
