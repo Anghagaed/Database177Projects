@@ -22,8 +22,6 @@ QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
 }
 
 QueryCompiler::~QueryCompiler() {
-	delete catalog;
-	delete optimizer;
 }
 int QueryCompiler::tableSize(TableList* _tables)
 {
