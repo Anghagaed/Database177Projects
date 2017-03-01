@@ -42,19 +42,24 @@ struct pushDown {
 	string attsName;				
 };
 
+struct joinStuff {
+	string join1;
+	string join2;
+};
+
 class QueryOptimizer {
 private:
 	Catalog* catalog;
 	vector<OptimizationTree*> toBeDelete;
 	
-	vector<pushDown> pushDownList;
-	vector<string> join1;
-	vector<string> join2;
+	vector<pushDown>  pushDownList;
+	vector<joinStuff> joinList;
 private:
 	int tableSize(TableList* _tables);
 	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 	void partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 	void pushDownSelection(AndList* _predicate);
+	void makingJoin(AndList* _predicate);
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
