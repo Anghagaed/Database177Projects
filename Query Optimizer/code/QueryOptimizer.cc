@@ -7,10 +7,14 @@
 #include "Comparison.h"
 #include "QueryOptimizer.h"
 #include "Comparison.h"
+#include "EfficientMap.h"
+#include "EfficientMap.cc"
+#include "Keyify.h"
+#include "Keyify.cc"
 
 using namespace std;
 
-void OptimizationTree::Swap(OptimizationTree _withMe) {
+void OptimizationTree::Swap(OptimizationTree& _withMe) {
 	// Swap vector
 	this->tables.swap(_withMe.tables);
 	this->tuples.swap(_withMe.tuples);
@@ -33,7 +37,7 @@ void OptimizationTree::Swap(OptimizationTree _withMe) {
 	_withMe.rightChild = temp;
 }
 
-void OptimizationTree::CopyFrom(OptimizationTree _withMe) {
+void OptimizationTree::CopyFrom(OptimizationTree& _withMe) {
 	this->tables = _withMe.tables;
 	this->tuples = _withMe.tuples;
 	this->noTuples = _withMe.noTuples;
@@ -59,11 +63,14 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	
 	if (size > 8) {
 		greedy(_tables, _predicate, _root);
-	} else {
-		partition(_tables, _predicate, _root);
-	}
+	} //else {
+	//	partition(_tables, _predicate, _root);
+	//}
 }
 
+void QueryOptimizer::partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
+
+}
 int QueryOptimizer::tableSize(TableList* _tables) {
 	int size = 0;
 	TableList* ptr = _tables;
@@ -76,7 +83,7 @@ int QueryOptimizer::tableSize(TableList* _tables) {
 
 void QueryOptimizer::pushDownSelection(AndList* _predicate) {
 	pushDownList.clear();
-
+	/*
 	AndList* myPredicate = _predicate;
 
 	while (myPredicate != NULL) {
@@ -108,7 +115,7 @@ void QueryOptimizer::pushDownSelection(AndList* _predicate) {
 		}
 
 	}
-
+	*/
 	// create pushDown struct and push it to pushDownList
 	
 }
@@ -117,7 +124,9 @@ void QueryOptimizer::pushDownSelection(AndList* _predicate) {
  *	This Greedy Algorithm will do the Pre-processing stage and then repeat stage 3 of pre-processing but treating the result as a single table
 */
 void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
+	
 	EfficientMap<KeyString, OptimizationTree> OptiMap;
+	
 	vector<string> currentKey;
 	vector<int> popKey;
 	int size = tableSize(_tables);
