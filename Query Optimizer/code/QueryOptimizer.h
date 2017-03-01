@@ -41,10 +41,6 @@ struct pushDown {
 							// 2 =
 	string attsName;				
 };
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
 
 class QueryOptimizer {
 private:
