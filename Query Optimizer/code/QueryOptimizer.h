@@ -37,9 +37,9 @@ class OptimizationTree {
 
 struct pushDown {
 	string tableName;
-	int code;				// 0 >
-							// 1 < 
-							// 2 =
+	int code;				// 5 >
+							// 6 < 
+							// 7 =
 	string attName;				
 };
 
@@ -62,12 +62,11 @@ private:
 	int tableSize(TableList* _tables);
 	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 	void partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
-	void makingJoin(AndList* _predicate);
 	string findTableName(string& attName);
+	void getPredicate(AndList* _predicate);
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
-	void pushDownSelection(AndList* _predicate);
 	void Optimize(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 };
 

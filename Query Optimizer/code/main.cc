@@ -63,8 +63,8 @@ int main () {
 		groupingAtts, distinctAtts, queryTree);
 
 	cout << queryTree << endl;
-
-	optimizer.pushDownSelection(predicate);
+	OptimizationTree * ptr;
+	optimizer.Optimize(tables, predicate, ptr);
 
 	return 0;
 }
