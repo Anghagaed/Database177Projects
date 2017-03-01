@@ -226,23 +226,24 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	/*
 	WriteOut* writeout;
 	*/
+	// ASSUME: Final Join's Schema = Jschema; Final Join's Pointer = root
 	if (_groupingAtts != 0)														// Non-empty _groupingAtts -> GroupBy
 	{
 		// Create GroupBy here
 		/*
-		Schema _schemaIn = ...;													// Set it equal to join's final schema
+		Schema _schemaIn = Jschema;												// Set it equal to join's final schema
 		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
 		vector<Attribute> att = _schemaIn.GetAtts();							// Get the Attributes
 		int _atts_no = att.size();												// Get the Attribute size
 		int _atts[_atts_no];													// Create an array of indices of Attributes
 		for(int i = 0; i < att.size(); i++)
-			_atts[i] = _schemaIn.Index(att[i]);									// Receive indices of all Attributes in the Schema
-		OrderMaker _groupingAtts = new OrderMaker(_schemaIn, _atts, _atts_no);	// Insert all relevant values into OrderMaker
+			_atts[i] = _schemaIn.Index(att[i].name);							// Receive indices of all Attributes in the Schema
+		OrderMaker _groupingAtts = OrderMaker(_schemaIn, _atts, _atts_no);		// Insert all relevant values into OrderMaker
 		Function _compute;
-		_compute->GrowFromParseTree (_finalFunction, _schemaIn);				// Insert all relevant values into Function
-		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupingAtts, _compute,	...);		// ... = Final join operator
-		writeout = new WriteOut(_schemaOut, "", groupby);						// Insert all relevant values into WriteOut
-																				// outFile is "" because we are not using it yet
+		_compute.GrowFromParseTree (_finalFunction, _schemaIn);					// Insert all relevant values into Function
+		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupingAtts, _compute,	root);		// root = Final join operator
+		string outFile = "outfile";
+		writeout = new WriteOut(_schemaOut, outFile, groupby);						// Insert all relevant values into WriteOut
 		*/
 	}
 	else

@@ -223,5 +223,5 @@ ostream& WriteOut::print(ostream& _os) {
 
 
 ostream& operator<<(ostream& _os, QueryExecutionTree& _op) {
-	return _os << "QUERY EXECUTION TREE";
+	return _os << "QUERY EXECUTION TREE" << "(" << _op.root << ")";
 }

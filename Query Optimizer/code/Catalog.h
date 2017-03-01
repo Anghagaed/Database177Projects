@@ -23,7 +23,6 @@ private:
 	 string _filePath;
 	 EfficientMap<KeyString , tableInfo> tables;
 
-	 vector<string> currentTables;
 	 vector<string> droppedTables;
 	 
 
@@ -50,6 +49,7 @@ public:
 	 * Populate in-memory data structures with data from the SQLite database.
 	 * All the functions work with the in-memory data structures.
 	 */
+	vector<string> currentTables;
 	Catalog(string& _fileName);
 
 	/* Catalog destructor.
