@@ -56,63 +56,57 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 	return result;
 }
 
-/*
+Schema QueryCompiler::GetSchema(RelationalOp * relop)
+{
+	Schema result;
+	string test = typeid(relop).name();
+	int n = test.size() - 2;
+	if (test[n] == 'i') {	//check if it was a join
+		result = ((Join*)relop)->getSchema();
+	}
+	else if (test[n] == 'c') {	//check if it was a select
+		result = ((Select*)relop)->getSchema();
+	}
+	else if (test[n] == 'a') {	//check if it was a scan
+		result = ((Scan*)relop)->getSchema();
+	}
+	return result;
+}
+
 //Recursive function to traverse the optimization tree and create join operators along the way
 //traverses in post order - reaches both children before parent
 //returns the root of the join tree as a relational op pointer
 //resulting schema can be accessed with the root's schemaOut
 RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate) {
+	cout << "jointree" << endl;
 	RelationalOp* left;
 	RelationalOp* right;
 	if (node->leftChild != NULL) {
+		cout << "garbage" << endl;
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
 		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
 	}
 	RelationalOp *result;
+
 	//check how many tables are at this node
-	if (node->tables.size() == 1) {	//if it's not 2 or more, then search through our scan/select maps to find the relational op
-		return GetRelOp(node->tables[0]);
+	//if it's only 1, then it was not a join
+	if (node->tables.size() == 1) {
+		return GetRelOp(node->tables[0]);	//then search through our scan/select maps to find the relational op
 	}
 
 	//if there are 2 or more tables, then we need to join
 	// gets the left/right schemas/relationalOp from the children of this node
 	else {
 		//make the join operator
-		Schema left_schema;
-		Schema right_schema;
-		//get left schema somehow
-		//downcast left into a scan/select/join and get the schema/schemaOut
-		//get the type and then downcast accordingly
-		string test = typeid(left).name();
-		int n = test.size() - 2;
-		if (test[n] == 'i') {	//check if it was a join
-			left_schema = ((Join*)left)->getSchema();
-		}
-		else if (test[n] == 'c'){	//check if it was a select
-			left_schema = ((Select*)left)->getSchema();
-		}
-		else if (test[n] == 'a') {	//check if it was a scan
-			left_schema = ((Scan*)left)->getSchema();
-		}
+
+		//get schemas
+		Schema left_schema = GetSchema(left);
+		Schema right_schema = GetSchema(right);
 
 		//save left schema
 		Schema left_temp = left_schema;
-
-		//get right schema somehow
-		//downcast left into a scan/select/join and get the schema/schemaOut???
-		test = typeid(right).name();
-		n = test.size() - 2;
-		if (test[n] == 'i') {	//check if it was a join
-			right_schema = ((Join*)right)->getSchema();
-		}
-		else if (test[n] == 'c') {	//check if it was a select
-			right_schema = ((Select*)right)->getSchema();
-		}
-		else if (test[n] == 'a') {	//check if it was a scan
-			right_schema = ((Scan*)right)->getSchema();
-		}
 
 		//get the predicate
 		CNF predicate;
@@ -125,7 +119,6 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		return j;	//return our relational op
 	}
 }
-*/
 
 void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	FuncOperator* _finalFunction, AndList* _predicate,
@@ -175,9 +168,11 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// call the optimizer to compute the join order
 	OptimizationTree* root;
 	optimizer->Optimize(_tables, _predicate, root);
-	/*
+	cout << "done optimizing" << endl;
+
 	// create join operators based on the optimal order computed by the optimizer
 	Join* j;	//j will point to root of join tree
+	/*
 	if (size > 8) {
 		// create join operators
 		// only for left deep trees
@@ -226,10 +221,11 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		//j points to the root of the join tree
 	}
 	else {
-		//this should make the join tree for any general tree, not just left-deep
-		j = (Join*)JoinTree(root, _predicate);	//need to cast relationalop to join somehow
-	}
 	*/
+		//this should make the join tree for any general tree, not just left-deep
+		//j = (Join*)JoinTree(root, _predicate);	//need to cast relationalop to join somehow
+	//}
+	
 	// create the remaining operators based on the query
 
 	// connect everything in the query execution tree and return
