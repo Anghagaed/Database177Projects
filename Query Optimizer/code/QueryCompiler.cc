@@ -110,10 +110,11 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
+	TableList *amarlikesthepenis=_tables;
 	for (int i = 0; i < size; i++)
 	{
 		Schema mySchema;
-		string temp = _tables->tableName;
+		string temp = amarlikesthepenis->tableName;
 		//string temp = iterator->tableName;
 		catalog->GetSchema(temp, mySchema);
 		DBFile myFile = DBFile();
@@ -123,18 +124,19 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		myFile.Open(path);
 		Scan *myScan = new Scan(mySchema, myFile, temp);
 		ScanMap.push_back(*myScan);
-		_tables = _tables->next;
 		// push-down selections: create a SELECT operator wherever necessary
 		Record recTemp;
 		CNF cnfTemp;
 		cnfTemp.ExtractCNF(*_predicate, myScan->getSchema(), recTemp);
-		if (cnfTemp.ExtractCNF(*_predicate, myScan->getSchema(), recTemp) == 0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
+		Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);
+		//cout << (mySelect->getCNF()) << endl;
+		if ((mySelect->getCNF()).numAnds!=0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
 		{
-			Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);
 			SelectMap.push_back(*mySelect);
 		}
+		amarlikesthepenis = amarlikesthepenis->next;
 	}
-	for (int k = 0; k < SelectMap.size(); k++)
+	for (int k = 0; k < ScanMap.size(); k++)
 	{
 		cout << ScanMap[k] << "\n\n" << endl;
 	}

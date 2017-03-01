@@ -103,7 +103,7 @@ void Select::Swap(Select& withMe)
 }
 
 ostream& Select::print(ostream& _os) {
-	return _os << "SELECT"<<schema<<predicate<<constants.print(_os,schema)<<producer;
+	return _os << "SELECT"<<schema<<predicate<</*constants.print(_os,schema)<<*/producer;
 }
 
 
