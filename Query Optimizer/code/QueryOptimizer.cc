@@ -76,6 +76,39 @@ int QueryOptimizer::tableSize(TableList* _tables) {
 
 void QueryOptimizer::pushDownSelection(AndList* _predicate) {
 	pushDownList.clear();
+
+	AndList* myPredicate = _predicate;
+
+	while (myPredicate != NULL) {
+
+		ComparisonOp* myComp = myPredicate->left;
+
+		if (myComp != NULL) {
+
+			pushDown myPushObj;
+
+			myPushObj.code = myComp->code;
+
+			if (myComp->left->code == 1 || myComp->left->code == 2 || myComp->left->code == 4) {
+
+				cout << "Left: " << myComp->left->code << endl;
+				cout << "Value: " << myComp->left->value << endl;
+
+			}
+
+			if (myComp->right->code == 1 || myComp->right->code == 2 || myComp->right->code == 4) {
+
+				cout << "Right: " << myComp->right->code << endl;
+				cout << "Value: " << myComp->right->value << endl;
+
+			}
+
+			pushDownList.push_back(myPushObj);
+
+		}
+
+	}
+
 	// create pushDown struct and push it to pushDownList
 	
 }
