@@ -36,22 +36,29 @@ struct OptimizationTree {
 
 struct pushDown {
 	string _tableName;
-	int code;
+	int code;				// 0 >
+							// 1 < 
+							// 2 =
 	string attsName;				
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/master
 
 class QueryOptimizer {
 private:
 	Catalog* catalog;
 	vector<OptimizationTree*> toBeDelete;
 	
-	vector<string> pushDown;
+	vector<pushDown> pushDownList;
 	vector<string> join1;
 	vector<string> join2;
 private:
 	int tableSize(TableList* _tables);
 	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 	void partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
+	void pushDownSelection(AndList* _predicate);
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();

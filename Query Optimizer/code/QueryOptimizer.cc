@@ -73,6 +73,12 @@ int QueryOptimizer::tableSize(TableList* _tables) {
 	}
 	return size;
 }
+
+void QueryOptimizer::pushDownSelection(AndList* _predicate) {
+	pushDownList.clear();
+	// create pushDown struct and push it to pushDownList
+	
+}
 /*	Do greedy here
  * 	Implementation refers to optimization.algorithm
  *	This Greedy Algorithm will do the Pre-processing stage and then repeat stage 3 of pre-processing but treating the result as a single table
@@ -83,6 +89,7 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	vector<int> popKey;
 	int size = tableSize(_tables);
 	
+	pushDownSelection(_predicate);
 	// Pre-processing step 1 : Filling Map with individual table
 	TableList* ptrT = _tables;
 	Schema* schem;
