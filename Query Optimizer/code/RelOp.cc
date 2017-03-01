@@ -109,7 +109,12 @@ ostream& Select::print(ostream& _os) {
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	int _numAttsOutput, int* _keepMe, RelationalOp* _producer) {
-
+	_schemaIn = schemaIn;
+	_schemaOut = schemaOut;
+	_numAttsInput = numAttsInput;
+	_numAttsOutput = numAttsOutput;
+	_keepMe = keepMe;
+	_producer = producer; 
 }
 
 Project::~Project() {
@@ -117,7 +122,7 @@ Project::~Project() {
 }
 
 ostream& Project::print(ostream& _os) {
-	return _os << "PROJECT";
+	return _os << "PROJECT: \nSchema In: " << schemaIn << "\nSchema Out: " << schemaOut << "\n# Attributes Input: " << numAttsInput << "\n# Attributes Output: " << numAttsOutput << "\nKeep: " << keepMe << "\nProducer: " << producer;
 }
 
 
@@ -140,7 +145,7 @@ Schema & Join::getSchema(){
 }
 
 ostream& Join::print(ostream& _os) {
-	return _os << "JOIN" << schemaLeft << schemaRight << schemaOut << predicate << *left << *right;
+	return _os << "JOIN\nLeft Schema: " << schemaLeft << "\nRight Schema: " << schemaRight << "\nSchema Out: " << schemaOut << "\nPredicate: " << predicate << "\nLeft Operator: " << *left << "\nRight Operator: " << *right;
 }
 
 
@@ -154,7 +159,7 @@ DuplicateRemoval::~DuplicateRemoval() {
 }
 
 ostream& DuplicateRemoval::print(ostream& _os) {
-	return _os << "DISTINCT" << schema << *producer;
+	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer;
 }
 
 
@@ -203,7 +208,9 @@ ostream& GroupBy::print(ostream& _os) {/*
 
 
 WriteOut::WriteOut(Schema& _schema, string& _outFile, RelationalOp* _producer) {
-
+	_schema = schema;
+	_outFile = outFile;
+	_producer = producer;
 }
 
 WriteOut::~WriteOut() {
@@ -211,7 +218,7 @@ WriteOut::~WriteOut() {
 }
 
 ostream& WriteOut::print(ostream& _os) {
-	return _os << "OUTPUT";
+	return _os << "OUTPUT\n Schema: " << schema << "\nOut File: " << outFile << "\n Producer: " << *producer;
 }
 
 
