@@ -134,6 +134,16 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			SelectMap.push_back(*mySelect);
 		}
 	}
+	for (int k = 0; k < SelectMap.size(); k++)
+	{
+		cout << ScanMap[k] << "\n\n" << endl;
+	}
+
+	// Should only print 1: (supplier)
+	for (int j = 0; j < SelectMap.size(); j++)
+	{
+		cout << SelectMap[j] << "\n\n" << endl;
+	}
 	/*
 	cout<<SelectMap.Length();
 
