@@ -35,16 +35,18 @@ struct OptimizationTree {
 };
 
 struct pushDown {
-	string _tableName;
+	string tableName;
 	int code;				// 0 >
 							// 1 < 
 							// 2 =
-	string attsName;				
+	string attName;				
 };
 
 struct joinStuff {
-	string join1;
-	string join2;
+	string table1;
+	string att1;
+	string table2;
+	string att2;
 };
 
 class QueryOptimizer {
@@ -58,12 +60,12 @@ private:
 	int tableSize(TableList* _tables);
 	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 	void partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
-	void pushDownSelection(AndList* _predicate);
 	void makingJoin(AndList* _predicate);
+	string findTableName(string& attName);
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
-
+	void pushDownSelection(AndList* _predicate);
 	void Optimize(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
 };
 

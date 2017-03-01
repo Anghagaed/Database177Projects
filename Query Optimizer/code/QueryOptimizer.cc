@@ -60,7 +60,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	if (size > 8) {
 		greedy(_tables, _predicate, _root);
 	} else {
-		partition(_tables, _predicate, _root);
+		//partition(_tables, _predicate, _root);
 	}
 }
 
@@ -85,39 +85,127 @@ void QueryOptimizer::pushDownSelection(AndList* _predicate) {
 
 		if (myComp != NULL) {
 
-			pushDown myPushObj;
+			if (myComp->left->code == 3 && myComp->right->code != 3) {
 
-			myPushObj.code = myComp->code;
+				pushDown myPushObj;
 
-			if (myComp->left->code == 1 || myComp->left->code == 2 || myComp->left->code == 4) {
+				myPushObj.code = myComp->code;
 
-				cout << "Left: " << myComp->left->code << endl;
-				cout << "Value: " << myComp->left->value << endl;
+				myPushObj.attName = myComp->left->value;
 
-			}
+				string temp = myComp->left->value;
 
-			if (myComp->right->code == 1 || myComp->right->code == 2 || myComp->right->code == 4) {
+				myPushObj.tableName = findTableName(temp);
 
-				cout << "Right: " << myComp->right->code << endl;
-				cout << "Value: " << myComp->right->value << endl;
+				pushDownList.push_back(myPushObj);
 
 			}
 
-			pushDownList.push_back(myPushObj);
+			else if (myComp->left->code != 3 && myComp->right->code == 3) {
+
+				pushDown myPushObj;
+
+				myPushObj.code = myComp->code;
+
+				myPushObj.attName = myComp->right->value;
+
+				string temp = myComp->right->value;
+
+				myPushObj.tableName = findTableName(temp);
+
+				pushDownList.push_back(myPushObj);
+
+			}
+
+			else if (myComp->left->code == 3 && myComp->right->code == 3) {
+
+				joinStuff myJoinObj;
+
+				myJoinObj.att1 = myComp->left->value;
+				myJoinObj.att2 = myComp->right->value;
+
+				string temp = myComp->left->value;
+
+				myJoinObj.table1 = findTableName(temp);
+
+				temp = myComp->right->value;
+
+				myJoinObj.table2 = findTableName(temp);
+
+				joinList.push_back(myJoinObj);
+
+			}
+
 
 		}
 
+		myPredicate = myPredicate->rightAnd;
+
 	}
 
-	// create pushDown struct and push it to pushDownList
+	// --------------------PRINTING LISTS-------------------
+
+	
+	for (int i = 0; i < pushDownList.size(); i++) {
+
+		cout << pushDownList[i].attName;
+
+		if (pushDownList[i].code == 5)
+			cout << " < ";
+		else if (pushDownList[i].code == 6)
+			cout << " > ";
+		else if (pushDownList[i].code == 7)
+			cout << " = ";
+
+		cout << "Some Constant" << endl;
+		cout << pushDownList[i].tableName << endl;
+
+	}
+
+	for (int i = 0; i < joinList.size(); i++) {
+
+		cout << joinList[i].att1 << " = " << joinList[i].att2 << endl;
+		cout << joinList[i].table1 << " and " << joinList[i].table2 << endl;
+
+	}
+	
 	
 }
+
+string QueryOptimizer::findTableName(string& attName) {
+
+	for (int i = 0; i < catalog->currentTables.size(); i++) {
+
+		vector<string> myAtts;
+
+		catalog->GetAttributes(catalog->currentTables[i], myAtts);
+
+		for (int j = 0; j < myAtts.size(); j++) {
+
+			if (myAtts[j] == attName) {
+
+				return catalog->currentTables[i];
+
+			}
+
+		}
+
+		myAtts.clear();
+
+	}
+
+}
+
 /*	Do greedy here
  * 	Implementation refers to optimization.algorithm
  *	This Greedy Algorithm will do the Pre-processing stage and then repeat stage 3 of pre-processing but treating the result as a single table
 */
 void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
-	EfficientMap<KeyString, OptimizationTree> OptiMap;
+	
+	cout << "Pushing" << endl;
+	pushDownSelection(_predicate);
+
+	/*EfficientMap<KeyString, OptimizationTree> OptiMap;
 	vector<string> currentKey;
 	vector<int> popKey;
 	int size = tableSize(_tables);
@@ -231,6 +319,6 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 		}
 		optimal->parent = temp;
 		currentOptimal.leftChild = optimal;
-	}
+	}*/
 	
 }

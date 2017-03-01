@@ -57,11 +57,14 @@ int main () {
 	// at this point we have the parse tree in the ParseTree data structures
 	// we are ready to invoke the query compiler with the given query
 	// the result is the execution tree built from the parse tree and optimized
+	
 	QueryExecutionTree queryTree;
 	compiler.Compile(tables, attsToSelect, finalFunction, predicate,
 		groupingAtts, distinctAtts, queryTree);
 
 	cout << queryTree << endl;
+
+	optimizer.pushDownSelection(predicate);
 
 	return 0;
 }
