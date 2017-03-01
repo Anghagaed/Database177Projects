@@ -54,37 +54,71 @@ QueryOptimizer::~QueryOptimizer() {
 	for (int i = 0; i < toBeDelete.size() - 1; ++i) {
 		delete toBeDelete[i];
 	}
-	cout << "Out of Query Optimizer Deconstructor" << endl;
+	//cout << "Out of Query Optimizer Deconstructor" << endl;
 }
 
+OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTuples) {
+	// compute some push down tuples size total after cost
+	for (int i = 0; i < pushDownList.size(); ++i) {
+		if (!tName.compare(pushDownList[i].tableName)) {
+			if (pushDownList[i].code == 7) {
+				unsigned int temp;
+				catalog->GetNoDistinct(tName, pushDownList[i].attName, temp);
+				tTuples /= temp;
+			}
+			else {
+				tTuples /= 3;
+			}
+		}
+	}
+
+	OptimizationTree* _root = new OptimizationTree();
+	_root->tables.push_back(tName);
+	_root->tuples.push_back(tTuples);
+	_root->noTuples = 0;
+	toBeDelete.push_back(_root);
+
+	return _root;
+}
+/*
+ * How it looks in main: 	
+ *	OptimizationTree ptr;
+ *	optimizer.Optimize(tables, predicate, &ptr);
+*/
 void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	OptimizationTree* _root) {
-	std::cout << "Starting Optimize" << std::endl;
+	//cout << _root << endl;
+	//std::cout << "Starting Optimize" << std::endl;
 	// compute the optimal join order
+	OptimizationTree* tree;
 	int size = tableSize(_tables);
-	std::cout << "Size is: " << std::endl;
 	getPredicate(_predicate);
-	
+	//cout << _root << endl;
 	if (size == 1) {
+		unsigned int tTuples;
+		string tName = _tables->tableName;
+
+		catalog->GetNoTuples(tName, tTuples);
+		tree = singleNode(tName, tTuples);
 	}
 	else if (size < 8) {
-		greedy(_tables, _predicate, _root);
+		tree = greedy(_tables, _predicate);
 	}
 	else {
-		partition(_tables, _predicate, _root);
+		tree = partition(_tables, _predicate);
 	} 
-	
-	cout << "Optimize is done" << endl;
+	_root->Swap(*tree);
 }
 
-/*	Do greedy here
+/*	
+ *	Do greedy here
  * 	Implementation refers to optimization.algorithm
  *	This Greedy Algorithm will do the Pre-processing stage and then repeat stage 3 of pre-processing but treating the result as a single table
 */
-void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
-	std::cout << "Starting Greedy " << std::endl;
+OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate) {
+	//std::cout << "Starting Greedy " << std::endl;
 	EfficientMap<KeyString, OptimizationTree> OptiMap;
-
+	OptimizationTree *_root;
 	vector<string> currentKey;
 	vector<int> popKey;
 	int size = tableSize(_tables);
@@ -92,8 +126,8 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	// Pre-processing step 1 : Filling Map with individual table
 	TableList* ptrT = _tables;
 	Schema* schem;
-	cout << endl;
-	cout << "Starting 1st Preprocessing" << endl;
+	//cout << endl;
+	//cout << "Starting 1st Preprocessing" << endl;
 	while (ptrT != NULL) {
 		unsigned int tTuples;
 		string tName = ptrT->tableName;
@@ -112,16 +146,9 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 		ptrT = ptrT->next;
 	}
 	
-	cout << "Ending 1st Preprocessing" << endl;
-	
-	for (int i = 0; i < currentKey.size(); ++i) {
-		KeyString key = KeyString(currentKey[i]);
-		OptimizationTree* ptr = &OptiMap.Find(key);
-		cout << ptr->tables[0] << " " << ptr->tuples[0] << endl;
-	}
+	//cout << "Ending 1st Preprocessing" << endl;
 	// Preprocessing step 2 : Push-Down Selections
-	cout << endl;
-	cout << "Starting 2nd Preprocessing" << endl;
+	//cout << "Starting 2nd Preprocessing" << endl;
 	for (int i = 0; i < pushDownList.size(); ++i) {
 		KeyString key = KeyString(pushDownList[i].tableName);
 		OptimizationTree* ptr = &OptiMap.Find(key);
@@ -136,10 +163,10 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 		}
 		//cout << ptr->tables[0] << " " << ptr->tuples[0] << endl;
 	}
-	cout << "Ending 2nd Preprocessing" << endl;
+	//cout << "Ending 2nd Preprocessing" << endl;
 	
 	// Preprocessing step 3 : Join for 2 tables
-	cout << "Starting 3rd Preprocessing" << endl;
+	//cout << "Starting 3rd Preprocessing" << endl;
 	// Only work if table size if greater than 2
 	if (size > 1) {
 		KeyString key;
@@ -198,24 +225,25 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 		popKey[J1] = 0;
 		popKey[J2] = 0;
 		_root = optimal;
-		cout << "Best of 2 is: " << endl;
-		cout << _root->tables.size() << endl;
-		cout << _root->tables[0] << " " << _root->tables[1] << endl;
-		cout << _root->noTuples << endl;
-		cout << "Ending 3rd Preprocessing" << endl;
+		//cout << "Best of 2 is: " << endl;
+		//cout << _root->tables.size() << endl;
+		//cout << _root->tables[0] << " " << _root->tables[1] << endl;
+		//cout << _root->noTuples << endl;
+		//cout << "Ending 3rd Preprocessing" << endl;
 
 		// Greedy repeating step 3 ad infinitum
-		cout << "Starting Greedy Repeat" << endl;
+		//cout << "Starting Greedy Repeat" << endl;
 		if (size > 2) {
-			cout << "Size - 2 is " << size - 2 << endl;
-			cout << ""
+			//cout << "Size - 2 is " << size - 2 << endl;
+			//cout << "PopKey size is " << popKey.size() << endl;
 			for (int i = 0; i < size - 2; ++i) {
-				cout << "Starting Outer Loop " << i << endl;
+				//cout << "Starting Outer Loop " << i << endl;
 				noTuples = UINT_MAX;
 				
 				for (int j = 0; j < popKey.size(); ++j) {
-					cout << "Starting Inner Loop " << j << endl;
+					//cout << "Starting Inner Loop " << j << endl;
 					if (popKey[j]) {
+						//cout << "New creation" << endl;
 						key = KeyString(currentKey[j]);
 						OptimizationTree* newOptimal = new OptimizationTree();
 						OptimizationTree* right = new OptimizationTree();
@@ -229,18 +257,28 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 						newOptimal->rightChild = right;
 						right->parent = newOptimal;
 						// compute cost
+						//cout << "Computing cost" << endl;
 						newOptimal->noTuples *= right->tuples[0];
 						for (int a = 0; a < joinList.size(); ++a) {
+							//cout << "joinList " << a << endl;
 							string j1 = right->tables[0];
 							if (!j1.compare(joinList[a].table1) || !j1.compare(joinList[a].table2)) {
-								for (int b = 0; b < joinList.size(); ++b) {
+								for (int b = 0; b < newOptimal->tables.size(); ++b) {
 									string j2 = newOptimal->tables[b];
 									if (!j2.compare(joinList[a].table1) || !j2.compare(joinList[a].table2)) {
+										//cout << "before catalog" << endl;
 										unsigned int temp1, temp2;
 										catalog->GetNoDistinct(joinList[a].table1, joinList[a].att1, temp1);
 										catalog->GetNoDistinct(joinList[a].table2, joinList[a].att2, temp2);
+										//cout << "after catalog" << endl;
+										//cout << newOptimal->noTuples << endl;
 										newOptimal->noTuples /= (temp1 > temp2) ? temp1 : temp2;
-									} } } }
+										//cout << newOptimal->noTuples << endl;
+										//cout << "after calculation" << endl;
+						}	}	}	}
+						//cout << "Determining if lowest cost" << endl;
+						//cout << noTuples << endl;
+						//cout << newOptimal->noTuples << endl;
 						if (noTuples > newOptimal->noTuples) {
 							currentOptimal = newOptimal;
 							noTuples = newOptimal->noTuples;
@@ -250,27 +288,24 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 						toBeDelete.push_back(newOptimal);
 						toBeDelete.push_back(right);
 					}
-					cout << "Ending inner loop" << j << endl;
+					//cout << "Ending inner loop" << j << endl;
 				}
 				popKey[J1] = 0;
 				_root->parent = currentOptimal;
 				currentOptimal->leftChild = _root;
 				_root = currentOptimal;
-				cout << "Ending outer loop" << i << endl;
+				//cout << "Ending outer loop" << i << endl;
 			}
 		}
-		cout << "Ending Greedying Repeat" << endl;
+		//cout << "Ending Greedying Repeat" << endl;
 	}
 
-	cout << "Greedy is done" << endl;
-	cout << "What is in root" << endl;
-	int size2 = _root->tables.size();
-	for (int i = 0; i < size2; ++i) {
-		cout << _root->tables[i] << " ";
-	}
-	cout << endl;
+	//cout << "Ending Greedy" << endl;
+	//cout << endl<< _root->noTuples << endl;
+	//cout << _root << endl;
+	return _root;
 }
-void QueryOptimizer::partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
+OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 
 }
 int QueryOptimizer::tableSize(TableList* _tables) {

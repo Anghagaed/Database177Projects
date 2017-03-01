@@ -16,12 +16,12 @@ using namespace std;
 
 
 // data structure used by the optimizer to compute join ordering
-class OptimizationTree {
+struct OptimizationTree {
 	public:
 	// list of tables joined up to this node
 	vector<string> tables;
 	// number of tuples in each of the tables (after selection predicates)
-	vector<int> tuples;
+	vector<unsigned int> tuples;
 	// number of tuples at this node
 	int noTuples;
 
@@ -60,10 +60,11 @@ private:
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
-	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
-	void partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
+	OptimizationTree* greedy(TableList* _tables, AndList* _predicate);
+	OptimizationTree* partition(TableList* _tables, AndList* _predicate);
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
+	OptimizationTree* singleNode(string& tName, unsigned int& tTuples);
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();

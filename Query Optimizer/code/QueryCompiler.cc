@@ -240,7 +240,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	if (_groupingAtts != 0)														// Non-empty _groupingAtts -> GroupBy
 	{
 		// Create GroupBy here
-
+		/*
 		Schema _schemaIn = s1;												// Set it equal to join's final schema
 		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
 		vector<Attribute> att = _schemaIn.GetAtts();							// Get the Attributes
@@ -293,10 +293,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			writeout = new WriteOut(_schemaOut, outFile, project);					// Insert all relevant values into WriteOut
 																					// outFile is "outfile" because we are not using it yet
 		}
+		*/
 	}
 	// Create the QueryExecutionTree
 	//cout <<"bah" <<writeout <<endl;
 	_queryTree = QueryExecutionTree();
 	_queryTree.SetRoot(*writeout);
+	
 	// free the memory occupied by the parse tree since it is not necessary anymore
 }
