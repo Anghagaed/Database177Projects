@@ -67,8 +67,8 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 int QueryOptimizer::tableSize(TableList* _tables) {
 	int size = 0;
 	TableList* ptr = _tables;
-	while (ptr != null) {
-		ptr = ptr.next;
+	while (ptr != NULL) {
+		ptr = ptr->next;
 		++size;
 	}
 	return size;
@@ -86,11 +86,11 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	// Pre-processing step 1 : Filling Map with individual table
 	TableList* ptrT = _tables;
 	Schema* schem;
-	while (ptrT != null) {
+	while (ptrT != NULL) {
 		unsigned int tTuples;
 		string tName = ptrT->tableName;
 		
-		catalog.GetNoTuples(tName, tTuples);
+		catalog->GetNoTuples(tName, tTuples);
 		
 		
 		KeyString key(tName);
@@ -108,22 +108,24 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	// Preprocessing step 2 : Push-Down Selections
 	
 	// Preprocessing step 3 : Join for 2 tables
+	
 	KeyString key;
 	OptimizationTree* optimal, currentOptimal;
-	key = KeyString(currentKey[0]);
-	int startingSize = AvailKey.size();
+	int startingSize = currentKey.size();
 	int J1, J2;
 	unsigned int noTuples = UINT_MAX;
 	for (int i = 0; i < startingSize; ++i) {
-		currentOptimal = &(OptiMap.Find(KeyString(currentKey[i])));
+		key = KeyString(currentKey[i]);
+		currentOptimal = OptiMap.Find(key);
 		for (int j = i + 1; j < startingSize - 1; ++j) {
+			key = KeyString(currentKey[j]);
 			OptimizationTree* newOptimal = new OptimizationTree();
 			OptimizationTree* right = new OptimizationTree();
 			OptimizationTree* left = new OptimizationTree();
 			
-			newOptimal->CopyFrom(*currentOptimal);
-			left->CopyFrom(*currentOptimal);
-			right->CopyFrom(&(OptiMap.Find(KeyString(currentKey[j]))));
+			newOptimal->CopyFrom(currentOptimal);
+			left->CopyFrom(currentOptimal);
+			right->CopyFrom(OptiMap.Find(key));
 			
 			// setting up the tree to be joined
 			newOptimal->tables.push_back(right->tables[0]);
@@ -152,18 +154,22 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	popKey[J1] = 0;
 	popKey[J2] = 0;
 	_root = optimal;
+	
 	// Greedy repeating step 3 ad infinitum
+	
+	OptimizationTree* temp;
 	for (int i = 0; i < size - 2; ++i) {
 		// Reset noTuples
 		noTuples = UINT_MAX;
-		currentOptimal = 0;
 		for (int j = 0; j < currentKey.size(); ++j) {
 			if (popKey[j]) {
+				key = KeyString(currentKey[j]);
 				OptimizationTree* newOptimal = new OptimizationTree();
 				OptimizationTree* right = new OptimizationTree();
 				
 				newOptimal->CopyFrom(*optimal);
-				right->CopyFrom(&(OptiMap.Find(KeyString(currentKey[j]))));
+				
+				right->CopyFrom(OptiMap.Find(key));
 				
 				newOptimal->tables.push_back(right->tables[0]);
 				newOptimal->tuples.push_back(right->tuples[0]);
@@ -172,10 +178,10 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 				
 				// stores cost of this join in newOptimal->noTuples
 				if (noTuples > newOptimal->noTuples) {
-					currentOptimal = newOptimal;
+					temp = newOptimal;
 					noTuples = newOptimal->noTuples;
-					currentOptimal->rightChild = right;
-					right->parent = currentOptimal;
+					temp->rightChild = right;
+					right->parent = temp;
 					J2 = j;
 				}
 				
@@ -183,8 +189,8 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 				toBeDelete.push_back(newOptimal);
 			}
 		}
-		optimal.parent = newOptimal;
-		newOptimal.leftChild = optimal;
-		
+		optimal->parent = temp;
+		currentOptimal.leftChild = optimal;
 	}
+	
 }

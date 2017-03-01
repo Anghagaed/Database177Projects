@@ -34,10 +34,20 @@ struct OptimizationTree {
 	void CopyFrom(OptimizationTree _withMe);
 };
 
+struct pushDown {
+	string _tableName;
+	int code;
+	string attsName;				
+}
+
 class QueryOptimizer {
 private:
 	Catalog* catalog;
 	vector<OptimizationTree*> toBeDelete;
+	
+	vector<string> pushDown;
+	vector<string> join1;
+	vector<string> join2;
 private:
 	int tableSize(TableList* _tables);
 	void greedy(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
