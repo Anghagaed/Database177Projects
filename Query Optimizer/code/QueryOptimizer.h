@@ -38,7 +38,7 @@ struct pushDown {
 	string _tableName;
 	int code;
 	string attsName;				
-}
+};
 
 class QueryOptimizer {
 private:
