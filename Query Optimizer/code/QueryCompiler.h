@@ -15,6 +15,7 @@
 #include "RelOp.h"
 #include "EfficientMap.h"
 #include "Keyify.h"
+#include <typeinfo>
 
 using namespace std;
 

@@ -22,9 +22,7 @@ QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
 }
 
 QueryCompiler::~QueryCompiler() {
-	cout << "before catalog" << endl;
 	delete catalog;
-	cout << "after catalog" << endl;
 	delete optimizer;
 }
 int QueryCompiler::tableSize(TableList* _tables)
@@ -60,54 +58,82 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 	return result;
 }
 
+/*
 //Recursive function to traverse the optimization tree and create join operators along the way
 //traverses in post order - reaches both children before parent
 //returns the root of the join tree as a relational op pointer
 //resulting schema can be accessed with the root's schemaOut
-RelationalOp * QueryCompiler::JoinTree(OptimizationTree * root, AndList * _predicate) {
-	RelationalOp* left = JoinTree(root->leftChild, _predicate);	//get the relational op of left child	
-	RelationalOp* right = JoinTree(root->rightChild, _predicate);	//get the relational op of right child
+RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate) {
+	RelationalOp* left;
+	RelationalOp* right;
+	if (node->leftChild != NULL) {
+		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
+	}
+	if (node->rightChild != NULL) {
+		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
+	}
 	RelationalOp *result;
-	
 	//check how many tables are at this node
-	if (root->tables.size() < 2) {	//if it's not 2 or more, then search through our scan/select maps to find the relational op
-		return GetRelOp(root->tables[0]);
+	if (node->tables.size() == 1) {	//if it's not 2 or more, then search through our scan/select maps to find the relational op
+		return GetRelOp(node->tables[0]);
 	}
 
 	//if there are 2 or more tables, then we need to join
 	// gets the left/right schemas/relationalOp from the children of this node
 	else {
 		//make the join operator
-
-		//get left schema somehow
-		//downcast left into a scan/select/join and get the schema/schemaOut???
-		//get the type and then downcast accordingly???
 		Schema left_schema;
+		Schema right_schema;
+		//get left schema somehow
+		//downcast left into a scan/select/join and get the schema/schemaOut
+		//get the type and then downcast accordingly
+		string test = typeid(left).name();
+		int n = test.size() - 2;
+		if (test[n] == 'i') {	//check if it was a join
+			left_schema = ((Join*)left)->getSchema();
+		}
+		else if (test[n] == 'c'){	//check if it was a select
+			left_schema = ((Select*)left)->getSchema();
+		}
+		else if (test[n] == 'a') {	//check if it was a scan
+			left_schema = ((Scan*)left)->getSchema();
+		}
 
 		//save left schema
 		Schema left_temp = left_schema;
 
 		//get right schema somehow
 		//downcast left into a scan/select/join and get the schema/schemaOut???
-		Schema right_schema;
+		test = typeid(right).name();
+		n = test.size() - 2;
+		if (test[n] == 'i') {	//check if it was a join
+			right_schema = ((Join*)right)->getSchema();
+		}
+		else if (test[n] == 'c') {	//check if it was a select
+			right_schema = ((Select*)right)->getSchema();
+		}
+		else if (test[n] == 'a') {	//check if it was a scan
+			right_schema = ((Scan*)right)->getSchema();
+		}
 
 		//get the predicate
 		CNF predicate;
-		//predicate.ExtractCNF(_predicate, left_schema, right_schema);
+		predicate.ExtractCNF(*_predicate, left_schema, right_schema);
 
 		//get resulting schema
-		//left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
+		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 
-		//Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
-		//return j;	//return our relational op
+		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
+		return j;	//return our relational op
 	}
 }
+*/
 
 void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	FuncOperator* _finalFunction, AndList* _predicate,
 	NameList* _groupingAtts, int& _distinctAtts,
 	QueryExecutionTree& _queryTree) {
-	
+
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
 	for (int i = 0; i < size; i++)
@@ -134,17 +160,17 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			SelectMap.push_back(*mySelect);
 		}
 	}
-	/*
-	cout<<SelectMap.Length();
 
 	// call the optimizer to compute the join order
 	OptimizationTree* root;
 	optimizer->Optimize(_tables, _predicate, root);
-	
+	/*
 	// create join operators based on the optimal order computed by the optimizer
 	Join* j;	//j will point to root of join tree
 	if (size > 8) {
-		// left-deep trees
+		// create join operators
+		// only for left deep trees
+		//will go through the vector of tables in order making join operators along the way
 
 		// create first join
 
@@ -184,13 +210,15 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 
 			j = new Join(schema_temp, s2, s1, predicate, j, right);
 		}
+		
 		//s1 is final schema
 		//j points to the root of the join tree
 	}
 	else {
-		//j = JoinTree(root, _predicate);	//need to cast relationalop to join somehow
+		//this should make the join tree for any general tree, not just left-deep
+		j = (Join*)JoinTree(root, _predicate);	//need to cast relationalop to join somehow
 	}
-
+	*/
 	// create the remaining operators based on the query
 
 	// connect everything in the query execution tree and return
