@@ -64,14 +64,17 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	int size = tableSize(_tables);
 	std::cout << "Size is: " << std::endl;
 	getPredicate(_predicate);
-	greedy(_tables, _predicate, _root);
-	/*
-	if (size > 8) {
-		greedy(_tables, _predicate, _root);
-	} else {
-		partition(_tables, _predicate, _root);
+	
+	if (size == 1) {
 	}
-	*/
+	else if (size < 8) {
+		greedy(_tables, _predicate, _root);
+	}
+	else {
+		partition(_tables, _predicate, _root);
+	} 
+	
+	cout << "Optimize is done" << endl;
 }
 
 /*	Do greedy here
@@ -136,141 +139,136 @@ void QueryOptimizer::greedy(TableList* _tables, AndList* _predicate, Optimizatio
 	cout << "Ending 2nd Preprocessing" << endl;
 	
 	// Preprocessing step 3 : Join for 2 tables
-	cout << endl;
 	cout << "Starting 3rd Preprocessing" << endl;
-	cout << joinList.size() << endl;
-	for (int w = 0; w < joinList.size(); ++w) {
-		cout << joinList[w].table1 << endl;
-		cout << joinList[w].att1 << endl;
-		cout << joinList[w].table2 << endl;
-		cout << joinList[w].att2 << endl;
-		cout << endl;
-	}
-	KeyString key;
-	OptimizationTree *optimal, currentOptimal;
-	int startingSize = currentKey.size();
-	//cout << "Starting Size is " << startingSize << endl;
-	int J1, J2;
-	unsigned int noTuples = UINT_MAX;
-	for (int i = 0; i < startingSize; ++i) {
-		key = KeyString(currentKey[i]);
-		currentOptimal = OptiMap.Find(key);
-		for (int j = i + 1; j < startingSize; ++j) {
-			cout << "i is currently" << i << " j is currently " << j << endl;
-			key = KeyString(currentKey[j]);
-			OptimizationTree* newOptimal = new OptimizationTree();
-			OptimizationTree* right = new OptimizationTree();
-			OptimizationTree* left = new OptimizationTree();
-			
-			newOptimal->CopyFrom(currentOptimal);
-			left->CopyFrom(currentOptimal);
-			right->CopyFrom(OptiMap.Find(key));
-			
-			// setting up the tree to be joined
-			newOptimal->tables.push_back(right->tables[0]);
-			newOptimal->tuples.push_back(right->tuples[0]);
-			int size = newOptimal->tables.size();
-			//cout << "Size is: " << size << " i is: " << i << " j is: " << j << endl;
-			for (int w = 0; w < size; ++w) {
-				//cout << newOptimal->tables[w] << " ";
-			}
-			cout << endl;
-			// compute cost using join
-			string t1 = newOptimal->tables[0];
-			string t2 = newOptimal->tables[1];
-			/*
-			cout << "t1 is: " << t1 << endl;
-			cout << "t2 is: " << t2 << endl;
-			cout << endl;
-			*/
-			
-			for (int k = 0; k < joinList.size(); ++k) {
-
-				string *j1 = &joinList[k].table1;
-				string *j2 = &joinList[k].table2;
-				unsigned int temp1, temp2;
-				newOptimal->noTuples = newOptimal->tuples[0] * newOptimal->tuples[1];
-				if ((!t1.compare(*j1) || !t1.compare(*j2)) && (!t2.compare(*j1) || !t2.compare(*j2))) {
-					//cout << t1 << " " << t2 << endl;
-					//cout << *j1 << " " << *j2 << endl;
-					//cout << endl;
-					catalog->GetNoDistinct(*j1, joinList[k].att1, temp1);
-					catalog->GetNoDistinct(*j2, joinList[k].att2, temp2);
-					//cout << "D1: " << temp1 << " D2: " << temp2 << endl;
-					newOptimal->noTuples /= (temp1 > temp2) ? temp1 : temp2;
-				}
-			}
-			
-			// stores cost of this join in newOptimal->noTuples
-			newOptimal->rightChild = right;
-			newOptimal->leftChild = left;
-			right->parent = newOptimal;
-			left->parent = newOptimal;
-			if (noTuples > newOptimal->noTuples) {
-				optimal = newOptimal;
-				noTuples = newOptimal->noTuples;
-				J1 = i;
-				J2 = j;
-			}
-			
-			// Storing pointers to be deleted in destructor
-			toBeDelete.push_back(right);
-			toBeDelete.push_back(newOptimal);
-			toBeDelete.push_back(left);
-		}
-	}
-
-	popKey[J1] = 0;
-	popKey[J2] = 0;
-	cout << "Best of 2 is: " << endl;
-	cout << optimal->tables[0] << " " << optimal->tables[1] << endl;
-	cout << optimal->noTuples << endl;
-	_root = optimal;
-	cout << "Ending 3rd Preprocessing" << endl;
-	// Greedy repeating step 3 ad infinitum
-	
-	OptimizationTree* temp;
-	cout << "Size - 2 is " << size - 2 << endl;
-	for (int i = 0; i < size - 2; ++i) {
-		// Reset noTuples
-		for (int k = 0; k < popKey.size(); ++k) {
-			cout << popKey[k] << " ";
-		}
-		cout << endl;
-		noTuples = UINT_MAX;
-		for (int j = 0; j < currentKey.size(); ++j) {
-			if (popKey[j]) {
+	// Only work if table size if greater than 2
+	if (size > 1) {
+		KeyString key;
+		OptimizationTree *optimal, *currentOptimal;
+		int startingSize = currentKey.size();
+		int J1, J2;
+		unsigned int noTuples = UINT_MAX;
+		for (int i = 0; i < startingSize; ++i) {
+			key = KeyString(currentKey[i]);
+			currentOptimal = &OptiMap.Find(key);
+			for (int j = i + 1; j < startingSize; ++j) {
 				key = KeyString(currentKey[j]);
 				OptimizationTree* newOptimal = new OptimizationTree();
 				OptimizationTree* right = new OptimizationTree();
-				
-				newOptimal->CopyFrom(*optimal);
-				
+				OptimizationTree* left = new OptimizationTree();
+
+				newOptimal->CopyFrom(*currentOptimal);
+				left->CopyFrom(*currentOptimal);
 				right->CopyFrom(OptiMap.Find(key));
-				
+
 				newOptimal->tables.push_back(right->tables[0]);
 				newOptimal->tuples.push_back(right->tuples[0]);
-				
-				// compute join cost
-				
-				// stores cost of this join in newOptimal->noTuples
+
+				string t1 = newOptimal->tables[0];
+				string t2 = newOptimal->tables[1];
+
+				for (int k = 0; k < joinList.size(); ++k) {
+
+					string *j1 = &joinList[k].table1;
+					string *j2 = &joinList[k].table2;
+					unsigned int temp1, temp2;
+					newOptimal->noTuples = newOptimal->tuples[0] * newOptimal->tuples[1];
+					if ((!t1.compare(*j1) || !t1.compare(*j2)) && (!t2.compare(*j1) || !t2.compare(*j2))) {
+						catalog->GetNoDistinct(*j1, joinList[k].att1, temp1);
+						catalog->GetNoDistinct(*j2, joinList[k].att2, temp2);
+						newOptimal->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+					}
+				}
+
+				newOptimal->rightChild = right;
+				newOptimal->leftChild = left;
+				right->parent = newOptimal;
+				left->parent = newOptimal;
 				if (noTuples > newOptimal->noTuples) {
-					temp = newOptimal;
+					optimal = newOptimal;
 					noTuples = newOptimal->noTuples;
-					temp->rightChild = right;
-					right->parent = temp;
+					J1 = i;
 					J2 = j;
 				}
-				
 				toBeDelete.push_back(right);
 				toBeDelete.push_back(newOptimal);
+				toBeDelete.push_back(left);
 			}
 		}
-		optimal->parent = temp;
-		currentOptimal.leftChild = optimal;
+
+		popKey[J1] = 0;
 		popKey[J2] = 0;
+		_root = optimal;
+		cout << "Best of 2 is: " << endl;
+		cout << _root->tables.size() << endl;
+		cout << _root->tables[0] << " " << _root->tables[1] << endl;
+		cout << _root->noTuples << endl;
+		cout << "Ending 3rd Preprocessing" << endl;
+
+		// Greedy repeating step 3 ad infinitum
+		cout << "Starting Greedy Repeat" << endl;
+		if (size > 2) {
+			cout << "Size - 2 is " << size - 2 << endl;
+			cout << ""
+			for (int i = 0; i < size - 2; ++i) {
+				cout << "Starting Outer Loop " << i << endl;
+				noTuples = UINT_MAX;
+				
+				for (int j = 0; j < popKey.size(); ++j) {
+					cout << "Starting Inner Loop " << j << endl;
+					if (popKey[j]) {
+						key = KeyString(currentKey[j]);
+						OptimizationTree* newOptimal = new OptimizationTree();
+						OptimizationTree* right = new OptimizationTree();
+
+						newOptimal->CopyFrom(*_root);
+						right->CopyFrom(OptiMap.Find(key));
+
+						newOptimal->tables.push_back(right->tables[0]);
+						newOptimal->tuples.push_back(right->tuples[0]);
+						
+						newOptimal->rightChild = right;
+						right->parent = newOptimal;
+						// compute cost
+						newOptimal->noTuples *= right->tuples[0];
+						for (int a = 0; a < joinList.size(); ++a) {
+							string j1 = right->tables[0];
+							if (!j1.compare(joinList[a].table1) || !j1.compare(joinList[a].table2)) {
+								for (int b = 0; b < joinList.size(); ++b) {
+									string j2 = newOptimal->tables[b];
+									if (!j2.compare(joinList[a].table1) || !j2.compare(joinList[a].table2)) {
+										unsigned int temp1, temp2;
+										catalog->GetNoDistinct(joinList[a].table1, joinList[a].att1, temp1);
+										catalog->GetNoDistinct(joinList[a].table2, joinList[a].att2, temp2);
+										newOptimal->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+									} } } }
+						if (noTuples > newOptimal->noTuples) {
+							currentOptimal = newOptimal;
+							noTuples = newOptimal->noTuples;
+							J1 = j;
+						}
+
+						toBeDelete.push_back(newOptimal);
+						toBeDelete.push_back(right);
+					}
+					cout << "Ending inner loop" << j << endl;
+				}
+				popKey[J1] = 0;
+				_root->parent = currentOptimal;
+				currentOptimal->leftChild = _root;
+				_root = currentOptimal;
+				cout << "Ending outer loop" << i << endl;
+			}
+		}
+		cout << "Ending Greedying Repeat" << endl;
 	}
-	
+
+	cout << "Greedy is done" << endl;
+	cout << "What is in root" << endl;
+	int size2 = _root->tables.size();
+	for (int i = 0; i < size2; ++i) {
+		cout << _root->tables[i] << " ";
+	}
+	cout << endl;
 }
 void QueryOptimizer::partition(TableList* _tables, AndList* _predicate, OptimizationTree* _root) {
 
