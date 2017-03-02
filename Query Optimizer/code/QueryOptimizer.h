@@ -75,6 +75,8 @@ private:
 	// AndList Stuff
 	vector<pushDown>  pushDownList;
 	vector<joinStuff> joinList;
+
+	// Get Join Orders given a string
 	vector<joinOrder> getJoinOrder(string& str, int& tSize);
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
@@ -82,7 +84,7 @@ private:
 
 	//OptimizationTree* createJoin(OptimizationTree* j1, OptimizationTree* j2, EfficientMap<KeyString, );
 	OptimizationTree* greedy(TableList* _tables, AndList* _predicate);
-
+	OptimizationTree* partition(TableList* _tables, AndList* _predicate);
 	// Utility Functions
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
