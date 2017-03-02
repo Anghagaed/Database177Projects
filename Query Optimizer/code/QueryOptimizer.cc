@@ -59,9 +59,11 @@ QueryOptimizer::~QueryOptimizer() {
 	for (int i = 0; i < toBeDelete.size(); ++i) {
 		delete toBeDelete[i];
 	}
+	/*
 	for (int i = 0; i < toBeDelete2.size(); ++i) {
 		delete toBeDelete2[i];
 	}
+	*/
 	//cout << "Out of Query Optimizer Destructor" << endl;
 }
 
@@ -110,11 +112,11 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		catalog->GetNoTuples(tName, tTuples);
 		tree = singleNode(tName, tTuples);
 	}
-	else if (size < 8) {
+	else if (size > 5 || size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
-		//tree = partition(_tables, _predicate);
+		tree = partition(_tables, _predicate);
 	} 
 	_root->Swap(*tree);
 }
@@ -314,6 +316,197 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	return _root;
 }
 
+OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
+	//cout << "In Partition" << endl;
+	int size = tableSize(_tables);
+	//vector<string> uniqueOrder = getUniqueOrder(_tables, _predicate);
+	vector<string> tableKey;
+	vector<string> allKey;
+	// Pushing single tables to map
+	//cout << "Start Preprocessing part 1" << endl;
+	TableList* ptrT = _tables;
+	while (ptrT != NULL) {
+		unsigned int tTuples;
+		string tName = ptrT->tableName;
+
+		catalog->GetNoTuples(tName, tTuples);
+		KeyString key(tName);
+		OptimizationTree toPush;
+
+		toPush.tables.push_back(tName);
+		toPush.tuples.push_back(tTuples);
+		toPush.noTuples = 0;
+
+		tableKey.push_back(tName);
+
+		OptiMap.Insert(key, toPush);
+		ptrT = ptrT->next;
+	}
+	//cout << "End Preprocessing part 1" << endl << endl;
+	// Push Down Selection
+	//cout << "Start Preprocessing part 2" << endl;
+	for (int i = 0; i < pushDownList.size(); ++i) {
+		KeyString key = KeyString(pushDownList[i].tableName);
+		OptimizationTree* ptr = &OptiMap.Find(key);
+		if (pushDownList[i].code == 7) {
+			unsigned int _noDistinct = 1;
+			catalog->GetNoDistinct(pushDownList[i].tableName, pushDownList[i].attName, _noDistinct);
+			ptr->tuples[0] /= _noDistinct;
+		}
+		else {
+			ptr->tuples[0] /= 3;
+		}
+	}
+	//cout << "End Preprocessing part 2" << endl << endl;
+	// Pushing double tables to map
+	//cout << "Starting Preprocessing part 3" << endl;
+	allKey = tableKey;
+	for (int i = 0; i < size - 1; ++i) {
+		for (int j = i + 1; j < size; ++j) {
+			OptimizationTree* left = new OptimizationTree();
+			OptimizationTree* right = new OptimizationTree();
+			OptimizationTree* newJoin = new OptimizationTree();
+			KeyString key;
+
+			key = tableKey[i];
+			left->CopyFrom(OptiMap.Find(key));
+			key = tableKey[j];
+			right->CopyFrom(OptiMap.Find(key));
+			newJoin->CopyFrom(*left);
+
+			newJoin->tables.push_back(right->tables[0]);
+			newJoin->tuples.push_back(right->tuples[0]);
+
+			newJoin->noTuples = newJoin->tuples[0] * newJoin->tuples[0];
+			for (int k = 0; k < joinList.size(); ++k) {
+				string *j1 = &joinList[k].table1;
+				string *j2 = &joinList[k].table2;
+				string *t1 = &newJoin->tables[0];
+				string *t2 = &newJoin->tables[1];
+				unsigned int temp1, temp2;
+				if ((!t1->compare(*j1) || !t1->compare(*j2)) && (!t2->compare(*j1) || t2->compare(*j2))) {
+					catalog->GetNoDistinct(*j1, joinList[k].att1, temp1);
+					catalog->GetNoDistinct(*j2, joinList[k].att2, temp2);
+					newJoin->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+			}	}
+			toBeDelete.push_back(left);
+			toBeDelete.push_back(right);
+			toBeDelete.push_back(newJoin);
+
+			allKey.push_back(tableKey[i] + '|' + tableKey[j]);
+			key = KeyString('(' + allKey[i] + '|' + allKey[j] + ')');
+			OptiMap.Insert(key, *newJoin);
+		}
+	}
+	cout << "End Preprocessing part 3" << endl;
+	cout << "Start Best Join Computation" << endl;
+	// Algorithm
+	string optimalString;
+	unsigned int noTuples = UINT_MAX;
+	vector<string> uniqueOrdering = getUniqueOrder(_tables, _predicate);
+	for (int i = 0; i < uniqueOrdering.size(); ++i) {
+		vector<joinOrder> joinOrdering = getJoinOrder(uniqueOrdering[i], size);
+		unsigned int noTuples2 = 0;
+		for (int j = 0; j < joinOrdering.size(); ++j) {
+			OptimizationTree *left, *right, *ptr;
+			KeyString key;
+			key = KeyString(joinOrdering[j].j1);
+			if (OptiMap.IsThere(key)) {
+				left = &OptiMap.Find(key);
+			}
+			else {
+				cout << "If Assertion fails" << endl;
+				cout << "String is : " << joinOrdering[j].j1 << endl;
+				cout << "i is " << i << "j is " << j << endl;
+				cout << endl;
+				for (int i = 0; i < joinOrdering.size(); ++i) {
+					cout << "i " << i << endl;
+					cout << "j1: " << joinOrdering[i].j1 << " j2: " << joinOrdering[i].j2 << endl;
+				}
+			}
+			key = KeyString(joinOrdering[j].j2);
+			if (OptiMap.IsThere(key)) {
+				right = &OptiMap.Find(key);
+			}
+			else {
+				//cout << "If Assertion fails" << endl;
+				//cout << "String is : " << joinOrdering[j].j2 << endl;
+			}
+			ptr = new OptimizationTree();
+
+			toBeDelete.push_back(ptr);
+			ptr->CopyFrom(*left);
+			for (int k = 0; k < right->tables.size(); ++k) {
+				ptr->tables.push_back(right->tables[k]);
+				ptr->tuples.push_back(right->tuples[k]);
+			}
+			ptr->noTuples *= right->noTuples;
+
+			// compute Join cost
+			for (int w = 0; w < joinList.size(); ++w) {
+				string *j1 = &joinList[w].table1;
+				string *j2 = &joinList[w].table2;
+				for (int x = 0; x < left->tables.size(); ++x) {
+					string *t1 = &left->tables[x];
+					if (!t1->compare(*j1) || !t1->compare(*j2)) {
+						for (int y = 0; y < right->tables.size(); ++y) {
+							string *t2 = &right->tables[y];
+							if (!t2->compare(*j1) || !t2->compare(*j2)) {
+								unsigned int temp1, temp2;
+								catalog->GetNoDistinct(*j1, joinList[w].att1, temp1);
+								catalog->GetNoDistinct(*j2, joinList[w].att2, temp2);
+								ptr->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+							}
+						}
+					}
+				}
+			}
+
+			// Push new thing into efficientMap
+			key = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')');
+			noTuples2 += ptr->noTuples;
+			OptiMap.Insert(key, *ptr);
+		}
+		if (noTuples > noTuples2) {
+			noTuples = noTuples2;
+			optimalString = uniqueOrdering[i];
+		}
+	}
+	cout << "End Best Join Computation" << endl;
+	// Optimal Join Orders is stored in optimalString
+	cout << "Start tree creation" << endl;
+	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
+	OptimizationTree* _root;
+	cout << joinOrdering.size()<< endl;
+	for (int i = 0; i < joinOrdering.size(); ++i) {
+		cout << "i " << i << endl;
+		KeyString key;
+		OptimizationTree *left, *right, *ptr;
+		
+		key = KeyString(joinOrdering[i].j1);
+		cout << "Start Left" << endl;
+		left = &OptiMap.Find(key);
+		cout << "End Left" << endl;
+		cout << "Start Right" << endl;
+		key = KeyString(joinOrdering[i].j2);
+		right = &OptiMap.Find(key);
+		cout << "End Right" << endl;
+		cout << "Start ptr" << endl;
+		key = KeyString('(' + joinOrdering[i].j1 + '|' + joinOrdering[i].j2 + ')');
+		ptr = &OptiMap.Find(key);
+		cout << "End ptr" << endl;
+
+		ptr->leftChild = left;
+		ptr->rightChild = right;
+		left->parent = ptr;
+		right->parent = ptr;
+
+		_root = ptr;
+	} 
+	cout << "End tree creation" << endl;
+	return _root;
+}
+
 int QueryOptimizer::tableSize(TableList* _tables) {
 	int size = 0;
 	TableList* ptr = _tables;
@@ -447,38 +640,78 @@ string QueryOptimizer::findTableName(string& attName) {
 
 }
 
+
+
+
+// --- Partition ---
+
+bool dupeCheck(string& str1, string& str2) {
+
+
+
+	for (int i = 0; i < str1.length(); i++) {
+
+		char letter = str1.at(i);
+
+		if (letter >= 'A' && letter <= 'Z') {
+
+			for (int j = 0; j < str2.length(); j++) {
+
+				if (letter == str2.at(j)) {
+
+					return true;
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+
 vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _predicate) {
 	
+	vector<string> letters;
+
+	letters.push_back("A"); letters.push_back("B"); letters.push_back("C"); letters.push_back("D"); letters.push_back("E");
+	letters.push_back("F"); letters.push_back("G"); letters.push_back("H"); letters.push_back("I"); letters.push_back("J");
+
 	TableList* temp = _tables;
 
 	vector<string> myTables;
 
 	int tSize = tableSize(_tables);
 
-	cout << endl << "Tables:" << endl;
-
-	/*for (int i = 0; i < tSize; i++) {
-
-		myTables.push_back(temp->tableName);
-		temp = temp->next;
-		cout << myTables[i] << endl;
-
-	}*/
-
-	tSize = 4;
-
-	myTables.push_back("A");
-	myTables.push_back("B");
-	myTables.push_back("C");
-	myTables.push_back("D");
-
 	for (int i = 0; i < tSize; i++) {
 
-	cout << myTables[i] << endl;
+		KeyString key = KeyString(letters[i]);
+		KeyString data = KeyString(temp->tableName);
+
+		tableMap.Insert(key, data);
+
+		temp = temp->next;
 
 	}
 
-	cout << endl;
+
+	//cout << endl << "Tables:" << endl;
+
+	for (int i = 0; i < tSize; i++) {
+
+		myTables.push_back(letters[i]);
+
+	}
+
+	/*for (int i = 0; i < tSize; i++) {
+
+		cout << myTables[i] << endl;
+
+	}
+
+	cout << endl;*/
 
 
 	vector<pattern> myPatterns;
@@ -510,8 +743,8 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 	}
 
-	/*
-	for (int i = 0; i < myPatterns.size(); i++) {
+	
+	/*for (int i = 0; i < myPatterns.size(); i++) {
 
 		cout << "To make: " << 3 + i << endl;
 
@@ -533,8 +766,8 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 		cout << endl << endl;
 
-	}
-	*/
+	}*/
+	
 
 
 
@@ -602,7 +835,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 					//cout << "Comparing: " << myCombs[myPatterns[i].left[j] - 1][l] << " AND " << myCombs[myPatterns[i].right[j] - 1][r] << endl;
 
-					if (myCombs[myPatterns[i].right[j] - 1][r].find(myCombs[myPatterns[i].left[j] - 1][l]) > 1000000) {
+					if (!dupeCheck(myCombs[myPatterns[i].right[j] - 1][r], myCombs[myPatterns[i].left[j] - 1][l])) {
 
 						//cout << "Left not found in Right" << endl;
 
@@ -626,7 +859,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 	//cout << endl << endl;
 
 	
-	for (int i = 0; i < myCombs.size(); i++) {
+	/*for (int i = 0; i < myCombs.size(); i++) {
 
 		cout << "Column: " << i + 1 << endl;
 
@@ -638,49 +871,155 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 		cout << endl;
 
-	}
+	}*/
 	
-	vector<joinOrder> test = getJoinOrder(myCombs[myCombs.size() - 1][0], tSize);
-
-	for (int i = 0; test.size(); i++) {
-
-		cout << test[i].j1 << " with " << test[i].j2;
-
-	}
-
 	return myCombs[myCombs.size() - 1];
-
 }
 
-vector<joinOrder> QueryOptimizer::getJoinOrder(string& str, int& tSize) {
+
+vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 	// use ptr like a normal vector. Just -> instead of .
-/*	vector<joinOrder> myOrder;
+	vector<joinOrder> myOrder;
 
 	//(A(B(C|D)))
 
-	int i = 0;
+	//C D
+	//B CD
+	//A BCD
 
-	while (i < tSize - 1) {
+	int i = str.length()-1;
+	int closeEnd;
+	vector<int> closeIndex;
+	int bar;
 
-		int barIndex = str.find("|");
 
-		if (index < 1000000) {
+	//cout << str << endl;
 
-			joinOrder newOrder;
+	int barCount = 0;
 
-			
+	while (i > 0) {
+
+		if (str.at(i) == ')') {
+
+			closeEnd++;
+			closeIndex.insert(closeIndex.begin(), i);
 
 		}
 
+		else if (str.at(i) == '(') {
+
+
+			joinOrder newOrder;
+
+			if (str.at(i - 1) == ')') {
+
+				closeIndex.erase(closeIndex.begin());
+				i--;
+				continue;
+
+			}
+
+			else if (str.at(i - 1) == '(') {
+
+				newOrder.j1 = str.substr(i, closeIndex[0] - i + 1);
+				closeIndex.erase(closeIndex.begin());
+				newOrder.j2 = str.substr(i+5, closeIndex[0] - (i+5));
+
+			}
+			
+			else {
+
+				newOrder.j1 = str.at(i - 1);
+				newOrder.j2 = str.substr(i, closeIndex[0]-i+1);
+			}
+
+			
+
+			closeIndex.erase(closeIndex.begin());
+
+			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+			myOrder.push_back(newOrder);
+
+		}
+
+		else if (str.at(i) == '|') {
+
+			joinOrder newOrder;
+
+			newOrder.j1 = str.at(i - 1);
+			newOrder.j2 = str.at(i + 1);
+
+			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+			myOrder.push_back(newOrder);
+
+		}
+
+		i--;
 
 	}
 
-
+	//cout << endl;
 
 	// vector will delete joinOrder so they dont have to be a pointer
 	// create joinOrder from str
 	// push_back smaller joins before larger joins. e.g. ( (A|B) (C|D) E) will have (A B), (C D), before (AB CD) and then (ABCD E) in the push_back. 
+	
 
 
-	return myOrder;*/
+	for (int i = 0; i < myOrder.size(); i++) {
+
+		for (int j = 0; j < myOrder[i].j1.length(); j++) {
+
+			char letter = myOrder[i].j1.at(j);
+			
+			if (letter >= 'A' && letter <= 'Z') {
+
+				string temp;
+
+				temp += letter;
+
+				KeyString myKey = KeyString(temp);
+
+				string tName = tableMap.Find(myKey);
+
+				myOrder[i].j1.erase(j, 1);
+
+				myOrder[i].j1.insert(j, tName);
+
+				//cout << myOrder[i].j1 << endl;
+
+			}
+
+		}
+
+		for (int j = 0; j < myOrder[i].j2.length(); j++) {
+
+			char letter = myOrder[i].j2.at(j);
+
+			if (letter >= 'A' && letter <= 'Z') {
+
+				string temp;
+
+				temp += letter;
+
+				KeyString myKey = KeyString(temp);
+
+				string tName = tableMap.Find(myKey);
+
+				myOrder[i].j2.erase(j, 1);
+
+				myOrder[i].j2.insert(j, tName);
+
+				//cout << myOrder[i].j2 << endl;
+
+			}
+
+		}
+
+	}
+
+
+	return myOrder;
 }
