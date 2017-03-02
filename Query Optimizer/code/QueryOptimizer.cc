@@ -55,7 +55,7 @@ QueryOptimizer::QueryOptimizer(Catalog& _catalog) : catalog(&_catalog) {
 }
 
 QueryOptimizer::~QueryOptimizer() {
-	//cout << "In Query Optimizer destructor" << endl;
+	cout << "In Query Optimizer destructor" << endl;
 	for (int i = 0; i < toBeDelete.size(); ++i) {
 		delete toBeDelete[i];
 	}
@@ -64,7 +64,7 @@ QueryOptimizer::~QueryOptimizer() {
 		delete toBeDelete2[i];
 	}
 	*/
-	//cout << "Out of Query Optimizer Destructor" << endl;
+	cout << "Out of Query Optimizer Destructor" << endl;
 }
 
 OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTuples) {
@@ -98,7 +98,7 @@ OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTupl
 void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	OptimizationTree* _root) {
 	//cout << _root << endl;
-	//std::cout << "Starting Optimize" << std::endl;
+	std::cout << "Starting Optimize" << std::endl;
 	// compute the optimal join order
 	OptiMap.Clear();
 	OptimizationTree* tree;
@@ -399,10 +399,6 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			OptiMap.Insert(key, *newJoin);
 		}
 	}
-	
-	for (int i = 0; i < allKey.size(); ++i) {
-		cout << allKey[i] << endl;
-	}
 
 	//cout << "End Preprocessing part 3" << endl;
 	//cout << "Start Best Join Computation" << endl;
@@ -423,25 +419,19 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			}
 			else {
 				cout << "Left not found" << endl;
-				cout << "j1 is " << joinOrdering[j].j1 << endl;
-				cout << "j2 is " << joinOrdering[j].j2 << endl;
-				for (int i = 0; i < allKey.size(); ++i) {
-					cout << allKey[i] << endl;
-				}
-				return NULL;
+				cout << "j1: " << joinOrdering[j].j1 << endl;
+				cout << "j2: " << joinOrdering[j].j2 << endl;
+				cout << allKey[allKey.size() - 1] << endl;
 			}
 			key = KeyString(joinOrdering[j].j2);
 			if (OptiMap.IsThere(key)) {
 				right = &OptiMap.Find(key);
 			}
 			else {
-				cout << "Right not found" << endl;
-				cout << "j1 is " << joinOrdering[j].j1 << endl;
-				cout << "j2 is " << joinOrdering[j].j2 << endl;
-				for (int i = 0; i < allKey.size(); ++i) {
-					cout << allKey[i] << endl;
-				}
-				return NULL;
+				cout << "Right not found" << endl; 
+				cout << "j1: " << joinOrdering[j].j1 << endl;
+				cout << "j2: " << joinOrdering[j].j2 << endl;
+				cout << allKey[allKey.size() - 1] << endl;
 			}
 			ptr = new OptimizationTree();
 
@@ -487,12 +477,12 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 	}
 	//cout << "End Best Join Computation" << endl;
 	// Optimal Join Orders is stored in optimalString
-	/*
+	
 	cout << optimalString << endl;
 	//cout << "Start tree creation" << endl;
 	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
 	OptimizationTree* _root;
-	cout << joinOrdering.size()<< endl;
+	//cout << joinOrdering.size()<< endl;
 	for (int i = 0; i < joinOrdering.size(); ++i) {
 		//cout << "i " << i << endl;
 		KeyString key;
@@ -511,11 +501,13 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 		else
 			cout << "right not found" << endl;
 		//cout << "Start ptr" << endl;
-		key = KeyString('(' + joinOrdering[i].j1 + '|' + joinOrdering[i].j2 + ')');
+		key = KeyString('(' + joinOrdering[i].j1 + joinOrdering[i].j2 + ')');
 		if (OptiMap.IsThere(key))
 			ptr = &OptiMap.Find(key);
-		else
+		else {
 			cout << "ptr not found" << endl;
+			cout << '(' + joinOrdering[i].j1 + joinOrdering[i].j2 + ')' << endl;
+		}
 		//cout << "End ptr" << endl;
 
 		//cout << "Do ptr" << endl;
@@ -531,9 +523,8 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 		_root = ptr;
 		//cout << "Do 6 ptr " << endl;
 	} 
-	//cout << "End tree creation" << endl;
 	return _root;
-	*/
+	
 }
 
 int QueryOptimizer::tableSize(TableList* _tables) {
@@ -910,69 +901,24 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 	// use ptr like a normal vector. Just -> instead of .
 	vector<joinOrder> myOrder;
 
-	//(A(B(C|D)))
+	// (A(B(C|D)))
+	// ((A|B)(C|D))
 
 	//C D
 	//B CD
 	//A BCD
 
 	int i = str.length()-1;
-	int closeEnd;
 	vector<int> closeIndex;
-	int bar;
-
+	vector<int> openIndex;
 
 	//cout << str << endl;
 
-	int barCount = 0;
+	// Pass 1
 
 	while (i > 0) {
 
-		if (str.at(i) == ')') {
-
-			closeEnd++;
-			closeIndex.insert(closeIndex.begin(), i);
-
-		}
-
-		else if (str.at(i) == '(') {
-
-
-			joinOrder newOrder;
-
-			if (str.at(i - 1) == ')') {
-
-				closeIndex.erase(closeIndex.begin());
-				i--;
-				continue;
-
-			}
-
-			else if (str.at(i - 1) == '(') {
-
-				newOrder.j1 = str.substr(i, closeIndex[0] - i + 1);
-				closeIndex.erase(closeIndex.begin());
-				newOrder.j2 = str.substr(i+5, closeIndex[0] - (i+5));
-
-			}
-			
-			else {
-
-				newOrder.j1 = str.at(i - 1);
-				newOrder.j2 = str.substr(i, closeIndex[0]-i+1);
-			}
-
-			
-
-			closeIndex.erase(closeIndex.begin());
-
-			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
-
-			myOrder.push_back(newOrder);
-
-		}
-
-		else if (str.at(i) == '|') {
+		if (str.at(i) == '|') {
 
 			joinOrder newOrder;
 
@@ -982,6 +928,79 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
 
 			myOrder.push_back(newOrder);
+
+		}
+
+		i--;
+
+	}
+
+
+
+	// (A(B(C|D)))
+	// ((A|B)(C|D))
+
+	// Pass 2
+
+	i = str.length() - 1;
+
+	while (i > 0) {
+
+		if (str.at(i) == ')') {
+
+			closeIndex.insert(closeIndex.begin(), i);
+
+		}
+
+		else if (str.at(i) == '(') {
+
+			joinOrder newOrder;
+
+			if (str.at(i - 1) != '(' && str.at(i - 1) != ')') {
+
+				newOrder.j1 = str.at(i - 1);
+				newOrder.j2 = str.substr(i, closeIndex[0] - i + 1);
+				closeIndex.erase(closeIndex.begin());
+
+				// cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+				myOrder.push_back(newOrder);
+				i--;
+				continue;
+
+			}
+
+			else {
+
+				openIndex.insert(openIndex.begin(), i);
+
+				if (openIndex.size() == 2) {
+
+					newOrder.j1 = str.substr(openIndex[0], closeIndex[0] - openIndex[0] + 1);
+					openIndex.erase(openIndex.begin());
+					closeIndex.erase(closeIndex.begin());
+					newOrder.j2 = str.substr(openIndex[0], closeIndex[0] - openIndex[0] + 1);
+					openIndex.erase(openIndex.begin());
+					closeIndex.erase(closeIndex.begin());
+
+					// cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+					myOrder.push_back(newOrder);
+					i--;
+					continue;
+
+				}
+
+				else {
+
+					i--;
+					continue;
+
+				}
+
+			}
+
+			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
 
 		}
 
