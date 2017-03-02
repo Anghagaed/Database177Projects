@@ -2,7 +2,7 @@
 #include <string>
 
 #include "Catalog.h"
-extern "C"{
+extern "C" {
 #include "QueryParser.h"
 }
 #include "QueryOptimizer.h"
@@ -24,54 +24,67 @@ extern "C" int yyparse();
 extern "C" int yylex_destroy();
 
 
-int main () {
-	// this is the catalog
-	string dbFile = "catalog.sqlite";
-	Catalog catalog(dbFile);
+int main()
+{
+	bool quit = true;
+	while (quit)
+	{
+		// this is the catalog
+		string dbFile = "catalog.sqlite";
+		Catalog catalog(dbFile);
 
-	// this is the query optimizer
-	// it is not invoked directly but rather passed to the query compiler
-	QueryOptimizer optimizer(catalog);
-	// this is the query compiler
-	// it includes the catalog and the query optimizer
-	QueryCompiler compiler(catalog, optimizer);
+		// this is the query optimizer
+		// it is not invoked directly but rather passed to the query compiler
+		QueryOptimizer optimizer(catalog);
+		// this is the query compiler
+		// it includes the catalog and the query optimizer
+		QueryCompiler compiler(catalog, optimizer);
 
 
-	// the query parser is accessed directly through yyparse
-	// this populates the extern data structures
-	int parse = -1;
-	if (yyparse () == 0) {
-		cout << "OK!" << endl;
-		parse = 0;
+		// the query parser is accessed directly through yyparse
+		// this populates the extern data structures
+		int parse = -1;
+		if (yyparse() == 0) {
+			cout << "OK!" << endl;
+			parse = 0;
+		}
+		else {
+			//cout << "Error: Query is not correct!" << endl;
+			parse = -1;
+		}
+
+		yylex_destroy();
+
+		if (parse != 0) return -1;
+
+		// at this point we have the parse tree in the ParseTree data structures
+		// we are ready to invoke the query compiler with the given query
+		// the result is the execution tree built from the parse tree and optimized
+
+		QueryExecutionTree queryTree;
+		compiler.Compile(tables, attsToSelect, finalFunction, predicate,
+			groupingAtts, distinctAtts, queryTree);
+
+		cout << queryTree << endl;
+		//	OptimizationTree ptr;
+
+		//	optimizer.getUniqueOrder(tables, predicate);
+		//	optimizer.Optimize(tables, predicate, &ptr);
+
+		//cout << &ptr << endl;
+		//	for (int i = 0; i < ptr.tables.size(); ++i) {
+		//		cout << ptr.tables[i] << " ";
+		//	}
+		//	cout << endl;
+		cout << "Do you wish to continue? Press 0 to exit. Press anything else to continue" << endl;
+		int var;
+		cin >> var;
+		if (var == 0)
+		{
+			quit = false;
+			break;
+		}
 	}
-	else {
-		cout << "Error: Query is not correct!" << endl;
-		parse = -1;
-	}
-
-	yylex_destroy();
-
-	if (parse != 0) return -1;
-
-	// at this point we have the parse tree in the ParseTree data structures
-	// we are ready to invoke the query compiler with the given query
-	// the result is the execution tree built from the parse tree and optimized
-	
-	QueryExecutionTree queryTree;
-	compiler.Compile(tables, attsToSelect, finalFunction, predicate,
-		groupingAtts, distinctAtts, queryTree);
-
-	cout << queryTree << endl;
-//	OptimizationTree ptr;
-
-//	optimizer.getUniqueOrder(tables, predicate);
-//	optimizer.Optimize(tables, predicate, &ptr);
-	
-	//cout << &ptr << endl;
-//	for (int i = 0; i < ptr.tables.size(); ++i) {
-//		cout << ptr.tables[i] << " ";
-//	}
-//	cout << endl;
-	
 	return 0;
+
 }
