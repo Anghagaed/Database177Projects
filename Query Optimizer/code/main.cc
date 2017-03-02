@@ -62,16 +62,12 @@ int main () {
 		//groupingAtts, distinctAtts, queryTree);
 
 	//cout << queryTree << endl;
-//	OptimizationTree ptr;
+	OptimizationTree ptr;
 
-    optimizer.getUniqueOrder(tables, predicate);
-//	optimizer.Optimize(tables, predicate, &ptr);
+    //optimizer.getUniqueOrder(tables, predicate);
+	optimizer.Optimize(tables, predicate, &ptr);
 	
-	//cout << &ptr << endl;
-//	for (int i = 0; i < ptr.tables.size(); ++i) {
-//		cout << ptr.tables[i] << " ";
-//	}
-//	cout << endl;
+
 	
 	return 0;
 }

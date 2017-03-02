@@ -59,9 +59,11 @@ QueryOptimizer::~QueryOptimizer() {
 	for (int i = 0; i < toBeDelete.size(); ++i) {
 		delete toBeDelete[i];
 	}
+	/*
 	for (int i = 0; i < toBeDelete2.size(); ++i) {
 		delete toBeDelete2[i];
 	}
+	*/
 	//cout << "Out of Query Optimizer Destructor" << endl;
 }
 
@@ -110,7 +112,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		catalog->GetNoTuples(tName, tTuples);
 		tree = singleNode(tName, tTuples);
 	}
-	else if (size > 8 || size == 2) {
+	else if (size > 5 || size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
@@ -315,13 +317,13 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 }
 
 OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
-	cout << "In Partition" << endl;
+	//cout << "In Partition" << endl;
 	int size = tableSize(_tables);
 	//vector<string> uniqueOrder = getUniqueOrder(_tables, _predicate);
 	vector<string> tableKey;
 	vector<string> allKey;
 	// Pushing single tables to map
-	cout << "Start Preprocessing part 1" << endl;
+	//cout << "Start Preprocessing part 1" << endl;
 	TableList* ptrT = _tables;
 	while (ptrT != NULL) {
 		unsigned int tTuples;
@@ -340,9 +342,9 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 		OptiMap.Insert(key, toPush);
 		ptrT = ptrT->next;
 	}
-	cout << "End Preprocessing part 1" << endl << endl;
+	//cout << "End Preprocessing part 1" << endl << endl;
 	// Push Down Selection
-	cout << "Start Preprocessing part 2" << endl;
+	//cout << "Start Preprocessing part 2" << endl;
 	for (int i = 0; i < pushDownList.size(); ++i) {
 		KeyString key = KeyString(pushDownList[i].tableName);
 		OptimizationTree* ptr = &OptiMap.Find(key);
@@ -355,9 +357,9 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			ptr->tuples[0] /= 3;
 		}
 	}
-	cout << "End Preprocessing part 2" << endl << endl;
+	//cout << "End Preprocessing part 2" << endl << endl;
 	// Pushing double tables to map
-	cout << "Starting Preprocessing part 3" << endl;
+	//cout << "Starting Preprocessing part 3" << endl;
 	allKey = tableKey;
 	for (int i = 0; i < size - 1; ++i) {
 		for (int j = i + 1; j < size; ++j) {
@@ -396,7 +398,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			OptiMap.Insert(key, *newJoin);
 		}
 	}
-	cout << "End Preprocessing part 3" << endl;
+	//cout << "End Preprocessing part 3" << endl;
 
 	// Algorithm
 	string optimalString;
@@ -404,7 +406,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 	vector<string> uniqueOrdering = getUniqueOrder(_tables, _predicate);
 	for (int i = 0; i < uniqueOrdering.size(); ++i) {
 		vector<joinOrder> joinOrdering = getJoinOrder(uniqueOrdering[i], size);
-		unsigned int noTuples2 = UINT_MAX;
+		unsigned int noTuples2 = 0;
 		for (int j = 0; j < joinOrdering.size(); ++j) {
 			OptimizationTree *left, *right, *ptr;
 			KeyString key;
@@ -456,7 +458,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 
 			// Push new thing into efficientMap
 			key = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')');
-			noTuples2 = ptr->noTuples;
+			noTuples2 += ptr->noTuples;
 			OptiMap.Insert(key, *ptr);
 		}
 		if (noTuples > noTuples2) {
@@ -464,6 +466,30 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			optimalString = uniqueOrdering[i];
 		}
 	}
+	
+	// Optimal Join Orders is stored in optimalString
+	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
+	OptimizationTree* _root;
+	for (int i = 0; i < joinOrdering.size(); ++i) {
+		KeyString key;
+		OptimizationTree *left, *right, *ptr;
+		
+		key = KeyString(joinOrdering[i].j1);
+		left = &OptiMap.Find(key);
+		key = KeyString(joinOrdering[i].j2);
+		right = &OptiMap.Find(key);
+		key = KeyString('(' + joinOrdering[i].j1 + '|' + joinOrdering[i].j2 + ')');
+		ptr = &OptiMap.Find(key);
+
+		ptr->leftChild = left;
+		ptr->rightChild = right;
+		left->parent = ptr;
+		right->parent = ptr;
+
+		_root = ptr;
+	} 
+
+	return _root;
 }
 
 int QueryOptimizer::tableSize(TableList* _tables) {
