@@ -64,7 +64,7 @@ int main () {
 	cout << queryTree << endl;
 	OptimizationTree ptr;
 
-    //optimizer.getUniqueOrder(tables, predicate);
+    optimizer.getUniqueOrder(tables, predicate);
 	optimizer.Optimize(tables, predicate, &ptr);
 	
 
