@@ -447,7 +447,7 @@ string QueryOptimizer::findTableName(string& attName) {
 
 }
 
-void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
+vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _predicate) {
 	
 	TableList* temp = _tables;
 
@@ -510,6 +510,7 @@ void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 
 	}
 
+	/*
 	for (int i = 0; i < myPatterns.size(); i++) {
 
 		cout << "To make: " << 3 + i << endl;
@@ -533,7 +534,7 @@ void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 		cout << endl << endl;
 
 	}
-
+	*/
 
 
 
@@ -573,37 +574,37 @@ void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 
 	myCombs.push_back(row2);
 
-	cout << myPatterns.size() << endl;
+	//cout << myPatterns.size() << endl;
 
 	for (int i = 0; i < myPatterns.size(); i++) {
 
 		vector <string> row;
 
-		cout << "Here" << endl;
+		//cout << "Here" << endl;
 
 		for (int j = 0; j < myPatterns[i].left.size(); j++) {
 
-			cout << "Here2" << endl;
+			//cout << "Here2" << endl;
 			
 			for (int l = 0; l < myCombs[myPatterns[i].left[j] - 1].size(); l++) {
 				
-				cout << "Here3" << endl;
-				cout << myPatterns[i].left[j] << " And " << myPatterns[i].right[j] << endl;
+				//cout << "Here3" << endl;
+				//cout << myPatterns[i].left[j] << " And " << myPatterns[i].right[j] << endl;
 				int r = 0;
 
 				if (myPatterns[i].left[j] == myPatterns[i].right[j]) {
-					cout << "Here4" << endl;
+					//cout << "Here4" << endl;
 					r = l;
 
 				}
 
 				for (r; r < myCombs[myPatterns[i].right[j] - 1].size(); r++) {
 
-					cout << "Comparing: " << myCombs[myPatterns[i].left[j] - 1][l] << " AND " << myCombs[myPatterns[i].right[j] - 1][r] << endl;
+					//cout << "Comparing: " << myCombs[myPatterns[i].left[j] - 1][l] << " AND " << myCombs[myPatterns[i].right[j] - 1][r] << endl;
 
 					if (myCombs[myPatterns[i].right[j] - 1][r].find(myCombs[myPatterns[i].left[j] - 1][l]) > 1000000) {
 
-						cout << "Left not found in Right" << endl;
+						//cout << "Left not found in Right" << endl;
 
 						string temp;
 						temp.append("(").append(myCombs[myPatterns[i].left[j] - 1][l]).append(myCombs[myPatterns[i].right[j] - 1][r]).append(")");
@@ -622,8 +623,9 @@ void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 	}
 
 
-	cout << endl << endl;
+	//cout << endl << endl;
 
+	
 	for (int i = 0; i < myCombs.size(); i++) {
 
 		cout << "Column: " << i + 1 << endl;
@@ -637,95 +639,48 @@ void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 		cout << endl;
 
 	}
+	
+	vector<joinOrder> test = getJoinOrder(myCombs[myCombs.size() - 1][0], tSize);
 
+	for (int i = 0; test.size(); i++) {
 
-	/*
-	vector < vector < vector < vector <int> > > > myCombs;
-	int joinLayer = 1;
-
-	vector < vector < vector < int > > > initial;
-	int t1 = 0;
-
-	// Column 1
-
-	for (int i = 0; i < tSize; i++) {
-
-		vector < vector < int > > matrix;
-
-		for (int j = 0; j < joinLayer; j++) {
-
-			vector < int > row;
-
-			for (int k = 0; k < tSize; k++) {
-
-				if (row.size() == t1) {
-
-					row.push_back(1);
-
-				}
-
-				else {
-
-					row.push_back(0);
-
-				}
-
-			}
-
-			matrix.push_back(row);
-			t1++;
-
-		}
-
-		initial.push_back(matrix);
+		cout << test[i].j1 << " with " << test[i].j2;
 
 	}
 
-	myCombs.push_back(initial);
-
-
-
-
-	// Print Column Combinations
-
-	for (int i = 0; i < myCombs.size(); i++) {
-
-		cout << "Column: " << i + 1 << endl;
-
-		for (int j = 0; j < myCombs[i].size(); j++) {
-
-			cout << "Combination/Matrix: " << j + 1 << endl;
-
-			for (int k = 0; k < myCombs[i][j].size(); k++) {
-
-				for (int z = 0; z < myCombs[i][j][k].size(); z++) {
-
-					cout << myCombs[i][j][k][z] << " ";
-
-				}
-
-				cout << endl;
-
-			}
-
-			cout << endl;
-			cout << endl;
-
-		}
-
-	}*/
+	return myCombs[myCombs.size() - 1];
 
 }
 
-vector<joinOrder>* QueryOptimizer::getJoinOrders(string& str) {
+vector<joinOrder> QueryOptimizer::getJoinOrder(string& str, int& tSize) {
 	// use ptr like a normal vector. Just -> instead of .
-	vector<joinOrder>* ptr = new vector<joinOrder>;
-	toBeDelete2.push_back(ptr);
+	vector<joinOrder> myOrder;
+
+	//(A(B(C|D)))
+
+	int i = 0;
+
+	while (i < tSize - 1) {
+
+		int barIndex = str.find("|");
+
+		if (index < 1000000) {
+
+			joinOrder newOrder;
+
+			
+
+		}
+
+
+	}
+
+
 
 	// vector will delete joinOrder so they dont have to be a pointer
 	// create joinOrder from str
-	// push_back smaller joins before larger joins. e.g. ( (A|B) (C|D) E) will have (AB), (CD), before (ABCD) and then (ABCDE) in the push_back. 
+	// push_back smaller joins before larger joins. e.g. ( (A|B) (C|D) E) will have (A B), (C D), before (AB CD) and then (ABCD E) in the push_back. 
 
 
-	return ptr;
+	return myOrder;
 }

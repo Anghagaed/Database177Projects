@@ -75,7 +75,7 @@ private:
 	// AndList Stuff
 	vector<pushDown>  pushDownList;
 	vector<joinStuff> joinList;
-	vector<joinOrder>* getJoinOrders(string& str);
+	vector<joinOrder> getJoinOrder(string& str, int& tSize);
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
@@ -91,7 +91,7 @@ public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
 	void Optimize(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
-	void partition(TableList* _tables, AndList* _predicate);
+	vector<string> getUniqueOrder(TableList* _tables, AndList* _predicate);
 };
 
 #endif // _QUERY_OPTIMIZER_H
