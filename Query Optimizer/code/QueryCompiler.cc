@@ -285,11 +285,11 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
-/*			// Create DuplicateRemoval
+			// Create DuplicateRemoval here
 			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);
-			string outFile = "outfile";
-			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);			// Insert all relevant values into WriteOut
-*/																					// outFile is "outfile" because we are not using it yet
+			string outFile = "output.txt";
+			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);		// Insert all relevant values into WriteOut
+																				// outFile is "output.txt" because we are not using it yet
 		}
 		else																	// Project only case
 		{
