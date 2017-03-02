@@ -22,6 +22,14 @@ QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
 }
 
 QueryCompiler::~QueryCompiler() {
+	cout << "destructing compiler\n";
+	for (int i = 0; i < SelectMap.size(); ++i) {
+		delete SelectMap[i];
+	}
+	for (int i = 0; i < ScanMap.size(); i++) {
+		delete ScanMap[i];
+	}
+	cout << "done destructing\n";
 }
 int QueryCompiler::tableSize(TableList* _tables)
 {
@@ -39,13 +47,13 @@ int QueryCompiler::tableSize(TableList* _tables)
 RelationalOp* QueryCompiler::GetRelOp(string table) {
 	//check the select map first
 	for (int i = 0; i < SelectMap.size(); i++) {
-		if ( !table.compare(SelectMap[i].getTable()) ) {	//compare the string to what we have in our map
-			return &SelectMap[i];
+		if ( !table.compare(SelectMap[i]->getTable()) ) {	//compare the string to what we have in our map
+			return SelectMap[i];
 		}
 	}
 	for (int i = 0; i < ScanMap.size(); i++) {
-		if ( !table.compare(ScanMap[i].getTable()) ) {	//compare the string to what we have in our map
-			return &ScanMap[i];
+		if ( !table.compare(ScanMap[i]->getTable()) ) {	//compare the string to what we have in our map
+			return ScanMap[i];
 		}
 	}
 }
@@ -139,7 +147,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		strcpy(path, pathConvert.c_str());
 		myFile.Open(path);
 		Scan *myScan = new Scan(mySchema, myFile, temp);
-		ScanMap.push_back(*myScan);
+		ScanMap.push_back(myScan);
 		// push-down selections: create a SELECT operator wherever necessary
 		Record recTemp;
 		CNF cnfTemp;
@@ -147,11 +155,13 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);
 		if ((mySelect->getCNF()).numAnds!=0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
 		{
-			SelectMap.push_back(*mySelect);
+			cout << "going to push\n " << *mySelect << "\ninto selectmap now" << endl;
+			SelectMap.push_back(mySelect);
+			cout << "ok i pushed" << endl;
 		}
 		amarlikesthepenis = amarlikesthepenis->next;
 	}
-	
+	cout << "did i fill my maps" << endl;
 	// call the optimizer to compute the join order
 	OptimizationTree root;
 	optimizer->Optimize(_tables, _predicate, &root);
