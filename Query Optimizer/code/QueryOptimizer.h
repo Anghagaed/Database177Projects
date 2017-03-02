@@ -53,6 +53,11 @@ struct joinStuff {
 	string att2;
 };
 
+struct pattern {
+	vector<int> left;
+	vector<int> right;
+};
+
 class QueryOptimizer {
 private:
 	Catalog* catalog;

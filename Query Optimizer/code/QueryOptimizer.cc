@@ -310,9 +310,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	//cout << _root << endl;
 	return _root;
 }
-void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
-	cout << "I am out " << endl;
-}
+
 int QueryOptimizer::tableSize(TableList* _tables) {
 	int size = 0;
 	TableList* ptr = _tables;
@@ -443,5 +441,275 @@ string QueryOptimizer::findTableName(string& attName) {
 		myAtts.clear();
 
 	}
+
+}
+
+void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
+	
+	TableList* temp = _tables;
+
+	vector<string> myTables;
+
+	int tSize = tableSize(_tables);
+
+	cout << endl << "Tables:" << endl;
+
+	/*for (int i = 0; i < tSize; i++) {
+
+		myTables.push_back(temp->tableName);
+		temp = temp->next;
+		cout << myTables[i] << endl;
+
+	}*/
+
+	tSize = 4;
+
+	myTables.push_back("A");
+	myTables.push_back("B");
+	myTables.push_back("C");
+	myTables.push_back("D");
+
+	for (int i = 0; i < tSize; i++) {
+
+	cout << myTables[i] << endl;
+
+	}
+
+	cout << endl;
+
+
+	vector<pattern> myPatterns;
+
+	for (int i = 3; i <= tSize; i++) {
+
+		pattern newPattern;
+
+		vector<int> newLeft;
+
+		for (int j = 1; j <= i/2; j++) {
+
+			newLeft.push_back(j);
+
+		}
+
+		vector<int> newRight;
+
+		for (int j = i-1; j >= (i+1)/2; j--) {
+
+			newRight.push_back(j);
+
+		}
+
+		newPattern.left = newLeft;
+		newPattern.right = newRight;
+
+		myPatterns.push_back(newPattern);
+
+	}
+
+	for (int i = 0; i < myPatterns.size(); i++) {
+
+		cout << "To make: " << 3 + i << endl;
+
+		cout << "Left: ";
+
+		for (int j = 0; j < myPatterns[i].left.size(); j++) {
+
+			cout << myPatterns[i].left[j];
+
+		}
+
+		cout << endl << "Right: ";
+
+		for (int j = 0; j < myPatterns[i].right.size(); j++) {
+
+			cout << myPatterns[i].right[j];
+
+		}
+
+		cout << endl << endl;
+
+	}
+
+
+
+
+	vector < vector < string > > myCombs;
+
+	// Column 1
+
+	vector <string> row1;
+
+	for (int i = 0; i < tSize; i++) {
+
+		row1.push_back(myTables[i]);
+
+	}
+
+	myCombs.push_back(row1);
+
+	// Column 2
+
+	vector <string> row2;
+
+	for (int i = 0; i < myCombs[0].size(); i++) {
+
+		for (int j = i; j < myCombs[0].size(); j++) {
+
+			if (myCombs[0][i].find(myCombs[0][j]) > 1000000) {
+
+				string temp;
+				temp.append("(").append(myCombs[0][i]).append("|").append(myCombs[0][j]).append(")");
+				row2.push_back(temp);
+
+			}
+
+		}
+
+	}
+
+	myCombs.push_back(row2);
+
+	cout << myPatterns.size() << endl;
+
+	for (int i = 0; i < myPatterns.size(); i++) {
+
+		vector <string> row;
+
+		cout << "Here" << endl;
+
+		for (int j = 0; j < myPatterns[i].left.size(); j++) {
+
+			cout << "Here2" << endl;
+			
+			for (int l = 0; l < myCombs[myPatterns[i].left[j] - 1].size(); l++) {
+				
+				cout << "Here3" << endl;
+				cout << myPatterns[i].left[j] << " And " << myPatterns[i].right[j] << endl;
+				int r = 0;
+
+				if (myPatterns[i].left[j] == myPatterns[i].right[j]) {
+					cout << "Here4" << endl;
+					r = l;
+
+				}
+
+				for (r; r < myCombs[myPatterns[i].right[j] - 1].size(); r++) {
+
+					cout << "Comparing: " << myCombs[myPatterns[i].left[j] - 1][l] << " AND " << myCombs[myPatterns[i].right[j] - 1][r] << endl;
+
+					if (myCombs[myPatterns[i].right[j] - 1][r].find(myCombs[myPatterns[i].left[j] - 1][l]) > 1000000) {
+
+						cout << "Left not found in Right" << endl;
+
+						string temp;
+						temp.append("(").append(myCombs[myPatterns[i].left[j] - 1][l]).append(myCombs[myPatterns[i].right[j] - 1][r]).append(")");
+						row.push_back(temp);
+
+					}
+
+				}
+
+			}
+
+		}
+
+		myCombs.push_back(row);
+
+	}
+
+
+	cout << endl << endl;
+
+	for (int i = 0; i < myCombs.size(); i++) {
+
+		cout << "Column: " << i + 1 << endl;
+
+		for (int j = 0; j < myCombs[i].size(); j++) {
+
+			cout << myCombs[i][j] << endl;
+
+		}
+
+		cout << endl;
+
+	}
+
+
+	/*
+	vector < vector < vector < vector <int> > > > myCombs;
+	int joinLayer = 1;
+
+	vector < vector < vector < int > > > initial;
+	int t1 = 0;
+
+	// Column 1
+
+	for (int i = 0; i < tSize; i++) {
+
+		vector < vector < int > > matrix;
+
+		for (int j = 0; j < joinLayer; j++) {
+
+			vector < int > row;
+
+			for (int k = 0; k < tSize; k++) {
+
+				if (row.size() == t1) {
+
+					row.push_back(1);
+
+				}
+
+				else {
+
+					row.push_back(0);
+
+				}
+
+			}
+
+			matrix.push_back(row);
+			t1++;
+
+		}
+
+		initial.push_back(matrix);
+
+	}
+
+	myCombs.push_back(initial);
+
+
+
+
+	// Print Column Combinations
+
+	for (int i = 0; i < myCombs.size(); i++) {
+
+		cout << "Column: " << i + 1 << endl;
+
+		for (int j = 0; j < myCombs[i].size(); j++) {
+
+			cout << "Combination/Matrix: " << j + 1 << endl;
+
+			for (int k = 0; k < myCombs[i][j].size(); k++) {
+
+				for (int z = 0; z < myCombs[i][j][k].size(); z++) {
+
+					cout << myCombs[i][j][k][z] << " ";
+
+				}
+
+				cout << endl;
+
+			}
+
+			cout << endl;
+			cout << endl;
+
+		}
+
+	}*/
 
 }
