@@ -63,6 +63,7 @@ private:
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
+	//OptimizationTree* createJoin(OptimizationTree* j1, OptimizationTree* j2, EfficientMap<KeyString, );
 	OptimizationTree* greedy(TableList* _tables, AndList* _predicate);
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
