@@ -393,14 +393,21 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			toBeDelete.push_back(right);
 			toBeDelete.push_back(newJoin);
 
-			allKey.push_back(tableKey[i] + '|' + tableKey[j]);
-			key = KeyString('(' + allKey[i] + '|' + allKey[j] + ')');
+			string toPush = '(' + allKey[i] + '|' + allKey[j] + ')';
+			allKey.push_back(toPush);
+			key = KeyString(toPush);
 			OptiMap.Insert(key, *newJoin);
 		}
 	}
-	cout << "End Preprocessing part 3" << endl;
-	cout << "Start Best Join Computation" << endl;
+	
+	for (int i = 0; i < allKey.size(); ++i) {
+		cout << allKey[i] << endl;
+	}
+
+	//cout << "End Preprocessing part 3" << endl;
+	//cout << "Start Best Join Computation" << endl;
 	// Algorithm
+	
 	string optimalString;
 	unsigned int noTuples = UINT_MAX;
 	vector<string> uniqueOrdering = getUniqueOrder(_tables, _predicate);
@@ -415,22 +422,26 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 				left = &OptiMap.Find(key);
 			}
 			else {
-				cout << "If Assertion fails" << endl;
-				cout << "String is : " << joinOrdering[j].j1 << endl;
-				cout << "i is " << i << "j is " << j << endl;
-				cout << endl;
-				for (int i = 0; i < joinOrdering.size(); ++i) {
-					cout << "i " << i << endl;
-					cout << "j1: " << joinOrdering[i].j1 << " j2: " << joinOrdering[i].j2 << endl;
+				cout << "Left not found" << endl;
+				cout << "j1 is " << joinOrdering[j].j1 << endl;
+				cout << "j2 is " << joinOrdering[j].j2 << endl;
+				for (int i = 0; i < allKey.size(); ++i) {
+					cout << allKey[i] << endl;
 				}
+				return NULL;
 			}
 			key = KeyString(joinOrdering[j].j2);
 			if (OptiMap.IsThere(key)) {
 				right = &OptiMap.Find(key);
 			}
 			else {
-				//cout << "If Assertion fails" << endl;
-				//cout << "String is : " << joinOrdering[j].j2 << endl;
+				cout << "Right not found" << endl;
+				cout << "j1 is " << joinOrdering[j].j1 << endl;
+				cout << "j2 is " << joinOrdering[j].j2 << endl;
+				for (int i = 0; i < allKey.size(); ++i) {
+					cout << allKey[i] << endl;
+				}
+				return NULL;
 			}
 			ptr = new OptimizationTree();
 
@@ -463,7 +474,9 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			}
 
 			// Push new thing into efficientMap
-			key = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')');
+			string toPush = '(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')';
+			key = KeyString(toPush);
+			allKey.push_back(toPush);
 			noTuples2 += ptr->noTuples;
 			OptiMap.Insert(key, *ptr);
 		}
@@ -472,39 +485,55 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			optimalString = uniqueOrdering[i];
 		}
 	}
-	cout << "End Best Join Computation" << endl;
+	//cout << "End Best Join Computation" << endl;
 	// Optimal Join Orders is stored in optimalString
-	cout << "Start tree creation" << endl;
+	/*
+	cout << optimalString << endl;
+	//cout << "Start tree creation" << endl;
 	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
 	OptimizationTree* _root;
 	cout << joinOrdering.size()<< endl;
 	for (int i = 0; i < joinOrdering.size(); ++i) {
-		cout << "i " << i << endl;
+		//cout << "i " << i << endl;
 		KeyString key;
 		OptimizationTree *left, *right, *ptr;
-		
+
+		//cout << "Start Left" << endl;
 		key = KeyString(joinOrdering[i].j1);
-		cout << "Start Left" << endl;
-		left = &OptiMap.Find(key);
-		cout << "End Left" << endl;
-		cout << "Start Right" << endl;
+		if (OptiMap.IsThere(key))
+			left = &OptiMap.Find(key);
+		else
+			cout << "Left not found" << endl;
+		//cout << "Start Right" << endl;
 		key = KeyString(joinOrdering[i].j2);
-		right = &OptiMap.Find(key);
-		cout << "End Right" << endl;
-		cout << "Start ptr" << endl;
+		if (OptiMap.IsThere(key))
+			right = &OptiMap.Find(key);
+		else
+			cout << "right not found" << endl;
+		//cout << "Start ptr" << endl;
 		key = KeyString('(' + joinOrdering[i].j1 + '|' + joinOrdering[i].j2 + ')');
-		ptr = &OptiMap.Find(key);
-		cout << "End ptr" << endl;
+		if (OptiMap.IsThere(key))
+			ptr = &OptiMap.Find(key);
+		else
+			cout << "ptr not found" << endl;
+		//cout << "End ptr" << endl;
 
+		//cout << "Do ptr" << endl;
 		ptr->leftChild = left;
+		//cout << "Do 2 ptr" << endl;
 		ptr->rightChild = right;
+		//cout << "Do 3 ptr" << endl;
 		left->parent = ptr;
+		//cout << "Do 4 ptr" << endl;
 		right->parent = ptr;
-
+		//cout << "Do 5 ptr" << endl;
+		//cout << "pointers done" << endl;
 		_root = ptr;
+		//cout << "Do 6 ptr " << endl;
 	} 
-	cout << "End tree creation" << endl;
+	//cout << "End tree creation" << endl;
 	return _root;
+	*/
 }
 
 int QueryOptimizer::tableSize(TableList* _tables) {
