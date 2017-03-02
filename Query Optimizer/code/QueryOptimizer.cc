@@ -112,7 +112,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		catalog->GetNoTuples(tName, tTuples);
 		tree = singleNode(tName, tTuples);
 	}
-	else if (size > 5 || size == 2) {
+	else if (size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
