@@ -216,9 +216,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		j = JoinTree(&root, _predicate);
 	//}
 
-		//cout << *j << endl;
-		//cout << "\n\n" << j->GetSchema();
-
 	// create the remaining operators based on the query
 
 	// connect everything in the query execution tree and return
@@ -228,64 +225,70 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// ASSUME: Final Join's Schema = s1; Final Join's Pointer = j
 	if (_groupingAtts != 0)														// Non-empty _groupingAtts -> GroupBy
 	{
-		// Create GroupBy here
-		/*
-		Schema _schemaIn = j->getSchema();												// Set it equal to join's final schema
-		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
-		vector<Attribute> att = _schemaIn.GetAtts();							// Get the Attributes
-		int _atts_no = att.size();												// Get the Attribute size
-		int _atts[_atts_no];													// Create an array of indices of Attributes
-		for (int i = 0; i < att.size(); i++)
-			_atts[i] = _schemaIn.Index(att[i].name);							// Receive indices of all Attributes in the Schema
-		OrderMaker _groupingAtts = OrderMaker(_schemaIn, _atts, _atts_no);		// Insert all relevant values into OrderMaker
-		Function _compute;
-		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
-		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupingAtts, _compute, j);		// j = Final join operator
-		string outFile = "outfile";
-		writeout = new WriteOut(_schemaOut, outFile, groupby);						// Insert all relevant values into WriteOut
-																					// outFile is "outfile" because we are not using it yet
-*/
-	}
-	else
-	if (_finalFunction != 0)													// Non-empty _finalFunction -> Sum
-	{
-		// Create Sum here
-		//cout << "Creating sum" << endl;
 		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
-		//Schema _projectSchema = Schema(j->GetSchema());								// Projected version
-		//int count = 0;
-		//cout << _schemaIn << endl;
-		//NameList* i = _groupingAtts;
-		/*while(i != NULL){														// Find the size of _keepMe
-			i = i->next;
-			count++;
-		}
-		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
-		i = _groupingAtts;
-		cout << count << endl;
-		while(i != NULL)							// Fill the vector and array
-		{
-			string name = i->name;
-			saveMe.push_back(_schemaIn.Index(name));
-			i = i->next;
-		}*/
-		//_projectSchema.Project(saveMe);												// Project
-		//_schemaOut.RenameAtt((_schemaIn.GetAtts())[0].name, newAttName);		// Rename to SUM
-		string attName = "SUM";
-		string attType = "Float";	
+		
+		// Create SUM
+		string attName = "SUM";													// Name of output schema
+		string attType = "Float";												// Type of the output schema
 		vector<string> attNames;
 		attNames.push_back(attName);
 		vector<string> attTypes;
 		attTypes.push_back(attType);
 		vector<unsigned int> distincts;
 		distincts.push_back(1);
-		Schema _schemaOut = Schema(attNames, attTypes, distincts);
+		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:FLOAT [1])
+		
+		// Project input schema
+		Schema _projectSchema = j->GetSchema();									// Schema to project
+		int _atts_no = 0;														// Project size
+		NameList* i = _groupingAtts;
+		while(i != NULL){														// Find the size of _keepMe
+			i = i->next;
+			_atts_no++;
+		}
+		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
+		int _keepMe[_atts_no];													// Array of attributes to keep
+		i = _groupingAtts;
+		for(int a = 0; a < _atts_no; ++a)										// Fill the vector and array
+		{
+			string name = i->name;
+			_keepMe[a] = _schemaIn.Index(name);
+			saveMe.push_back(_schemaIn.Index(name));
+			i = i->next;
+		}
+		_projectSchema.Project(saveMe);											// Project the schema
+		_schemaOut.Append(_projectSchema);										// Add the projected one into the output
+		
+		// Create GroupBy here
+		Function _compute;
+		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
+		OrderMaker _groupAtts = OrderMaker(_schemaIn, _keepMe, _atts_no);		// Insert all relevant values into OrderMaker
+		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupAtts, _compute, j);		// j = Final join operator
+		
+		string outFile = "output.txt";
+		writeout = new WriteOut(_schemaOut, outFile, groupby);					// Insert all relevant values into WriteOut
+																				// outFile is "output.txt" because we are not using it yet
+	}
+	else
+	if (_finalFunction != 0)													// Non-empty _finalFunction -> Sum
+	{
+		// Create Sum here
+		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
+		string attName = "SUM";													// Name of output schema
+		string attType = "Float";												// Type of the output schema
+		vector<string> attNames;
+		attNames.push_back(attName);
+		vector<string> attTypes;
+		attTypes.push_back(attType);
+		vector<unsigned int> distincts;
+		distincts.push_back(1);
+		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:FLOAT [1])
 		Function _compute;
 		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
 		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute, j);					// j = Final join operator
 		string outFile = "output.txt";
 		writeout = new WriteOut(_schemaOut, outFile, sum);						// Insert all relevant values into WriteOut
-																				// outFile is "outfile" because we are not using it yet
+																				// outFile is "output.txt" because we are not using it yet
 	}
 	else																		// Project or Project + DuplicateRemoval
 	{
