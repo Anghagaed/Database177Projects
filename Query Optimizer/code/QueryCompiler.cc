@@ -72,29 +72,40 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	RelationalOp* left;
 	RelationalOp* right;
 	cout << "jointree\n";
+	cout << "all tables in this node: ";
+	for (int i = 0; i < node->tables.size(); i++) {
+		cout << node->tables[i] << ", ";
+	}
+	cout << endl;
+	cout << "check for left child: " << (node->leftChild != NULL) << endl;
+	cout << "check for right child: " << (node->rightChild != NULL)  << endl;
+
 	//post order traversal to get the left producer and right producer
 	if (node->leftChild != NULL) {
 		cout << "	going left\n";
-		cout << node << endl;
-		cout << node->leftChild << endl;
-		for (int i = 0; i < node->tables.size(); ++i) {
-			cout << node->tables[i] << endl;
-		}
+		//cout << node << endl;
+		//cout << node->leftChild << endl;
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
 		cout << "	going right\n";
-		cout << node << endl;
-		for (int i = 0; i < node->tables.size(); ++i) {
-			cout << node->tables[i] << endl;
-		} 
-		cout << node->rightChild  << endl;
+		//cout << node << endl;
+		//for (int i = 0; i < node->tables.size(); ++i) {
+		//	cout << node->tables[i] << endl;
+		//} 
+		//cout << node->rightChild  << endl;
 		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
 	}
 
 	//check how many tables are at this node
 	//if it's only 1, then it was not a join
-	if (node->tables.size() < 2) {
+	//base case for queries dealing with only one table
+	if (node->tables.size() < 2)
+		{
+		cout << "	this is my table at the leaf (should only be one table): " << endl;
+		for (int i = 0; i < node->tables.size(); ++i) {
+			cout << node->tables[i] << endl;
+		}
 		return GetRelOp(node->tables[0]);	//then search through our scan/select maps to find the relational op
 	}
 
@@ -168,13 +179,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	optimizer->Optimize(_tables, _predicate, root);
 
 	cout << "done optimizing\n";
-
-	for (int i = 0; i < root->tables.size(); i++) {
-		cout << "in for loop\n";
-		cout << root->tables[i] << " ";
-		cout << "out for loop\n";
-	}
-	cout << endl;
 
 	// create join operators based on the optimal order computed by the optimizer
 	// j will point to root of join tree
