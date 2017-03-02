@@ -56,18 +56,25 @@ struct joinStuff {
 class QueryOptimizer {
 private:
 	Catalog* catalog;
+	// EfficientMap 
+	EfficientMap<KeyString, OptimizationTree> OptiMap;
+	// Deconstructor stuff, push in new OptimizationTree
 	vector<OptimizationTree*> toBeDelete;
 	
+	// AndList Stuff
 	vector<pushDown>  pushDownList;
 	vector<joinStuff> joinList;
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
+
 	//OptimizationTree* createJoin(OptimizationTree* j1, OptimizationTree* j2, EfficientMap<KeyString, );
 	OptimizationTree* greedy(TableList* _tables, AndList* _predicate);
+
+	// Utility Functions
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
-	OptimizationTree* singleNode(string& tName, unsigned int& tTuples);
+	OptimizationTree* singleNode(string& tName, unsigned int& tTuples);			// Create a single Opti Tree Nodes and return address
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();

@@ -95,6 +95,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	//cout << _root << endl;
 	//std::cout << "Starting Optimize" << std::endl;
 	// compute the optimal join order
+	OptiMap.Clear();
 	OptimizationTree* tree;
 	int size = tableSize(_tables);
 	getPredicate(_predicate);
@@ -122,7 +123,6 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 */
 OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate) {
 	//std::cout << "Starting Greedy " << std::endl;
-	EfficientMap<KeyString, OptimizationTree> OptiMap;
 	OptimizationTree *_root;
 	vector<string> currentKey;
 	vector<int> popKey;
