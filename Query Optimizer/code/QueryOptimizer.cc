@@ -689,7 +689,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 	// use ptr like a normal vector. Just -> instead of .
-/*	vector<joinOrder> myOrder;
+	vector<joinOrder> myOrder;
 
 	//(A(B(C|D)))
 
@@ -773,5 +773,5 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 	// push_back smaller joins before larger joins. e.g. ( (A|B) (C|D) E) will have (A B), (C D), before (AB CD) and then (ABCD E) in the push_back. 
 
 
-	return myOrder;*/
+	return myOrder;
 }
