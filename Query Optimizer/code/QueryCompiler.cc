@@ -71,12 +71,16 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate) {
 	RelationalOp* left;
 	RelationalOp* right;
-
+	cout << "jointree\n";
 	//post order traversal to get the left producer and right producer
 	if (node->leftChild != NULL) {
+		cout << "	going left\n";
+		cout << node->tables[0] << endl;
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
+		cout << "	going right\n";
+		cout << node->tables[0] << endl;
 		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
 	}
 
@@ -147,6 +151,13 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// call the optimizer to compute the join order
 	OptimizationTree root;
 	optimizer->Optimize(_tables, _predicate, &root);
+
+	cout << "done optimizing\n";
+
+	for (int i = 0; i < root.tables.size(); i++) {
+		cout << root.tables[i] << " ";
+	}
+	cout << endl;
 
 	// create join operators based on the optimal order computed by the optimizer
 	// j will point to root of join tree
