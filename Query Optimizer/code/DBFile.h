@@ -7,6 +7,7 @@
 #include "Record.h"
 #include "Schema.h"
 #include "File.h"
+#include <fstream>
 
 using namespace std;
 
@@ -15,6 +16,8 @@ class DBFile {
 private:
 	File file;
 	string fileName;
+
+	ifstream inFile;
 
 public:
 	DBFile ();
