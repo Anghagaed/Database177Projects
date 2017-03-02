@@ -16,6 +16,7 @@ class RelationalOp {
 protected:
 	// the number of pages that can be used by the operator in execution
 	int noPages;
+	Schema s;
 public:
 	// empty constructor & destructor
 	RelationalOp() : noPages(-1) {}
@@ -23,6 +24,8 @@ public:
 
 	// set the number of pages the operator can use
 	void SetNoPages(int _noPages) {noPages = _noPages;}
+
+	Schema& GetSchema() { return s; }
 
 	// every operator has to implement this method
 	virtual bool GetNext(Record& _record) = 0;

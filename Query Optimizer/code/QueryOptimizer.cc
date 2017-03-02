@@ -13,7 +13,11 @@
 #include "Keyify.cc"
 
 using namespace std;
-
+OptimizationTree::OptimizationTree() {
+	parent = NULL;
+	leftChild = NULL;
+	rightChild = NULL;
+}
 void OptimizationTree::Swap(OptimizationTree& _withMe) {
 	// Swap vector
 	this->tables.swap(_withMe.tables);

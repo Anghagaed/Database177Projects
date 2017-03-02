@@ -34,7 +34,7 @@ int main () {
 	QueryOptimizer optimizer(catalog);
 	// this is the query compiler
 	// it includes the catalog and the query optimizer
-	//QueryCompiler compiler(catalog, optimizer);
+	QueryCompiler compiler(catalog, optimizer);
 
 
 	// the query parser is accessed directly through yyparse
@@ -57,9 +57,9 @@ int main () {
 	// we are ready to invoke the query compiler with the given query
 	// the result is the execution tree built from the parse tree and optimized
 	
-	//QueryExecutionTree queryTree;
-	//compiler.Compile(tables, attsToSelect, finalFunction, predicate,
-	//	groupingAtts, distinctAtts, queryTree);
+	QueryExecutionTree queryTree;
+	compiler.Compile(tables, attsToSelect, finalFunction, predicate,
+		groupingAtts, distinctAtts, queryTree);
 
 	//cout << queryTree << endl;
 	OptimizationTree ptr;

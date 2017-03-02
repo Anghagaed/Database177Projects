@@ -25,6 +25,9 @@ struct OptimizationTree {
 	// number of tuples at this node
 	int noTuples;
 
+	//default constructor
+	OptimizationTree();	
+
 	// connections to children and parent
 	OptimizationTree* parent;
 	OptimizationTree* leftChild;

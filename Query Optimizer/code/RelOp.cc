@@ -10,8 +10,9 @@ ostream& operator<<(ostream& _os, RelationalOp& _op) {
 
 Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 	schema = _schema;
+	s = _schema;
 	file = _file;
-	table = table;
+	this->table = table;
 }
 
 Scan::Scan()
@@ -57,10 +58,11 @@ ostream& Scan::print(ostream& _os) {
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
 	RelationalOp* _producer, string table) {
 	schema = _schema;
+	s = _schema;
 	predicate = _predicate;
 	constants = _constants;
 	producer = _producer;
-	table = table;
+	this->table = table;
 }
 
 Select::Select()
@@ -131,6 +133,7 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
+	s = _schemaOut;
 	predicate = _predicate;
 	left = _left;
 	right = _right;
@@ -208,9 +211,9 @@ ostream& GroupBy::print(ostream& _os) {/*
 
 
 WriteOut::WriteOut(Schema& _schema, string& _outFile, RelationalOp* _producer) {
-	_schema = schema;
-	_outFile = outFile;
-	_producer = producer;
+	schema = _schema;
+	outFile = _outFile;
+	producer = _producer;
 }
 
 WriteOut::~WriteOut() {
