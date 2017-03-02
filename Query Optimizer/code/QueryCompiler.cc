@@ -151,22 +151,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		}
 		amarlikesthepenis = amarlikesthepenis->next;
 	}
-	/*
-	cout << "scan map table names" << endl;
-	for (int k = 0; k < ScanMap.size(); k++)
-	{
-		cout << ScanMap[k].getTable() << "\n\n" << endl;
-	}
-	*/
-	// Should only print 1: (supplier)
-	/*
-	cout << "this is my entire select map" << endl;
-	for (int j = 0; j < SelectMap.size(); j++)
-	{
-		cout << "this is the select for table: " << SelectMap[j].getTable() << endl;
-		cout << SelectMap[j] << "\n\n" << endl;
-	}
-	*/
+	
 	// call the optimizer to compute the join order
 	OptimizationTree root;
 	optimizer->Optimize(_tables, _predicate, &root);
@@ -231,7 +216,8 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		j = JoinTree(&root, _predicate);
 	//}
 
-		cout << *j << endl;
+		//cout << *j << endl;
+		//cout << "\n\n" << j->GetSchema();
 
 	// create the remaining operators based on the query
 
@@ -258,12 +244,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		string outFile = "outfile";
 		writeout = new WriteOut(_schemaOut, outFile, groupby);						// Insert all relevant values into WriteOut
 																					// outFile is "outfile" because we are not using it yet
-
+*/
 	}
 	else
 	if (_finalFunction != 0)													// Non-empty _finalFunction -> Sum
 	{
-		// Create Sum here
+/*		// Create Sum here
 		Schema _schemaIn = j->getSchema();													// Set it equal to join's final schema
 		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
 		Function _compute;
@@ -271,35 +257,48 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute, j);				// j = Final join operator
 		string outFile = "outfile";
 		writeout = new WriteOut(_schemaOut, outFile, sum);							// Insert all relevant values into WriteOut
-																					// outFile is "outfile" because we are not using it yet
+*/																					// outFile is "outfile" because we are not using it yet
 	}
 	else																		// Project or Project + DuplicateRemoval
 	{
 		// Create Project here
-		Schema _schemaIn = j->getSchema();													// Set it equal to join's final schema
-		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
-		int _numAttsInput = _schemaIn.GetAtts().size();							// Get input size
-		int _numAttsOutput = 0;													// Set it equal to 0 because we aren't doing that yet
-		int _keepMe[_numAttsOutput];											// Same as above
-		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);		// ... = Final join operator
+		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
+		Schema _schemaOut = Schema(j->GetSchema());								// Output
+		int _numAttsInput = _schemaIn.GetAtts().size();							// Input size
+		int _numAttsOutput = 0;													// Output size
+		NameList* i = _attsToSelect;
+		while(i != NULL){														// Find the size of _keepMe
+			i = i->next;
+			_numAttsOutput++;
+		}
+		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
+		int _keepMe[_numAttsOutput];											// Array of attributes to keep
+		i = _attsToSelect;
+		for(int a = 0; a < _numAttsOutput; ++a)									// Fill the vector and array
+		{
+			string name = i->name;
+			_keepMe[a] = _schemaIn.Index(name);
+			saveMe.push_back(_schemaIn.Index(name));
+			i = i->next;
+		}
+		_schemaOut.Project(saveMe);												// Project the schema
+		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
-			// Create DuplicateRemoval
+/*			// Create DuplicateRemoval
 			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);
 			string outFile = "outfile";
 			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);			// Insert all relevant values into WriteOut
-																					// outFile is "outfile" because we are not using it yet
+*/																					// outFile is "outfile" because we are not using it yet
 		}
-		else
+		else																	// Project only case
 		{
-			string outFile = "outfile";
-			writeout = new WriteOut(_schemaOut, outFile, project);					// Insert all relevant values into WriteOut
-																					// outFile is "outfile" because we are not using it yet
+			string outFile = "output.txt";
+			writeout = new WriteOut(_schemaOut, outFile, project);				// Insert all relevant values into WriteOut
+																				// outFile is "output.txt" because we are not using it yet
 		}
-		*/
 	}
 	// Create the QueryExecutionTree
-	//cout <<"bah" <<writeout <<endl;
 	_queryTree = QueryExecutionTree();
 	_queryTree.SetRoot(*writeout);
 	

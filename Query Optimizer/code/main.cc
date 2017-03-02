@@ -61,16 +61,16 @@ int main () {
 	compiler.Compile(tables, attsToSelect, finalFunction, predicate,
 		groupingAtts, distinctAtts, queryTree);
 
-	//cout << queryTree << endl;
-	OptimizationTree ptr;
-	optimizer.Optimize(tables, predicate, &ptr);
+	cout << queryTree << endl;
+	//OptimizationTree ptr;
+	//optimizer.Optimize(tables, predicate, &ptr);
 	
 	
 	//cout << &ptr << endl;
-	for (int i = 0; i < ptr.tables.size(); ++i) {
+	/*for (int i = 0; i < ptr.tables.size(); ++i) {
 		cout << ptr.tables[i] << " ";
 	}
 	cout << endl;
-	
+	*/
 	return 0;
 }

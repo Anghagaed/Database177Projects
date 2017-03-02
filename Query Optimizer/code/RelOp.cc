@@ -111,12 +111,12 @@ ostream& Select::print(ostream& _os) {
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	int _numAttsOutput, int* _keepMe, RelationalOp* _producer) {
-	_schemaIn = schemaIn;
-	_schemaOut = schemaOut;
-	_numAttsInput = numAttsInput;
-	_numAttsOutput = numAttsOutput;
-	_keepMe = keepMe;
-	_producer = producer; 
+	schemaIn = _schemaIn;
+	schemaOut = _schemaOut;
+	numAttsInput = _numAttsInput;
+	numAttsOutput = _numAttsOutput;
+	keepMe = _keepMe;
+	producer = _producer; 
 }
 
 Project::~Project() {
@@ -124,7 +124,7 @@ Project::~Project() {
 }
 
 ostream& Project::print(ostream& _os) {
-	return _os << "PROJECT: \nSchema In: " << schemaIn << "\nSchema Out: " << schemaOut << "\n# Attributes Input: " << numAttsInput << "\n# Attributes Output: " << numAttsOutput << "\nKeep: " << keepMe << "\nProducer: " << producer;
+	return _os << "PROJECT: \nSchema In: " << schemaIn << "\nSchema Out: " << schemaOut << "\n# Attributes Input: " << numAttsInput << "\n# Attributes Output: " << numAttsOutput << "\nKeep: " << keepMe << "\nProducer: " << *producer;
 }
 
 
@@ -226,5 +226,5 @@ ostream& WriteOut::print(ostream& _os) {
 
 
 ostream& operator<<(ostream& _os, QueryExecutionTree& _op) {
-	return _os << "QUERY EXECUTION TREE" << "(" << _op.root << ")";
+	return _os << "QUERY EXECUTION TREE" << "(" << *_op.root << ")";
 }
