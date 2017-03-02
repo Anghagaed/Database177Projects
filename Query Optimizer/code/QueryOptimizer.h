@@ -80,6 +80,8 @@ private:
 	vector<joinOrder> getJoinOrder(string str, int& tSize);
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
+	EfficientMap<KeyString, KeyString> tableMap;
+
 	int tableSize(TableList* _tables);
 
 	//OptimizationTree* createJoin(OptimizationTree* j1, OptimizationTree* j2, EfficientMap<KeyString, );

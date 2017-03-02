@@ -633,37 +633,44 @@ bool dupeCheck(string& str1, string& str2) {
 
 vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _predicate) {
 	
+	vector<string> letters;
+
+	letters.push_back("A"); letters.push_back("B"); letters.push_back("C"); letters.push_back("D"); letters.push_back("E");
+	letters.push_back("F"); letters.push_back("G"); letters.push_back("H"); letters.push_back("I"); letters.push_back("J");
+
 	TableList* temp = _tables;
 
 	vector<string> myTables;
 
 	int tSize = tableSize(_tables);
 
-	cout << endl << "Tables:" << endl;
+	for (int i = 0; i < tSize; i++) {
+
+		KeyString key = KeyString(letters[i]);
+		KeyString data = KeyString(temp->tableName);
+
+		tableMap.Insert(key, data);
+
+		temp = temp->next;
+
+	}
+
+
+	//cout << endl << "Tables:" << endl;
 
 	for (int i = 0; i < tSize; i++) {
 
-		myTables.push_back(temp->tableName);
-		temp = temp->next;
+		myTables.push_back(letters[i]);
+
+	}
+
+	/*for (int i = 0; i < tSize; i++) {
+
 		cout << myTables[i] << endl;
 
 	}
 
-	tSize = 5;
-
-	myTables.push_back("A");
-	myTables.push_back("B");
-	myTables.push_back("C");
-	myTables.push_back("D");
-	myTables.push_back("E");
-
-	for (int i = 0; i < tSize; i++) {
-
-	cout << myTables[i] << endl;
-
-	}
-	
-	cout << endl;
+	cout << endl;*/
 
 
 	vector<pattern> myPatterns;
@@ -696,7 +703,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 	}
 
 	
-	for (int i = 0; i < myPatterns.size(); i++) {
+	/*for (int i = 0; i < myPatterns.size(); i++) {
 
 		cout << "To make: " << 3 + i << endl;
 
@@ -718,7 +725,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 		cout << endl << endl;
 
-	}
+	}*/
 	
 
 
@@ -811,7 +818,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 	//cout << endl << endl;
 
 	
-	for (int i = 0; i < myCombs.size(); i++) {
+	/*for (int i = 0; i < myCombs.size(); i++) {
 
 		cout << "Column: " << i + 1 << endl;
 
@@ -823,17 +830,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 		cout << endl;
 
-	}
-	
-	vector<joinOrder> test = getJoinOrder(myCombs[myCombs.size() - 1][75], tSize);
-
-	for (int i = 0; i < test.size(); i++) {
-
-		cout << "Join Layer " << i + 1 << ": " << endl;
-		cout << "j1: " << test[i].j1 << endl;
-		cout << "j2: " << test[i].j2 << endl << endl;
-
-	}
+	}*/
 	
 	return myCombs[myCombs.size() - 1];
 }
@@ -855,7 +852,7 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 	int bar;
 
 
-	cout << str << endl;
+	//cout << str << endl;
 
 	int barCount = 0;
 
@@ -899,7 +896,9 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 
 			closeIndex.erase(closeIndex.begin());
 
-			cout << newOrder.j1 << " " << newOrder.j2 << endl;
+			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+			myOrder.push_back(newOrder);
 
 		}
 
@@ -910,7 +909,9 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 			newOrder.j1 = str.at(i - 1);
 			newOrder.j2 = str.at(i + 1);
 
-			cout << newOrder.j1 << " " << newOrder.j2 << endl;
+			//cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+			myOrder.push_back(newOrder);
 
 		}
 
@@ -918,12 +919,66 @@ vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 
 	}
 
-	cout << endl;
+	//cout << endl;
 
 	// vector will delete joinOrder so they dont have to be a pointer
 	// create joinOrder from str
 	// push_back smaller joins before larger joins. e.g. ( (A|B) (C|D) E) will have (A B), (C D), before (AB CD) and then (ABCD E) in the push_back. 
 	
+
+
+	for (int i = 0; i < myOrder.size(); i++) {
+
+		for (int j = 0; j < myOrder[i].j1.length(); j++) {
+
+			char letter = myOrder[i].j1.at(j);
+			
+			if (letter >= 'A' && letter <= 'Z') {
+
+				string temp;
+
+				temp += letter;
+
+				KeyString myKey = KeyString(temp);
+
+				string tName = tableMap.Find(myKey);
+
+				myOrder[i].j1.erase(j, 1);
+
+				myOrder[i].j1.insert(j, tName);
+
+				//cout << myOrder[i].j1 << endl;
+
+			}
+
+		}
+
+		for (int j = 0; j < myOrder[i].j2.length(); j++) {
+
+			char letter = myOrder[i].j2.at(j);
+
+			if (letter >= 'A' && letter <= 'Z') {
+
+				string temp;
+
+				temp += letter;
+
+				KeyString myKey = KeyString(temp);
+
+				string tName = tableMap.Find(myKey);
+
+				myOrder[i].j2.erase(j, 1);
+
+				myOrder[i].j2.insert(j, tName);
+
+				//cout << myOrder[i].j2 << endl;
+
+			}
+
+		}
+
+	}
+
 
 	return myOrder;
 }
