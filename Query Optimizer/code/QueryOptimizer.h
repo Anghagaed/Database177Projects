@@ -64,7 +64,6 @@ private:
 private:
 	int tableSize(TableList* _tables);
 	OptimizationTree* greedy(TableList* _tables, AndList* _predicate);
-	OptimizationTree* partition(TableList* _tables, AndList* _predicate);
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
 	OptimizationTree* singleNode(string& tName, unsigned int& tTuples);
@@ -72,6 +71,7 @@ public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
 	void Optimize(TableList* _tables, AndList* _predicate, OptimizationTree* _root);
+	void partition(TableList* _tables, AndList* _predicate);
 };
 
 #endif // _QUERY_OPTIMIZER_H

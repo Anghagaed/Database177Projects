@@ -98,8 +98,8 @@ Catalog::Catalog(string& _fileName) {
 }
 
 Catalog::~Catalog() {
-	cout << "in  catalog destructor" << endl;
-	cout << "out catalog destructor" << endl;
+	//cout << "in  catalog destructor" << endl;
+	//cout << "out catalog destructor" << endl;
 }
 
 bool Catalog::Save() {

@@ -55,10 +55,11 @@ QueryOptimizer::QueryOptimizer(Catalog& _catalog) : catalog(&_catalog) {
 }
 
 QueryOptimizer::~QueryOptimizer() {
+	//cout << "In Query Optimizer destructor" << endl;
 	for (int i = 0; i < toBeDelete.size() - 1; ++i) {
 		delete toBeDelete[i];
 	}
-	//cout << "Out of Query Optimizer Deconstructor" << endl;
+	//cout << "Out of Query Optimizer Destructor" << endl;
 }
 
 OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTuples) {
@@ -109,7 +110,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		tree = greedy(_tables, _predicate);
 	}
 	else {
-		tree = partition(_tables, _predicate);
+		//tree = partition(_tables, _predicate);
 	} 
 	_root->Swap(*tree);
 }
@@ -309,8 +310,8 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	//cout << _root << endl;
 	return _root;
 }
-OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
-
+void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
+	cout << "I am out " << endl;
 }
 int QueryOptimizer::tableSize(TableList* _tables) {
 	int size = 0;
