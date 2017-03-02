@@ -97,8 +97,8 @@ OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTupl
 */
 void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	OptimizationTree* _root) {
-	//cout << _root << endl;
-	std::cout << "Starting Optimize" << std::endl;
+	//cout << root << endl;
+	//std::cout << "Starting Optimize" << std::endl;
 	// compute the optimal join order
 	OptiMap.Clear();
 	OptimizationTree* tree;
@@ -407,6 +407,11 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 	string optimalString;
 	unsigned int noTuples = UINT_MAX;
 	vector<string> uniqueOrdering = getUniqueOrder(_tables, _predicate);
+	/* 
+	for (int i = 0; i < uniqueOrdering.size(); ++i) {
+		cout << uniqueOrdering[i] << endl;
+	}
+	*/
 	for (int i = 0; i < uniqueOrdering.size(); ++i) {
 		vector<joinOrder> joinOrdering = getJoinOrder(uniqueOrdering[i], size);
 		unsigned int noTuples2 = 0;
@@ -478,7 +483,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 	//cout << "End Best Join Computation" << endl;
 	// Optimal Join Orders is stored in optimalString
 	
-	cout << optimalString << endl;
+	//cout << optimalString << endl;
 	//cout << "Start tree creation" << endl;
 	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
 	OptimizationTree* _root;
@@ -522,7 +527,12 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 		//cout << "pointers done" << endl;
 		_root = ptr;
 		//cout << "Do 6 ptr " << endl;
-	} 
+	}
+	/*
+	for (int i = 0; i < _root->tables.size(); ++i) {
+		cout << _root->tables[i] << endl;
+	}
+	*/
 	return _root;
 	
 }
