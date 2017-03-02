@@ -58,10 +58,10 @@ int main () {
 	// the result is the execution tree built from the parse tree and optimized
 	
 	QueryExecutionTree queryTree;
-	//compiler.Compile(tables, attsToSelect, finalFunction, predicate,
-		//groupingAtts, distinctAtts, queryTree);
+	compiler.Compile(tables, attsToSelect, finalFunction, predicate,
+		groupingAtts, distinctAtts, queryTree);
 
-	//cout << queryTree << endl;
+	cout << queryTree << endl;
 	OptimizationTree ptr;
 
     //optimizer.getUniqueOrder(tables, predicate);
