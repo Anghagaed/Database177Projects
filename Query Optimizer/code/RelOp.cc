@@ -52,7 +52,7 @@ void Scan::CopyFrom(Scan& withMe)
 }
 
 ostream& Scan::print(ostream& _os) {
-	return _os << "SCAN"<<schema<<" File";
+	return _os << "SCAN\nSchema:"<<schema<<"\nFile";
 }
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
@@ -105,7 +105,7 @@ void Select::Swap(Select& withMe)
 }
 
 ostream& Select::print(ostream& _os) {
-	return _os << "SELECT"<<schema<<predicate<</*constants.print(_os,schema)<<*/producer;
+	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<</*constants.print(_os,schema)<<*/"\nProducer: " << *producer;
 }
 
 
@@ -124,7 +124,11 @@ Project::~Project() {
 }
 
 ostream& Project::print(ostream& _os) {
-	return _os << "PROJECT: \nSchema In: " << schemaIn << "\nSchema Out: " << schemaOut << "\n# Attributes Input: " << numAttsInput << "\n# Attributes Output: " << numAttsOutput << "\nKeep: " << keepMe << "\nProducer: " << *producer;
+	_os << "PROJECT: \nSchema In: " << schemaIn << "\nSchema Out: " << schemaOut << "\n# Attributes Input: " << numAttsInput << "\n# Attributes Output: " << numAttsOutput << "\nKeep: ";
+	for (int i = 0; i < numAttsOutput; i++) {
+		_os << keepMe[i] << " ";
+	}
+	return _os << "\nProducer: " << *producer;
 }
 
 
@@ -183,7 +187,7 @@ ostream& Sum::print(ostream& _os) {/*
 	cout << "schemaOut = " << (_os,schemaOut) << endl;
 	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
 	cout << "producer = " << producer.print(_os) << endl;*/
-	return _os << "SUM" << schemaIn << schemaOut << " Function" << producer;//told by TA to just use "Function"
+	return _os << "SUM\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << " Function" << "Producer: " <<*producer;//told by TA to just use "Function"
 }
 
 
@@ -206,7 +210,7 @@ ostream& GroupBy::print(ostream& _os) {/*
 	cout << "groupingAtts = " << (_os,groupingAtts) << endl;
 	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
 	cout << "producer = " << producer.print(_os) << endl;*/
-	return _os << "GROUP BY" << schemaIn << schemaOut << groupingAtts << " Function" << producer;//told by TA to just use "Function"
+	return _os << "GROUP BY\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << "\nGroupingAtts: " <<groupingAtts << " Function" << "\nProducer: " << *producer;//told by TA to just use "Function"
 }
 
 
@@ -226,5 +230,5 @@ ostream& WriteOut::print(ostream& _os) {
 
 
 ostream& operator<<(ostream& _os, QueryExecutionTree& _op) {
-	return _os << "QUERY EXECUTION TREE" << "(" << *_op.root << ")";
+	return _os << "QUERY EXECUTION TREE" << "(\n" << *_op.root << "\n)";
 }
