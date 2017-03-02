@@ -447,6 +447,38 @@ string QueryOptimizer::findTableName(string& attName) {
 
 }
 
+
+
+
+// --- Partition ---
+
+bool dupeCheck(string& str1, string& str2) {
+
+
+
+	for (int i = 0; i < str1.length(); i++) {
+
+		char letter = str1.at(i);
+
+		if (letter >= 'A' && letter <= 'Z') {
+
+			for (int j = 0; j < str2.length(); j++) {
+
+				if (letter == str2.at(j)) {
+
+					return true;
+
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+
 vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _predicate) {
 	
 	TableList* temp = _tables;
@@ -465,12 +497,13 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 	}*/
 
-	tSize = 4;
+	tSize = 5;
 
 	myTables.push_back("A");
 	myTables.push_back("B");
 	myTables.push_back("C");
 	myTables.push_back("D");
+	myTables.push_back("E");
 
 	for (int i = 0; i < tSize; i++) {
 
@@ -602,7 +635,7 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 					//cout << "Comparing: " << myCombs[myPatterns[i].left[j] - 1][l] << " AND " << myCombs[myPatterns[i].right[j] - 1][r] << endl;
 
-					if (myCombs[myPatterns[i].right[j] - 1][r].find(myCombs[myPatterns[i].left[j] - 1][l]) > 1000000) {
+					if (!dupeCheck(myCombs[myPatterns[i].right[j] - 1][r], myCombs[myPatterns[i].left[j] - 1][l])) {
 
 						//cout << "Left not found in Right" << endl;
 
@@ -640,11 +673,13 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 	}
 	
-	vector<joinOrder> test = getJoinOrder(myCombs[myCombs.size() - 1][0], tSize);
+	vector<joinOrder> test = getJoinOrder(myCombs[myCombs.size() - 1][75], tSize);
 
-	for (int i = 0; test.size(); i++) {
+	for (int i = 0; i < test.size(); i++) {
 
-		cout << test[i].j1 << " with " << test[i].j2;
+		cout << "Join Layer " << i + 1 << ": " << endl;
+		cout << "j1: " << test[i].j1 << endl;
+		cout << "j2: " << test[i].j2 << endl << endl;
 
 	}
 
@@ -652,30 +687,86 @@ vector<string> QueryOptimizer::getUniqueOrder(TableList* _tables, AndList* _pred
 
 }
 
-vector<joinOrder> QueryOptimizer::getJoinOrder(string& str, int& tSize) {
+vector<joinOrder> QueryOptimizer::getJoinOrder(string str, int& tSize) {
 	// use ptr like a normal vector. Just -> instead of .
 /*	vector<joinOrder> myOrder;
 
 	//(A(B(C|D)))
 
-	int i = 0;
+	//C D
+	//B CD
+	//A BCD
 
-	while (i < tSize - 1) {
+	int i = str.length()-1;
+	int closeEnd;
+	vector<int> closeIndex;
+	int bar;
 
-		int barIndex = str.find("|");
 
-		if (index < 1000000) {
+	cout << str << endl;
 
-			joinOrder newOrder;
+	int barCount = 0;
 
-			
+	while (i > 0) {
+
+		if (str.at(i) == ')') {
+
+			closeEnd++;
+			closeIndex.insert(closeIndex.begin(), i);
 
 		}
 
+		else if (str.at(i) == '(') {
+
+
+			joinOrder newOrder;
+
+			if (str.at(i - 1) == ')') {
+
+				closeIndex.erase(closeIndex.begin());
+				i--;
+				continue;
+
+			}
+
+			else if (str.at(i - 1) == '(') {
+
+				newOrder.j1 = str.substr(i, closeIndex[0] - i + 1);
+				closeIndex.erase(closeIndex.begin());
+				newOrder.j2 = str.substr(i+5, closeIndex[0] - (i+5));
+
+			}
+			
+			else {
+
+				newOrder.j1 = str.at(i - 1);
+				newOrder.j2 = str.substr(i, closeIndex[0]-i+1);
+			}
+
+			
+
+			closeIndex.erase(closeIndex.begin());
+
+			cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+		}
+
+		else if (str.at(i) == '|') {
+
+			joinOrder newOrder;
+
+			newOrder.j1 = str.at(i - 1);
+			newOrder.j2 = str.at(i + 1);
+
+			cout << newOrder.j1 << " " << newOrder.j2 << endl;
+
+		}
+
+		i--;
 
 	}
 
-
+	cout << endl;
 
 	// vector will delete joinOrder so they dont have to be a pointer
 	// create joinOrder from str
