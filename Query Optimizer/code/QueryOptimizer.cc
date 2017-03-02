@@ -404,6 +404,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 	vector<string> uniqueOrdering = getUniqueOrder(_tables, _predicate);
 	for (int i = 0; i < uniqueOrdering.size(); ++i) {
 		vector<joinOrder> joinOrdering = getJoinOrder(uniqueOrdering[i], size);
+		unsigned int noTuples2 = UINT_MAX;
 		for (int j = 0; j < joinOrdering.size(); ++j) {
 			OptimizationTree *left, *right, *ptr;
 			KeyString key;
@@ -454,12 +455,12 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			}
 
 			// Push new thing into efficientMap
-			key = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering.j2 + ')');
-			lastTree = '(' + joinOrdering[j].j1 + '|' + joinOrdering.j2 + ')';
-			OptiMap.Insert();
+			key = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')');
+			noTuples2 = ptr->noTuples;
+			OptiMap.Insert(key, *ptr);
 		}
-		if (noTuples > lastTree->noTuples) {
-			noTuples = lastTree->noTuples;
+		if (noTuples > noTuples2) {
+			noTuples = noTuples2;
 			optimalString = uniqueOrdering[i];
 		}
 	}

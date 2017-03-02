@@ -77,7 +77,7 @@ private:
 	vector<joinStuff> joinList;
 
 	// Get Join Orders given a string
-	vector<joinOrder> getJoinOrder(string& str, int& tSize);
+	vector<joinOrder> getJoinOrder(string str, int& tSize);
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
