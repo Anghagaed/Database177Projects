@@ -29,6 +29,9 @@ QueryCompiler::~QueryCompiler() {
 	for (int i = 0; i < ScanMap.size(); i++) {
 		delete ScanMap[i];
 	}
+	for (int i = 0; i < DeleteThis.size(); i++) {
+		delete DeleteThis[i];
+	}
 	cout << "done destructing\n";
 }
 int QueryCompiler::tableSize(TableList* _tables)
@@ -124,6 +127,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 
 		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
+		DeleteThis.push_back(j);
 		return j;	//return our relational op
 	}
 }
@@ -146,6 +150,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		char* path = new char[pathConvert.length() + 1];
 		strcpy(path, pathConvert.c_str());
 		myFile.Open(path);
+		delete path;
 		Scan *myScan = new Scan(mySchema, myFile, temp);
 		ScanMap.push_back(myScan);
 		// push-down selections: create a SELECT operator wherever necessary
@@ -156,12 +161,13 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		if ((mySelect->getCNF()).numAnds!=0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
 		{
 			cout << "going to push\n " << *mySelect << "\ninto selectmap now" << endl;
+			count++;
 			SelectMap.push_back(mySelect);
-			cout << "ok i pushed" << endl;
+			//cout << "ok i pushed" << endl;
 		}
 		amarlikesthepenis = amarlikesthepenis->next;
 	}
-	cout << "did i fill my maps" << endl;
+	//cout << "did i fill my maps" << endl;
 	// call the optimizer to compute the join order
 	OptimizationTree root;
 	optimizer->Optimize(_tables, _predicate, &root);
@@ -274,7 +280,8 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
 		OrderMaker _groupAtts = OrderMaker(_schemaIn, _keepMe, _atts_no);		// Insert all relevant values into OrderMaker
 		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupAtts, _compute, j);		// j = Final join operator
-		
+		DeleteThis.push_back(groupby);
+
 		string outFile = "output.txt";
 		writeout = new WriteOut(_schemaOut, outFile, groupby);					// Insert all relevant values into WriteOut
 																				// outFile is "output.txt" because we are not using it yet
@@ -296,6 +303,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		Function _compute;
 		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
 		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute, j);					// j = Final join operator
+		DeleteThis.push_back(sum);
 		string outFile = "output.txt";
 		writeout = new WriteOut(_schemaOut, outFile, sum);						// Insert all relevant values into WriteOut
 																				// outFile is "output.txt" because we are not using it yet
@@ -324,10 +332,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		}
 		_schemaOut.Project(saveMe);												// Project the schema
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
+		DeleteThis.push_back(project);
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
 			// Create DuplicateRemoval here
 			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);
+			DeleteThis.push_back(duplicateRemoval);
 			string outFile = "output.txt";
 			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);		// Insert all relevant values into WriteOut
 																				// outFile is "output.txt" because we are not using it yet
@@ -342,6 +352,8 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// Create the QueryExecutionTree
 	_queryTree = QueryExecutionTree();
 	_queryTree.SetRoot(*writeout);
-	
+	DeleteThis.push_back(writeout);
+
+	cout << "this is count: " << count << endl;
 	// free the memory occupied by the parse tree since it is not necessary anymore
 }

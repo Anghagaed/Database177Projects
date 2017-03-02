@@ -28,6 +28,8 @@ private:
 	//EfficientMap <KeyString, Select> SelectMap;
 	vector<Scan*> ScanMap;
 	vector<Select*> SelectMap;
+	vector<RelationalOp*> DeleteThis;
+	int count = 0;
 
 public:
 	QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer);

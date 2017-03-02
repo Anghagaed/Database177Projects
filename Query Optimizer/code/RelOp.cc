@@ -105,7 +105,7 @@ void Select::Swap(Select& withMe)
 }
 
 ostream& Select::print(ostream& _os) {
-	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<</*constants.print(_os,schema)<<*/"\nProducer: " << *producer;
+	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<</*constants.print(_os,schema)<<*/"\nProducer: " << *producer << endl;
 }
 
 
@@ -128,7 +128,7 @@ ostream& Project::print(ostream& _os) {
 	for (int i = 0; i < numAttsOutput; i++) {
 		_os << keepMe[i] << " ";
 	}
-	return _os << "\nProducer: " << *producer;
+	return _os << "\nProducer: " << *producer << endl;
 }
 
 
@@ -152,7 +152,7 @@ Schema & Join::getSchema(){
 }
 
 ostream& Join::print(ostream& _os) {
-	return _os << "JOIN\nLeft Schema: " << schemaLeft << "\nRight Schema: " << schemaRight << "\nSchema Out: " << schemaOut << "\nPredicate: " << predicate << "\nLeft Operator: " << *left << "\nRight Operator: " << *right;
+	return _os << "JOIN\nLeft Schema: " << schemaLeft << "\nRight Schema: " << schemaRight << "\nSchema Out: " << schemaOut << "\nPredicate: " << predicate << "\nLeft Operator:\n " << *left << endl << "\nRight Operator:\n " << *right << endl;
 }
 
 
@@ -166,7 +166,7 @@ DuplicateRemoval::~DuplicateRemoval() {
 }
 
 ostream& DuplicateRemoval::print(ostream& _os) {
-	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer;
+	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer << endl;
 }
 
 
@@ -187,7 +187,7 @@ ostream& Sum::print(ostream& _os) {/*
 	cout << "schemaOut = " << (_os,schemaOut) << endl;
 	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
 	cout << "producer = " << producer.print(_os) << endl;*/
-	return _os << "SUM\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << " Function" << "Producer: " <<*producer;//told by TA to just use "Function"
+	return _os << "SUM\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << " Function" << "Producer: " << *producer << endl;//told by TA to just use "Function"
 }
 
 
@@ -210,7 +210,7 @@ ostream& GroupBy::print(ostream& _os) {/*
 	cout << "groupingAtts = " << (_os,groupingAtts) << endl;
 	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
 	cout << "producer = " << producer.print(_os) << endl;*/
-	return _os << "GROUP BY\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << "\nGroupingAtts: " <<groupingAtts << " Function" << "\nProducer: " << *producer;//told by TA to just use "Function"
+	return _os << "GROUP BY\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << "\nGroupingAtts: " << groupingAtts << " Function" << "\nProducer: " << *producer << endl;//told by TA to just use "Function"
 }
 
 
@@ -225,7 +225,7 @@ WriteOut::~WriteOut() {
 }
 
 ostream& WriteOut::print(ostream& _os) {
-	return _os << "OUTPUT\n Schema: " << schema << "\nOut File: " << outFile << "\n Producer: " << *producer;
+	return _os << "OUTPUT\n Schema: " << schema << "\nOut File: " << outFile << "\n Producer: " << *producer << endl;
 }
 
 
