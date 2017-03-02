@@ -1,1 +1,1 @@
-SELECT s_suppkey FROM part, supplier, partsupp WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_acctbal > 2500
+SELECT SUM(s_suppkey) FROM part, supplier, partsupp WHERE p_partkey = ps_partkey AND s_suppkey = ps_suppkey AND s_acctbal > 2500

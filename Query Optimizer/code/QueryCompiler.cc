@@ -249,15 +249,43 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	else
 	if (_finalFunction != 0)													// Non-empty _finalFunction -> Sum
 	{
-/*		// Create Sum here
-		Schema _schemaIn = j->getSchema();													// Set it equal to join's final schema
-		Schema _schemaOut;														// Set it equal to nothing (not really important at the moment)
+		// Create Sum here
+		//cout << "Creating sum" << endl;
+		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
+		//Schema _projectSchema = Schema(j->GetSchema());								// Projected version
+		//int count = 0;
+		//cout << _schemaIn << endl;
+		//NameList* i = _groupingAtts;
+		/*while(i != NULL){														// Find the size of _keepMe
+			i = i->next;
+			count++;
+		}
+		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
+		i = _groupingAtts;
+		cout << count << endl;
+		while(i != NULL)							// Fill the vector and array
+		{
+			string name = i->name;
+			saveMe.push_back(_schemaIn.Index(name));
+			i = i->next;
+		}*/
+		//_projectSchema.Project(saveMe);												// Project
+		//_schemaOut.RenameAtt((_schemaIn.GetAtts())[0].name, newAttName);		// Rename to SUM
+		string attName = "SUM";
+		string attType = "Float";	
+		vector<string> attNames;
+		attNames.push_back(attName);
+		vector<string> attTypes;
+		attTypes.push_back(attType);
+		vector<unsigned int> distincts;
+		distincts.push_back(1);
+		Schema _schemaOut = Schema(attNames, attTypes, distincts);
 		Function _compute;
-		_compute.GrowFromParseTree(_finalFunction, _schemaIn);				// Insert all relevant values into Function
-		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute, j);				// j = Final join operator
-		string outFile = "outfile";
-		writeout = new WriteOut(_schemaOut, outFile, sum);							// Insert all relevant values into WriteOut
-*/																					// outFile is "outfile" because we are not using it yet
+		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
+		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute, j);					// j = Final join operator
+		string outFile = "output.txt";
+		writeout = new WriteOut(_schemaOut, outFile, sum);						// Insert all relevant values into WriteOut
+																				// outFile is "outfile" because we are not using it yet
 	}
 	else																		// Project or Project + DuplicateRemoval
 	{
