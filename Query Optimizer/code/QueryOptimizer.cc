@@ -55,7 +55,7 @@ QueryOptimizer::QueryOptimizer(Catalog& _catalog) : catalog(&_catalog) {
 }
 
 QueryOptimizer::~QueryOptimizer() {
-	cout << "In Query Optimizer destructor" << endl;
+	//cout << "In Query Optimizer destructor" << endl;
 	for (int i = 0; i < toBeDelete.size(); ++i) {
 		delete toBeDelete[i];
 	}
@@ -64,7 +64,7 @@ QueryOptimizer::~QueryOptimizer() {
 		delete toBeDelete2[i];
 	}
 	*/
-	cout << "Out of Query Optimizer Destructor" << endl;
+	//cout << "Out of Query Optimizer Destructor" << endl;
 }
 
 OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTuples) {
@@ -98,7 +98,7 @@ OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTupl
 void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	OptimizationTree* _root) {
 	//cout << _root << endl;
-	std::cout << "Starting Optimize" << std::endl;
+	//std::cout << "Starting Optimize" << std::endl;
 	// compute the optimal join order
 	OptiMap.Clear();
 	OptimizationTree* tree;
@@ -112,7 +112,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		catalog->GetNoTuples(tName, tTuples);
 		tree = singleNode(tName, tTuples);
 	}
-	else if (size > 5 || size == 2) {
+	else if (true) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
@@ -478,7 +478,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 	//cout << "End Best Join Computation" << endl;
 	// Optimal Join Orders is stored in optimalString
 	
-	cout << optimalString << endl;
+	//cout << optimalString << endl;
 	//cout << "Start tree creation" << endl;
 	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
 	OptimizationTree* _root;

@@ -29,6 +29,7 @@ int main()
 	bool quit = true;
 	while (quit)
 	{
+		cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
 		string dbFile = "catalog.sqlite";
 		Catalog catalog(dbFile);
@@ -60,7 +61,6 @@ int main()
 		// at this point we have the parse tree in the ParseTree data structures
 		// we are ready to invoke the query compiler with the given query
 		// the result is the execution tree built from the parse tree and optimized
-
 		QueryExecutionTree queryTree;
 		compiler.Compile(tables, attsToSelect, finalFunction, predicate,
 			groupingAtts, distinctAtts, queryTree);
@@ -70,7 +70,7 @@ int main()
 
 		optimizer.getUniqueOrder(tables, predicate);
 		optimizer.Optimize(tables, predicate, &ptr);
-		cout << "Do you wish to continue? Press 0 to exit. Press anything else to continue" << endl;
+		cout << "Do you wish to continue? Press 0 to exit. Press any other number else to continue" << endl;
 		int var;
 		cin >> var;
 		if (var == 0)
