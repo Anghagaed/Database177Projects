@@ -75,12 +75,20 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	//post order traversal to get the left producer and right producer
 	if (node->leftChild != NULL) {
 		cout << "	going left\n";
-		cout << node->tables[0] << endl;
+		cout << node << endl;
+		cout << node->leftChild << endl;
+		for (int i = 0; i < node->tables.size(); ++i) {
+			cout << node->tables[i] << endl;
+		}
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
 		cout << "	going right\n";
-		cout << node->tables[0] << endl;
+		cout << node << endl;
+		for (int i = 0; i < node->tables.size(); ++i) {
+			cout << node->tables[i] << endl;
+		} 
+		cout << node->rightChild  << endl;
 		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
 	}
 
@@ -93,11 +101,14 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	//if there are 2 or more tables, then we need to join
 	// gets the left/right schemas/relationalOp from the children of this node
 	else {
+		cout << "making join" << endl;
 		//make the join operator
 
 		//get schemas
+		cout << "getting schemas\n";
 		Schema left_schema = left->GetSchema();
 		Schema right_schema = right->GetSchema();
+		cout << "got schemas\n";
 
 		//save left schema
 		Schema left_temp = left_schema;
@@ -108,8 +119,12 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 
 		//get resulting schema
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
-
+		
 		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
+
+		cout << "this is our join: " << endl;
+		cout << j << endl;
+
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op
 	}
@@ -149,20 +164,22 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	}
 
 	// call the optimizer to compute the join order
-	OptimizationTree root;
-	optimizer->Optimize(_tables, _predicate, &root);
+	OptimizationTree *root = new OptimizationTree();
+	optimizer->Optimize(_tables, _predicate, root);
 
 	cout << "done optimizing\n";
 
-	for (int i = 0; i < root.tables.size(); i++) {
-		cout << root.tables[i] << " ";
+	for (int i = 0; i < root->tables.size(); i++) {
+		cout << "in for loop\n";
+		cout << root->tables[i] << " ";
+		cout << "out for loop\n";
 	}
 	cout << endl;
 
 	// create join operators based on the optimal order computed by the optimizer
 	// j will point to root of join tree
 	// call j->getSchema() to get the final schema
-	RelationalOp* j = JoinTree(&root, _predicate);
+	RelationalOp* j = JoinTree(root, _predicate);
 	
 	// create the remaining operators based on the query
 

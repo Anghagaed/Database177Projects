@@ -100,6 +100,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	//cout << _root << endl;
 	//std::cout << "Starting Optimize" << std::endl;
 	// compute the optimal join order
+	//_root = new OptimizationTree();
 	OptiMap.Clear();
 	OptimizationTree* tree;
 	int size = tableSize(_tables);
