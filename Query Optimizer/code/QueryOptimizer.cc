@@ -56,8 +56,11 @@ QueryOptimizer::QueryOptimizer(Catalog& _catalog) : catalog(&_catalog) {
 
 QueryOptimizer::~QueryOptimizer() {
 	//cout << "In Query Optimizer destructor" << endl;
-	for (int i = 0; i < toBeDelete.size() - 1; ++i) {
+	for (int i = 0; i < toBeDelete.size(); ++i) {
 		delete toBeDelete[i];
+	}
+	for (int i = 0; i < toBeDelete2.size(); ++i) {
+		delete toBeDelete2[i];
 	}
 	//cout << "Out of Query Optimizer Destructor" << endl;
 }
@@ -712,4 +715,17 @@ void QueryOptimizer::partition(TableList* _tables, AndList* _predicate) {
 
 	}*/
 
+}
+
+vector<joinOrder>* QueryOptimizer::getJoinOrders(string& str) {
+	// use ptr like a normal vector. Just -> instead of .
+	vector<joinOrder>* ptr = new vector<joinOrder>;
+	toBeDelete2.push_back(ptr);
+
+	// vector will delete joinOrder so they dont have to be a pointer
+	// create joinOrder from str
+	// push_back smaller joins before larger joins. e.g. ( (A|B) (C|D) E) will have (AB), (CD), before (ABCD) and then (ABCDE) in the push_back. 
+
+
+	return ptr;
 }

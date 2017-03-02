@@ -58,6 +58,11 @@ struct pattern {
 	vector<int> right;
 };
 
+struct joinOrder {
+	string j1;
+	string j2;
+};
+
 class QueryOptimizer {
 private:
 	Catalog* catalog;
@@ -65,10 +70,12 @@ private:
 	EfficientMap<KeyString, OptimizationTree> OptiMap;
 	// Deconstructor stuff, push in new OptimizationTree
 	vector<OptimizationTree*> toBeDelete;
+	vector<vector<joinOrder> *> toBeDelete2;
 	
 	// AndList Stuff
 	vector<pushDown>  pushDownList;
 	vector<joinStuff> joinList;
+	vector<joinOrder>* getJoinOrders(string& str);
 	//EfficientMap<KeyString, OptimizationTree> OptiMap;
 private:
 	int tableSize(TableList* _tables);
