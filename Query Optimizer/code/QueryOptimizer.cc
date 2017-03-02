@@ -113,6 +113,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		tree = singleNode(tName, tTuples);
 	}
 	else if (true) {
+	//else if (size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
