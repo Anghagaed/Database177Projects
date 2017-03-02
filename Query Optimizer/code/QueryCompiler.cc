@@ -27,11 +27,11 @@ QueryCompiler::~QueryCompiler() {
 	for (int i = 0; i < SelectMap.size(); ++i) {
 		delete SelectMap[i];
 	}
-	for (int i = 0; i < ScanMap.size(); i++) {
+	for (int i = 0; i < ScanMap.size(); ++i) {
 		delete ScanMap[i];
 	}
 	//delete everything in our vector that holds everything we need to delete
-	for (int i = 0; i < DeleteThis.size(); i++) {
+	for (int i = 0; i < DeleteThis.size(); ++i) {
 		delete DeleteThis[i];
 	}
 	if(_keepMe != NULL)
@@ -44,7 +44,7 @@ int QueryCompiler::tableSize(TableList* _tables)
 	while (iterator != NULL)
 	{
 		iterator = iterator->next;
-		size++;
+		++size;
 	}
 	return size;
 }
@@ -52,12 +52,12 @@ int QueryCompiler::tableSize(TableList* _tables)
 //goes through select/scan maps to get relational operator associated with table
 RelationalOp* QueryCompiler::GetRelOp(string table) {
 	//check the select map first
-	for (int i = 0; i < SelectMap.size(); i++) {
+	for (int i = 0; i < SelectMap.size(); ++i) {
 		if ( !table.compare(SelectMap[i]->getTable()) ) {	//compare the string to what we have in our map
 			return SelectMap[i];
 		}
 	}
-	for (int i = 0; i < ScanMap.size(); i++) {
+	for (int i = 0; i < ScanMap.size(); ++i) {
 		if ( !table.compare(ScanMap[i]->getTable()) ) {	//compare the string to what we have in our map
 			return ScanMap[i];
 		}
@@ -119,19 +119,17 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
 	TableList *iterator=_tables;
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < size; ++i)
 	{
 		Schema mySchema;
 		string temp = iterator->tableName;	//get the table name
 		catalog->GetSchema(temp, mySchema);	//get the schema
 		DBFile myFile = DBFile();
-		//string pathConvert = "catalog.txt";//going to be converted to char *
 		string pathConvert;
 		catalog->GetDataFile(temp, pathConvert);
 		char* path = new char[pathConvert.length() + 1];
 		strcpy(path, pathConvert.c_str());
 		myFile.Open(path);
-		delete path;	//memory leak
 		Scan *myScan = new Scan(mySchema, myFile, temp);	//make scan
 		ScanMap.push_back(myScan);	//add it to scanmap
 		// push-down selections: create a SELECT operator wherever necessary
@@ -183,7 +181,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		NameList* i = _groupingAtts;
 		while(i != NULL){														// Find the size of _keepMe
 			i = i->next;
-			_atts_no++;
+			++_atts_no;
 		}
 		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
 		_keepMe = new int[_atts_no];													// Array of attributes to keep
@@ -241,7 +239,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		NameList* i = _attsToSelect;
 		while(i != NULL){														// Find the size of _keepMe
 			i = i->next;
-			_numAttsOutput++;
+			++_numAttsOutput;
 		}
 		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
 		_keepMe = new int [_numAttsOutput];	// Array of attributes to keep

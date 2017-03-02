@@ -29,18 +29,33 @@ DBFile& DBFile::operator=(const DBFile& _copyMe) {
 }
 
 int DBFile::Create (char* f_path, FileType f_type) {
+
+/*	if (f_type == Heap) {
+		// create heap file
+	}
+*/
 }
 
 int DBFile::Open (char* f_path) {
+/*
+	inFile.open(f_path);
+
+	if (!inFile) {
+		cout << "Error opening DBFile" << endl;
+	}*/
 }
 
 void DBFile::Load (Schema& schema, char* textFile) {
+
 }
 
 int DBFile::Close () {
+/*
+	inFile.close();*/
 }
 
 void DBFile::MoveFirst () {
+
 }
 
 void DBFile::AppendRecord (Record& rec) {
