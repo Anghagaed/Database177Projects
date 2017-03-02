@@ -67,7 +67,7 @@ int main () {
 	optimizer.getUniqueOrder(tables, predicate);
 	optimizer.Optimize(tables, predicate, &ptr);
 	
-	cout << &ptr << endl;
+	//cout << &ptr << endl;
 	for (int i = 0; i < ptr.tables.size(); ++i) {
 		cout << ptr.tables[i] << " ";
 	}

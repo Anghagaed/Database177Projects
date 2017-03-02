@@ -152,7 +152,7 @@ Schema & Join::getSchema(){
 }
 
 ostream& Join::print(ostream& _os) {
-	return _os << "JOIN\nLeft Schema: " << schemaLeft << "\nRight Schema: " << schemaRight << "\nSchema Out: " << schemaOut << "\nPredicate: " << predicate << "\nLeft Operator:\n " << *left << endl << "\nRight Operator:\n " << *right << endl;
+	return _os << "JOIN\nLeft Schema:\n" << schemaLeft << "\nRight Schema:\n" << schemaRight << "\nSchema Out:\n" << schemaOut << "\nPredicate:\n" << predicate << "\nLeft Operator:\n{\n" << *left << "\n}\nRight Operator:\n{\n " << *right << "\n}" << endl;
 }
 
 
@@ -195,7 +195,7 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	Function& _compute,	RelationalOp* _producer) {
 	schemaIn = _schemaIn;
 	schemaOut = _schemaOut;
-	groupingAtts = _groupingAtts;
+	groupingAtts.Swap(_groupingAtts);
 	compute = _compute;
 	producer = _producer;
 }
@@ -204,13 +204,8 @@ GroupBy::~GroupBy() {
 
 }
 
-ostream& GroupBy::print(ostream& _os) {/*
-	cout << "schemaIn = " << (_os, schemaIn) << endl;
-	cout << "schemaOut = " << (_os, schemaOut) << endl;
-	cout << "groupingAtts = " << (_os,groupingAtts) << endl;
-	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
-	cout << "producer = " << producer.print(_os) << endl;*/
-	return _os << "GROUP BY\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << "\nGroupingAtts: " << groupingAtts << " Function" << "\nProducer: " << *producer << endl;//told by TA to just use "Function"
+ostream& GroupBy::print(ostream& _os) {
+	return _os << "GROUP BY\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << "\nGroupingAtts: " << groupingAtts << "\nFunction:\nFunction\n" << "Producer:\n{\n" << *producer << "\n}" << endl;//told by TA to just use "Function"
 }
 
 
@@ -225,7 +220,7 @@ WriteOut::~WriteOut() {
 }
 
 ostream& WriteOut::print(ostream& _os) {
-	return _os << "OUTPUT\n Schema: " << schema << "\nOut File: " << outFile << "\n Producer: " << *producer << endl;
+	return _os << "OUTPUT\n Schema: " << schema << "\nOut File: " << outFile << "\n Producer:\n{\n" << *producer << "\n}\n";
 }
 
 
