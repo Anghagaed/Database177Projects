@@ -22,17 +22,17 @@ QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
 }
 
 QueryCompiler::~QueryCompiler() {
-	cout << "destructing compiler\n";
+	//to prevent memory leak
 	for (int i = 0; i < SelectMap.size(); ++i) {
 		delete SelectMap[i];
 	}
 	for (int i = 0; i < ScanMap.size(); i++) {
 		delete ScanMap[i];
 	}
+	//delete everything in our vector that holds everything we need to delete
 	for (int i = 0; i < DeleteThis.size(); i++) {
 		delete DeleteThis[i];
 	}
-	cout << "done destructing\n";
 }
 int QueryCompiler::tableSize(TableList* _tables)
 {
@@ -61,31 +61,6 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 	}
 }
 
-/*
-//not just a bad function, a really bad function
-Schema QueryCompiler::GetSchema(RelationalOp * relop)
-{
-	Schema result;
-	string test = typeid(relop).name();
-	int n = test.size() - 2;
-	cout << "	this is the letter im testing" << test[n] << endl;
-	if (test[n] == 'i') {	//check if it was a join
-		result = ((Join*)relop)->getSchema();
-	}
-	else if (test[n] == 'c') {	//check if it was a select
-		cout << "		this is the select i found\n";
-		cout << ((Select*)relop)->getSchema() << endl;
-		result = ((Select*)relop)->getSchema();
-	}
-	else if (test[n] == 'a') {	//check if it was a scan
-		cout << "		this is the scan i found\n";
-		cout << ((Scan*)relop)->getSchema() << endl;
-		result = ((Scan*)relop)->getSchema();
-	}
-	return result;
-}
-*/
-
 //Recursive function to traverse the optimization tree and create join operators along the way
 //traverses in post order - reaches both children before parent
 //returns the root of the join tree as a relational op pointer
@@ -94,6 +69,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	RelationalOp* left;
 	RelationalOp* right;
 
+	//post order traversal to get the left producer and right producer
 	if (node->leftChild != NULL) {
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
@@ -127,7 +103,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 
 		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
-		DeleteThis.push_back(j);
+		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op
 	}
 }
@@ -139,99 +115,41 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
-	TableList *amarlikesthepenis=_tables;
+	TableList *iterator=_tables;
 	for (int i = 0; i < size; i++)
 	{
 		Schema mySchema;
-		string temp = amarlikesthepenis->tableName;
-		catalog->GetSchema(temp, mySchema);
+		string temp = iterator->tableName;	//get the table name
+		catalog->GetSchema(temp, mySchema);	//get the schema
 		DBFile myFile = DBFile();
 		string pathConvert = "catalog.txt";//going to be converted to char *
 		char* path = new char[pathConvert.length() + 1];
 		strcpy(path, pathConvert.c_str());
 		myFile.Open(path);
-		delete path;
-		Scan *myScan = new Scan(mySchema, myFile, temp);
-		ScanMap.push_back(myScan);
+		delete path;	//memory leak
+		Scan *myScan = new Scan(mySchema, myFile, temp);	//make scan
+		ScanMap.push_back(myScan);	//add it to scanmap
 		// push-down selections: create a SELECT operator wherever necessary
 		Record recTemp;
 		CNF cnfTemp;
 		cnfTemp.ExtractCNF(*_predicate, myScan->getSchema(), recTemp);
-		Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);
+		Select *mySelect = new Select(myScan->getSchema(), cnfTemp, recTemp, myScan, temp);	//make select
 		if ((mySelect->getCNF()).numAnds!=0)// builds CNF and Record needed. Now we have Schema, Record, and CNF. Just need RelationOp
 		{
-			cout << "going to push\n " << *mySelect << "\ninto selectmap now" << endl;
-			count++;
-			SelectMap.push_back(mySelect);
-			//cout << "ok i pushed" << endl;
+			SelectMap.push_back(mySelect);		
 		}
-		amarlikesthepenis = amarlikesthepenis->next;
+		iterator = iterator->next;
 	}
-	//cout << "did i fill my maps" << endl;
+
 	// call the optimizer to compute the join order
 	OptimizationTree root;
 	optimizer->Optimize(_tables, _predicate, &root);
 
 	// create join operators based on the optimal order computed by the optimizer
-	//j will point to root of join tree
-	//call j->getSchema() to get the final schema
-	RelationalOp* j;
-	/*
-
-	//ignore this crap, only works for left-deep trees
-	//goes through optimization tree's root->tables and creates joins one by one
-
-	if (size > 8) {
-		// create join operators
-		// only for left deep trees
-		//will go through the vector of tables in order making join operators along the way
-
-		// create first join
-
-		// get join predicate
-		CNF predicate;
-		Schema s1, s2;	//s1 will eventually be our final schema after appending everything in the right order
-		catalog->GetSchema(root->tables[0], s1);	//get left schema
-		catalog->GetSchema(root->tables[1], s2);	//get right schema
-		predicate.ExtractCNF(*_predicate, s1, s2);	//get join predicate
-
-		//get relational operator from scan/push-down select maps
-		//get left relational op
-		RelationalOp *left = GetRelOp(root->tables[0]);
-		//get right relational op
-		RelationalOp *right = GetRelOp(root->tables[1]);
-
-		Schema schema_temp = s1;	//save first schema
-		s1.Append(s2);	//get schema after join operation
-
-		//create join operator
-		//will point to the root at the end
-		j = new Join(schema_temp, s2, s1, predicate, left, right);
-
-		// go through ordered table of vectors produced by optimizer joining s1 with the next tables
-		for (int i = 2; i < root->tables.size(); i++) {
-			//get join predicate
-			//s1 holds our left schema
-			catalog->GetSchema(root->tables[i], s2);	//get right schema
-			predicate.ExtractCNF(*_predicate, s1, s2);	//get join predicate
-
-			//j is our left relational op
-			//get the right table's relational op
-			right = GetRelOp(root->tables[i]);
-
-			schema_temp = s1;	//save left schema
-			s1.Append(s2);	//get schema out
-
-			j = new Join(schema_temp, s2, s1, predicate, j, right);
-		}
-		//j points to the root of the join tree
-	}
-	else {
-	*/  
-		//this should make the join tree for any general tree, not just left-deep
-		j = JoinTree(&root, _predicate);
-	//}
-
+	// j will point to root of join tree
+	// call j->getSchema() to get the final schema
+	RelationalOp* j = JoinTree(&root, _predicate);
+	
 	// create the remaining operators based on the query
 
 	// connect everything in the query execution tree and return
@@ -280,7 +198,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
 		OrderMaker _groupAtts = OrderMaker(_schemaIn, _keepMe, _atts_no);		// Insert all relevant values into OrderMaker
 		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupAtts, _compute, j);		// j = Final join operator
-		DeleteThis.push_back(groupby);
+		DeleteThis.push_back(groupby);	//make sure to delete this later
 
 		string outFile = "output.txt";
 		writeout = new WriteOut(_schemaOut, outFile, groupby);					// Insert all relevant values into WriteOut
@@ -303,7 +221,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		Function _compute;
 		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
 		Sum* sum = new Sum(_schemaIn, _schemaOut, _compute, j);					// j = Final join operator
-		DeleteThis.push_back(sum);
+		DeleteThis.push_back(sum);	//make sure to delete this later
 		string outFile = "output.txt";
 		writeout = new WriteOut(_schemaOut, outFile, sum);						// Insert all relevant values into WriteOut
 																				// outFile is "output.txt" because we are not using it yet
@@ -332,12 +250,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		}
 		_schemaOut.Project(saveMe);												// Project the schema
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
-		DeleteThis.push_back(project);
+		DeleteThis.push_back(project);	//make sure to delete this later
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
 			// Create DuplicateRemoval here
 			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);
-			DeleteThis.push_back(duplicateRemoval);
+			DeleteThis.push_back(duplicateRemoval);	//make sure to delete this later
 			string outFile = "output.txt";
 			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);		// Insert all relevant values into WriteOut
 																				// outFile is "output.txt" because we are not using it yet
@@ -352,8 +270,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// Create the QueryExecutionTree
 	_queryTree = QueryExecutionTree();
 	_queryTree.SetRoot(*writeout);
-	DeleteThis.push_back(writeout);
-
-	cout << "this is count: " << count << endl;
+	DeleteThis.push_back(writeout);	//add writeout to stuff we need to delete later
 	// free the memory occupied by the parse tree since it is not necessary anymore
 }
