@@ -29,6 +29,7 @@ private:
 	vector<Scan*> ScanMap;
 	vector<Select*> SelectMap;
 	vector<RelationalOp*> DeleteThis;
+	int* _keepMe;
 
 public:
 	QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer);

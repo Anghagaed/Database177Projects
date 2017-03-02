@@ -98,9 +98,7 @@ Catalog::Catalog(string& _fileName) {
 }
 
 Catalog::~Catalog() {
-	cout << "in  catalog destructor" << endl;
 	tables.Clear();
-	cout << "out catalog destructor" << endl;
 }
 
 bool Catalog::Save() {

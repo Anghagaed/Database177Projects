@@ -19,6 +19,7 @@ QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
 	catalog(&_catalog), optimizer(&_optimizer) {
 	catalog = &_catalog;
 	optimizer = &_optimizer;
+	_keepMe = NULL;
 }
 
 QueryCompiler::~QueryCompiler() {
@@ -33,6 +34,8 @@ QueryCompiler::~QueryCompiler() {
 	for (int i = 0; i < DeleteThis.size(); i++) {
 		delete DeleteThis[i];
 	}
+	if(_keepMe != NULL)
+		delete _keepMe;	//delete this
 }
 int QueryCompiler::tableSize(TableList* _tables)
 {
@@ -122,7 +125,9 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		string temp = iterator->tableName;	//get the table name
 		catalog->GetSchema(temp, mySchema);	//get the schema
 		DBFile myFile = DBFile();
-		string pathConvert = "catalog.txt";//going to be converted to char *
+		//string pathConvert = "catalog.txt";//going to be converted to char *
+		string pathConvert;
+		catalog->GetDataFile(temp, pathConvert);
 		char* path = new char[pathConvert.length() + 1];
 		strcpy(path, pathConvert.c_str());
 		myFile.Open(path);
@@ -181,7 +186,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			_atts_no++;
 		}
 		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
-		int _keepMe[_atts_no];													// Array of attributes to keep
+		_keepMe = new int[_atts_no];													// Array of attributes to keep
 		i = _groupingAtts;
 		for(int a = 0; a < _atts_no; ++a)										// Fill the vector and array
 		{
@@ -239,7 +244,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			_numAttsOutput++;
 		}
 		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
-		int _keepMe[_numAttsOutput];											// Array of attributes to keep
+		_keepMe = new int [_numAttsOutput];	// Array of attributes to keep
 		i = _attsToSelect;
 		for(int a = 0; a < _numAttsOutput; ++a)									// Fill the vector and array
 		{
@@ -251,6 +256,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		_schemaOut.Project(saveMe);												// Project the schema
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
 		DeleteThis.push_back(project);	//make sure to delete this later
+
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
 			// Create DuplicateRemoval here
