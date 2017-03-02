@@ -198,12 +198,12 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 				string t1 = newOptimal->tables[0];
 				string t2 = newOptimal->tables[1];
 
+				newOptimal->noTuples = newOptimal->tuples[0] * newOptimal->tuples[1];
 				for (int k = 0; k < joinList.size(); ++k) {
 
 					string *j1 = &joinList[k].table1;
 					string *j2 = &joinList[k].table2;
 					unsigned int temp1, temp2;
-					newOptimal->noTuples = newOptimal->tuples[0] * newOptimal->tuples[1];
 					if ((!t1.compare(*j1) || !t1.compare(*j2)) && (!t2.compare(*j1) || !t2.compare(*j2))) {
 						catalog->GetNoDistinct(*j1, joinList[k].att1, temp1);
 						catalog->GetNoDistinct(*j2, joinList[k].att2, temp2);
