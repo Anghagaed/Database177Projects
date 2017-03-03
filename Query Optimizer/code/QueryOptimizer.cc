@@ -32,7 +32,7 @@ void OptimizationTree::Swap(OptimizationTree& _withMe) {
 	// Swap Order
 	string tempS = order;
 	this->order = _withMe.order;
-	_withMe.order = tempS
+	_withMe.order = tempS;
 
 	// Swap Pointer
 	OptimizationTree* temp;
@@ -117,8 +117,8 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		tTuples = temp;
 		tree = singleNode(tName, tTuples);
 	}
-	//else if (true) {
-	else if (size == 2) {
+	else if (true) {
+	//else if (size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
@@ -142,8 +142,8 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	// Pre-processing step 1 : Filling Map with individual table
 	TableList* ptrT = _tables;
 	Schema* schem;
-	cout << endl;
-	cout << "Starting 1st Preprocessing" << endl;
+	//cout << endl;
+	//cout << "Starting 1st Preprocessing" << endl;
 	while (ptrT != NULL) {
 		double tTuples;
 		string tName = ptrT->tableName;
@@ -167,22 +167,47 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	//cout << "Ending 1st Preprocessing" << endl;
 	// Preprocessing step 2 : Push-Down Selections
 	//cout << "Starting 2nd Preprocessing" << endl;
+	/*
+	cout << endl;
+	cout << "Primitive tables before applying push-down but before joins" << endl;
+	for (int i = 0; i < currentKey.size(); ++i) {
+		KeyString key = KeyString(currentKey[i]);
+		OptimizationTree* tree = &OptiMap.Find(key);
+		cout << "Key " << i << endl;
+		cout << "Table Name: " << tree->tables[0] << endl;
+		cout << "Tuple Info: " << tree->tuples[0] << endl;
+		cout << "Cost  Info: " << tree->noTuples << endl;
+	}
+	cout << endl;
+	*/
 	for (int i = 0; i < pushDownList.size(); ++i) {
 		KeyString key = KeyString(pushDownList[i].tableName);
 		OptimizationTree* ptr = &OptiMap.Find(key);
-		cout << pushDownList[i].tableName << " " << pushDownList[i].code << " " << pushDownList[i].attName << endl;
+		//cout << pushDownList[i].tableName << " " << pushDownList[i].code << " " << pushDownList[i].attName << endl;
 		if (pushDownList[i].code == 7) {
 			unsigned int _noDistinct = 1;
 			catalog->GetNoDistinct(pushDownList[i].tableName, pushDownList[i].attName, _noDistinct);
-			cout << "Distinct: " << _noDistinct << endl;
+			//cout << "Distinct: " << _noDistinct << endl;
 			ptr->tuples[0] /= _noDistinct;
 		} else {
 			ptr->tuples[0] /= 3;
 		}
-		cout << ptr->tables[0] << " " << ptr->tuples[0] << endl;
+		//cout << ptr->tables[0] << " " << ptr->tuples[0] << endl;
 	}
 	//cout << "Ending 2nd Preprocessing" << endl;
-	
+	//cout << endl;
+	/*
+	cout << "Primitive tables after applying push-down but before joins" << endl;
+	for (int i = 0; i < currentKey.size(); ++i) {
+		KeyString key = KeyString(currentKey[i]);
+		OptimizationTree* tree = &OptiMap.Find(key);
+		cout << "Key " << i << endl;
+		cout << "Table Name: " << tree->tables[0] << endl;
+		cout << "Tuple Info: " << tree->tuples[0] << endl;
+		cout << "Cost  Info: " << tree->noTuples << endl;
+	}
+	cout << endl;
+	*/
 	// Preprocessing step 3 : Join for 2 tables
 	//cout << "Starting 3rd Preprocessing" << endl;
 	// Only work if table size if greater than 2
@@ -196,6 +221,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 			key = KeyString(currentKey[i]);
 			currentOptimal = &OptiMap.Find(key);
 			for (int j = i + 1; j < startingSize; ++j) {
+				//cout << endl;
 				key = KeyString(currentKey[j]);
 				OptimizationTree* newOptimal = new OptimizationTree();
 				OptimizationTree* right = new OptimizationTree();
@@ -210,17 +236,24 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 
 				string t1 = newOptimal->tables[0];
 				string t2 = newOptimal->tables[1];
-
+				//cout << "Joins cost for table " << t1 << " and table " << t2 << endl;
 				newOptimal->noTuples = newOptimal->tuples[0] * newOptimal->tuples[1];
+				//cout << "Cost when 2 thing mutiply: " << newOptimal->noTuples << endl;
 				for (int k = 0; k < joinList.size(); ++k) {
 
 					string *j1 = &joinList[k].table1;
 					string *j2 = &joinList[k].table2;
 					unsigned int temp1, temp2;
 					if ((!t1.compare(*j1) || !t1.compare(*j2)) && (!t2.compare(*j1) || !t2.compare(*j2))) {
+						//cout << "Join conditions exist for the two table on " << joinList[k].att1 << " and " << joinList[k].att2 << endl;
 						catalog->GetNoDistinct(*j1, joinList[k].att1, temp1);
 						catalog->GetNoDistinct(*j2, joinList[k].att2, temp2);
-						newOptimal->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+						unsigned int max = (temp1 > temp2) ? temp1 : temp2;
+						//cout << joinList[k].att1 << " : " << temp1 << endl;
+						//cout << joinList[k].att2 << " : " << temp2 << endl;
+						//cout << "Max is " << max << endl;
+						newOptimal->noTuples /= max;
+						//cout << "Cost for the joins after applying the division " << newOptimal->noTuples << endl;
 					}
 				}
 
@@ -243,25 +276,24 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 		popKey[J1] = 0;
 		popKey[J2] = 0;
 		_root = optimal;
-		//cout << "Best of 2 is: " << endl;
-		//cout << _root->tables.size() << endl;
-		//cout << _root->tables[0] << " " << _root->tables[1] << endl;
-		//cout << _root->noTuples << endl;
-		//cout << "Ending 3rd Preprocessing" << endl;
-
+		/*
+		cout << "Best of Joins of 2 table is: " << endl;
+		cout << _root->tables.size() << endl;
+		cout << _root->tables[0] << " " << _root->tables[1] << endl;
+		cout << _root->noTuples << endl;
+		cout << "Ending 3rd Preprocessing" << endl;
+		cout << "Computing for Generic Join cases" << endl;
+		*/
 		// Greedy repeating step 3 ad infinitum
-		//cout << "Starting Greedy Repeat" << endl;
 		if (size > 2) {
-			//cout << "Size - 2 is " << size - 2 << endl;
-			//cout << "PopKey size is " << popKey.size() << endl;
 			for (int i = 0; i < size - 2; ++i) {
-				//cout << "Starting Outer Loop " << i << endl;
+				//cout << endl << "Computing joins for " << 3 + i << " tables" << endl;
 				noTuples = std::numeric_limits<double>::max();
 				
 				for (int j = 0; j < popKey.size(); ++j) {
-					//cout << "Starting Inner Loop " << j << endl;
 					if (popKey[j]) {
 						//cout << "New creation" << endl;
+						cout << endl;
 						key = KeyString(currentKey[j]);
 						OptimizationTree* newOptimal = new OptimizationTree();
 						OptimizationTree* right = new OptimizationTree();
@@ -274,30 +306,42 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 						
 						newOptimal->rightChild = right;
 						right->parent = newOptimal;
+						/*
+						cout << "Joining ";
+						for (int k = 0; k < newOptimal->tables.size(); ++k) {
+							cout << newOptimal->tables[k] << " ";
+						}
+						cout << endl;
+						cout << "Current existing cost in newOptimal is " << newOptimal->noTuples << endl;
 						// compute cost
 						//cout << "Computing cost" << endl;
+						*/
 						newOptimal->noTuples *= right->tuples[0];
+						//cout << "New existing cost in newOptimal after join is " << newOptimal->noTuples << endl;
 						for (int a = 0; a < joinList.size(); ++a) {
-							//cout << "joinList " << a << endl;
 							string j1 = right->tables[0];
 							if (!j1.compare(joinList[a].table1) || !j1.compare(joinList[a].table2)) {
-								for (int b = 0; b < newOptimal->tables.size(); ++b) {
+								for (int b = 0; b < newOptimal->tables.size() - 1; ++b) {
 									string j2 = newOptimal->tables[b];
 									if (!j2.compare(joinList[a].table1) || !j2.compare(joinList[a].table2)) {
-										////cout << "before catalog" << endl;
-										unsigned int temp1, temp2;
+										//cout << "Join conditions found for " << j1 << " " << j2 << endl;
+										unsigned int temp1, temp2, max;
 										catalog->GetNoDistinct(joinList[a].table1, joinList[a].att1, temp1);
 										catalog->GetNoDistinct(joinList[a].table2, joinList[a].att2, temp2);
-										//cout << "after catalog" << endl;
-										//cout << newOptimal->noTuples << endl;
-										newOptimal->noTuples /= (temp1 > temp2) ? temp1 : temp2;
-										//cout << newOptimal->noTuples << endl;
-										//cout << "after calculation" << endl;
+										// << joinList[a].att1 << " " << temp1 << endl;
+										//cout << joinList[a].att2 << " " << temp2 << endl;
+										max = (temp1 > temp2) ? temp1 : temp2;
+										//cout << "Max between the two is: " << max << endl;
+										//cout << "Old cost before division " << newOptimal->noTuples << endl;
+										newOptimal->noTuples /= max;
+										//cout << "New cost after division " << newOptimal->noTuples << endl;
 						}	}	}	}
 						//cout << "Determining if lowest cost" << endl;
 						//cout << noTuples << endl;
 						//cout << newOptimal->noTuples << endl;
+						//cout << "Current global var join cost" << noTuples << endl;
 						if (noTuples > newOptimal->noTuples) {
+							//cout << "This join is a better join. Setting optimal Join to this Join" << endl;
 							currentOptimal = newOptimal;
 							noTuples = newOptimal->noTuples;
 							J1 = j;
@@ -312,6 +356,16 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 				_root->parent = currentOptimal;
 				currentOptimal->leftChild = _root;
 				_root = currentOptimal;
+				/*
+				cout << "Best joins found for " << 3 + i << " tables" << endl;
+				for (int k = 0; k < currentOptimal->tables.size(); ++k) {
+					cout << "Table " << k << " : " << currentOptimal->tables[0] << endl;
+					cout << "Tuples: " << currentOptimal->tuples[0] << endl;
+					cout << "Cost: " << currentOptimal->noTuples << endl;
+					cout << "Stored in global noTuples: " << noTuples << endl;
+				}
+				cout << "Ending joins for " << 3 + i << " tables" << endl;
+				*/
 				//cout << "Ending outer loop" << i << endl;
 			}
 		}
@@ -321,6 +375,12 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	//cout << "Ending Greedy" << endl;
 	//cout << endl<< _root->noTuples << endl;
 	//cout << _root << endl;
+	/*
+	for (int i = 0; i < _root->tables.size(); ++i) {
+		cout << _root->tables[i] << " ";
+	}
+	cout << endl;
+	*/
 	return _root;
 }
 
