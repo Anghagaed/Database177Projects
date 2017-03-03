@@ -28,6 +28,11 @@ void OptimizationTree::Swap(OptimizationTree& _withMe) {
 	this->noTuples = _withMe.noTuples;
 	_withMe.noTuples = tempI;
 	
+	// Swap Order
+	string tempS = order;
+	this->order = _withMe.order;
+	_withMe.order = tempS
+
 	// Swap Pointer
 	OptimizationTree* temp;
 	temp = this->parent;
@@ -45,7 +50,8 @@ void OptimizationTree::CopyFrom(OptimizationTree& _withMe) {
 	this->tables = _withMe.tables;
 	this->tuples = _withMe.tuples;
 	this->noTuples = _withMe.noTuples;
-	
+	this->order = _withMe.order;
+
 	this->parent = _withMe.parent;
 	this->leftChild = _withMe.leftChild;
 	this->rightChild = _withMe.rightChild;
@@ -59,11 +65,6 @@ QueryOptimizer::~QueryOptimizer() {
 	for (int i = 0; i < toBeDelete.size(); ++i) {
 		delete toBeDelete[i];
 	}
-	/*
-	for (int i = 0; i < toBeDelete2.size(); ++i) {
-		delete toBeDelete2[i];
-	}
-	*/
 	//cout << "Out of Query Optimizer Destructor" << endl;
 }
 
@@ -102,6 +103,7 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	// compute the optimal join order
 	//_root = new OptimizationTree();
 	OptiMap.Clear();
+	costMap.Clear();
 	OptimizationTree* tree;
 	int size = tableSize(_tables);
 	getPredicate(_predicate);
@@ -114,9 +116,9 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		tree = singleNode(tName, tTuples);
 	}
 	//else if (true) {
-	else if (size == 2) {
-		tree = greedy(_tables, _predicate);
-	}
+	//else if (size == 2) {
+	//	tree = greedy(_tables, _predicate);
+	//}
 	else {
 		tree = partition(_tables, _predicate);
 	} 
@@ -338,7 +340,9 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 		toPush.tables.push_back(tName);
 		toPush.tuples.push_back(tTuples);
 		toPush.noTuples = 0;
+		toPush.order = ptrT->tableName;
 
+		key = KeyString(ptrT->tableName);
 		tableKey.push_back(tName);
 
 		OptiMap.Insert(key, toPush);
