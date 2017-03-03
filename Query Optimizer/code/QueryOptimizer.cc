@@ -117,8 +117,8 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		tTuples = temp;
 		tree = singleNode(tName, tTuples);
 	}
-	else if (true) {
-	//else if (size == 2) {
+	//else if (true) {
+	else if (size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
 	else {
@@ -400,16 +400,20 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 		catalog->GetNoTuples(tName, tTuples);
 		KeyString key(tName);
 		OptimizationTree toPush;
+		KeyDouble data;
 
 		toPush.tables.push_back(tName);
 		toPush.tuples.push_back(tTuples);
 		toPush.noTuples = 0;
 		toPush.order = ptrT->tableName;
+		data = KeyDouble(toPush.noTuples);
 
 		key = KeyString(ptrT->tableName);
 		tableKey.push_back(tName);
 
 		OptiMap.Insert(key, toPush);
+		key = KeyString(ptrT->tableName);
+		costMap.Insert(key, data);
 		ptrT = ptrT->next;
 	}
 	//cout << "End Preprocessing part 1" << endl << endl;
@@ -437,6 +441,7 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 			OptimizationTree* right = new OptimizationTree();
 			OptimizationTree* newJoin = new OptimizationTree();
 			KeyString key;
+			string toPush;
 
 			key = tableKey[i];
 			left->CopyFrom(OptiMap.Find(key));
@@ -446,49 +451,80 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 
 			newJoin->tables.push_back(right->tables[0]);
 			newJoin->tuples.push_back(right->tuples[0]);
+			toPush = '(' + allKey[i] + '|' + allKey[j] + ')';
+			newJoin->order = toPush;
 
-			newJoin->noTuples = newJoin->tuples[0] * newJoin->tuples[0];
+			newJoin->noTuples = newJoin->tuples[0] * newJoin->tuples[1];
+			//cout << newJoin->noTuples << endl;
 			for (int k = 0; k < joinList.size(); ++k) {
 				string *j1 = &joinList[k].table1;
 				string *j2 = &joinList[k].table2;
 				string *t1 = &newJoin->tables[0];
 				string *t2 = &newJoin->tables[1];
-				unsigned int temp1, temp2;
-				if ((!t1->compare(*j1) || !t1->compare(*j2)) && (!t2->compare(*j1) || t2->compare(*j2))) {
+				unsigned int temp1, temp2, max;
+				if ((!t1->compare(*j1) || !t1->compare(*j2)) && (!t2->compare(*j1) || !t2->compare(*j2))) {
 					catalog->GetNoDistinct(*j1, joinList[k].att1, temp1);
 					catalog->GetNoDistinct(*j2, joinList[k].att2, temp2);
-					newJoin->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+					//cout << joinList[k].att1 << " " << temp1 << endl;
+					//cout << joinList[k].att2 << " " << temp2 << endl;
+					max = (temp1 > temp2) ? temp1 : temp2;
+					newJoin->noTuples /= max;
 			}	}
 			toBeDelete.push_back(left);
 			toBeDelete.push_back(right);
 			toBeDelete.push_back(newJoin);
 
-			string toPush = '(' + allKey[i] + '|' + allKey[j] + ')';
+			
 			allKey.push_back(toPush);
+			tableKey.push_back(toPush);
 			key = KeyString(toPush);
 			OptiMap.Insert(key, *newJoin);
 		}
 	}
-
+	
+	cout << "Everything in OptiMap" << endl;
+	for (int i = 0; i < tableKey.size(); ++i) {
+		KeyString key = KeyString(tableKey[i]);
+		OptimizationTree* data = &OptiMap.Find(key);
+		cout << endl << "Order: " << data->order << " Cost: " << data->noTuples << endl;
+		for (int j = 0; j < data->tables.size(); ++j) {
+			cout << data->tables[j] << " " << data->tuples[j] << " ";
+		}
+	}
+	
+	
 	//cout << "End Preprocessing part 3" << endl;
 	//cout << "Start Best Join Computation" << endl;
 	// Algorithm
-	
 	string optimalString;
-	unsigned int noTuples = UINT_MAX;
+	double noTuples = std::numeric_limits<double>::max();
 	vector<string> uniqueOrdering = getUniqueOrder(_tables, _predicate);
 	/* 
 	for (int i = 0; i < uniqueOrdering.size(); ++i) {
 		cout << uniqueOrdering[i] << endl;
 	}
 	*/
+	cout << endl << endl;;
+	for (int i = 0; i < uniqueOrdering.size(); ++i) {
+		cout << uniqueOrdering[i] << endl;
+	}
+	cout << endl;
 	for (int i = 0; i < uniqueOrdering.size(); ++i) {
 		vector<joinOrder> joinOrdering = getJoinOrder(uniqueOrdering[i], size);
-		unsigned int noTuples2 = 0;
+		string temp;
+		double noTuples2 = 0;
 		for (int j = 0; j < joinOrdering.size(); ++j) {
+			cout << "j1 " << joinOrdering[j].j1 << " j2 " << joinOrdering[j].j2 << endl;
+		}
+		for (int j = 0; j < joinOrdering.size(); ++j) {
+			cout << endl;
 			OptimizationTree *left, *right, *ptr;
 			KeyString key;
+			string toPush;
+			bool copy = false;
+			toPush = '(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')';
 			key = KeyString(joinOrdering[j].j1);
+
 			if (OptiMap.IsThere(key)) {
 				left = &OptiMap.Find(key);
 			}
@@ -508,52 +544,105 @@ OptimizationTree* QueryOptimizer::partition(TableList* _tables, AndList* _predic
 				cout << "j2: " << joinOrdering[j].j2 << endl;
 				cout << allKey[allKey.size() - 1] << endl;
 			}
-			ptr = new OptimizationTree();
-
-			toBeDelete.push_back(ptr);
-			ptr->CopyFrom(*left);
-			for (int k = 0; k < right->tables.size(); ++k) {
-				ptr->tables.push_back(right->tables[k]);
-				ptr->tuples.push_back(right->tuples[k]);
+			toPush = '(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')';
+			key = KeyString(toPush);
+			KeyString toCheck = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')');
+			if (OptiMap.IsThere(key) || OptiMap.IsThere(toCheck)) {
+				copy = true;
+				//cout << "ptr exist in OptiMap" << endl;
+				key = KeyString('(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')');
+				if (OptiMap.IsThere(key)) {
+					//cout << "ptr Order: " << '(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')' << endl;
+					ptr = &OptiMap.Find(key);
+				}
+				key = KeyString('(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')');
+				if (OptiMap.IsThere(key)) {
+					//cout << "ptr Order: " << '(' + joinOrdering[j].j1 + '|' + joinOrdering[j].j2 + ')' << endl;
+					ptr = &OptiMap.Find(key);
+				}
 			}
-			ptr->noTuples *= right->noTuples;
+			else {
+				cout << "ptr not exist in OptiMap" << endl;
+				ptr = new OptimizationTree();
+				toBeDelete.push_back(ptr);
+				ptr->CopyFrom(*right);
+				ptr->order = '(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')';
+				//cout << "ptr Order: " << ptr->order << endl;
+				for (int k = 0; k < left->tables.size(); ++k) {
+					ptr->tables.push_back(left->tables[k]);
+					ptr->tuples.push_back(left->tuples[k]);
+				}
+				if (ptr->noTuples * left->noTuples != 0)
+					ptr->noTuples *= left->noTuples;
+			}
 
-			// compute Join cost
-			for (int w = 0; w < joinList.size(); ++w) {
-				string *j1 = &joinList[w].table1;
-				string *j2 = &joinList[w].table2;
-				for (int x = 0; x < left->tables.size(); ++x) {
-					string *t1 = &left->tables[x];
-					if (!t1->compare(*j1) || !t1->compare(*j2)) {
-						for (int y = 0; y < right->tables.size(); ++y) {
-							string *t2 = &right->tables[y];
-							if (!t2->compare(*j1) || !t2->compare(*j2)) {
-								unsigned int temp1, temp2;
-								catalog->GetNoDistinct(*j1, joinList[w].att1, temp1);
-								catalog->GetNoDistinct(*j2, joinList[w].att2, temp2);
-								ptr->noTuples /= (temp1 > temp2) ? temp1 : temp2;
+			// compute Join cost 
+			//cout << "Outside Join" << endl;
+			if (!copy) {
+				cout << "i " << i << " j " << j << endl;
+				for (int w = 0; w < joinList.size(); ++w) {
+					string *j1 = &joinList[w].table1;
+					string *j2 = &joinList[w].table2;
+					for (int x = 0; x < left->tables.size(); ++x) {
+						string *t1 = &left->tables[x];
+						if (!t1->compare(*j1) || !t1->compare(*j2)) {
+							for (int y = 0; y < right->tables.size(); ++y) {
+								string *t2 = &right->tables[y];
+								if (!t2->compare(*j1) || !t2->compare(*j2)) {
+									unsigned int temp1, temp2, max;
+									//cout << "j1 " << *j1 << " j2 " << *j2 << endl;
+									//cout << "t1 " << *t1 << " t2 " << *t2 << endl;
+									catalog->GetNoDistinct(*j1, joinList[w].att1, temp1);
+									catalog->GetNoDistinct(*j2, joinList[w].att2, temp2);
+									//cout << joinList[w].att1 << " " << temp1 << endl;
+									//cout << joinList[w].att2 << " " << temp2 << endl;
+									max = (temp1 > temp2) ? temp1 : temp2;
+									//cout << "Max is " << max << endl;
+									//cout << "Cost before performing Join condition " << ptr->noTuples << endl;
+									ptr->noTuples /= max;
+									//cout << "Cost after performing Join condition " << ptr->noTuples << endl;
+								}
 							}
 						}
 					}
 				}
 			}
-
+			temp = ptr->order;
+			//cout << "End Join" << endl;
+			//cout << "noTuples2 before " << noTuples2 << endl;
+			if (j != joinOrdering.size() - 1)
+				noTuples2 += ptr->noTuples;
 			// Push new thing into efficientMap
-			string toPush = '(' + joinOrdering[j].j1 + joinOrdering[j].j2 + ')';
-			key = KeyString(toPush);
-			allKey.push_back(toPush);
-			noTuples2 += ptr->noTuples;
-			OptiMap.Insert(key, *ptr);
+			//cout << "noTuples2 after " << noTuples2 << endl;
+			if (!copy) {
+				tableKey.push_back(toPush);
+				key = KeyString(toPush);
+				allKey.push_back(toPush);
+				OptiMap.Insert(key, *ptr);
+			}
 		}
 		if (noTuples > noTuples2) {
 			noTuples = noTuples2;
-			optimalString = uniqueOrdering[i];
+			optimalString = temp;
 		}
 	}
 	//cout << "End Best Join Computation" << endl;
 	// Optimal Join Orders is stored in optimalString
 	
-	//cout << optimalString << endl;
+	cout << "OptimalString is " << optimalString << endl;
+	/*
+	cout << "Everything in OptiMap" << endl;
+	for (int i = 0; i < tableKey.size(); ++i) {
+		KeyString key = KeyString(tableKey[i]);
+		OptimizationTree* data = &OptiMap.Find(key);
+		cout << endl << "Order: " << data->order << " Cost: " << data->noTuples << endl;
+		for (int j = 0; j < data->tables.size(); ++j) {
+			cout << data->tables[j] << " " << data->tuples[j] << " ";
+		}
+	}
+	*/
+	
+	return NULL;
 	//cout << "Start tree creation" << endl;
 	vector<joinOrder> joinOrdering = getJoinOrder(optimalString, size);
 	OptimizationTree* _root;
