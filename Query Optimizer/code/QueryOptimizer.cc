@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <climits>
+#include <limits>
 
 #include "Schema.h"
 #include "Comparison.h"
@@ -67,7 +68,7 @@ QueryOptimizer::~QueryOptimizer() {
 	//cout << "Out of Query Optimizer Destructor" << endl;
 }
 
-OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTuples) {
+OptimizationTree* QueryOptimizer::singleNode(string& tName, double & tTuples) {
 	// compute some push down tuples size total after cost
 	for (int i = 0; i < pushDownList.size(); ++i) {
 		if (!tName.compare(pushDownList[i].tableName)) {
@@ -85,7 +86,7 @@ OptimizationTree* QueryOptimizer::singleNode(string& tName, unsigned int & tTupl
 	OptimizationTree* _root = new OptimizationTree();
 	_root->tables.push_back(tName);
 	_root->tuples.push_back(tTuples);
-	_root->noTuples = 0;
+	_root->noTuples = 0.0;
 	toBeDelete.push_back(_root);
 
 	return _root;
@@ -107,19 +108,20 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 	getPredicate(_predicate);
 	//cout << _root << endl;
 	if (size == 1) {
-		unsigned int tTuples;
+		double tTuples;
 		string tName = _tables->tableName;
-
-		catalog->GetNoTuples(tName, tTuples);
+		unsigned int temp;
+		catalog->GetNoTuples(tName, temp);
+		tTuples = temp;
 		tree = singleNode(tName, tTuples);
 	}
-	//else if (true) {
-	else if (size == 2) {
+	else if (true) {
+	//else if (size == 2) {
 		tree = greedy(_tables, _predicate);
-	}
+	}/*
 	else {
 		tree = partition(_tables, _predicate);
-	} 
+	} */
 	_root->Swap(*tree);
 }
 
@@ -138,13 +140,15 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	// Pre-processing step 1 : Filling Map with individual table
 	TableList* ptrT = _tables;
 	Schema* schem;
-	//cout << endl;
-	//cout << "Starting 1st Preprocessing" << endl;
+	cout << endl;
+	cout << "Starting 1st Preprocessing" << endl;
 	while (ptrT != NULL) {
-		unsigned int tTuples;
+		double tTuples;
 		string tName = ptrT->tableName;
 		
-		catalog->GetNoTuples(tName, tTuples);
+		unsigned int temp;
+		catalog->GetNoTuples(tName, temp);
+		tTuples = temp;
 		KeyString key(tName);
 		currentKey.push_back(tName);
 		popKey.push_back(1);
@@ -152,7 +156,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 		
 		toPush.tables.push_back(tName);
 		toPush.tuples.push_back(tTuples);
-		toPush.noTuples = 0;
+		toPush.noTuples = 0.0;
 		
 		OptiMap.Insert(key, toPush);
 		ptrT = ptrT->next;
@@ -164,16 +168,16 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 	for (int i = 0; i < pushDownList.size(); ++i) {
 		KeyString key = KeyString(pushDownList[i].tableName);
 		OptimizationTree* ptr = &OptiMap.Find(key);
-		//cout << pushDownList[i].tableName << " " << pushDownList[i].code << " " << pushDownList[i].attName << endl;
+		cout << pushDownList[i].tableName << " " << pushDownList[i].code << " " << pushDownList[i].attName << endl;
 		if (pushDownList[i].code == 7) {
 			unsigned int _noDistinct = 1;
 			catalog->GetNoDistinct(pushDownList[i].tableName, pushDownList[i].attName, _noDistinct);
-			//cout << "Distinct: " << _noDistinct << endl;
+			cout << "Distinct: " << _noDistinct << endl;
 			ptr->tuples[0] /= _noDistinct;
 		} else {
 			ptr->tuples[0] /= 3;
 		}
-		//cout << ptr->tables[0] << " " << ptr->tuples[0] << endl;
+		cout << ptr->tables[0] << " " << ptr->tuples[0] << endl;
 	}
 	//cout << "Ending 2nd Preprocessing" << endl;
 	
@@ -185,7 +189,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 		OptimizationTree *optimal, *currentOptimal;
 		int startingSize = currentKey.size();
 		int J1, J2;
-		unsigned int noTuples = UINT_MAX;
+		double noTuples = std::numeric_limits<double>::max();
 		for (int i = 0; i < startingSize; ++i) {
 			key = KeyString(currentKey[i]);
 			currentOptimal = &OptiMap.Find(key);
@@ -250,7 +254,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 			//cout << "PopKey size is " << popKey.size() << endl;
 			for (int i = 0; i < size - 2; ++i) {
 				//cout << "Starting Outer Loop " << i << endl;
-				noTuples = UINT_MAX;
+				noTuples = std::numeric_limits<double>::max();
 				
 				for (int j = 0; j < popKey.size(); ++j) {
 					//cout << "Starting Inner Loop " << j << endl;
@@ -278,7 +282,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 								for (int b = 0; b < newOptimal->tables.size(); ++b) {
 									string j2 = newOptimal->tables[b];
 									if (!j2.compare(joinList[a].table1) || !j2.compare(joinList[a].table2)) {
-										//cout << "before catalog" << endl;
+										////cout << "before catalog" << endl;
 										unsigned int temp1, temp2;
 										catalog->GetNoDistinct(joinList[a].table1, joinList[a].att1, temp1);
 										catalog->GetNoDistinct(joinList[a].table2, joinList[a].att2, temp2);

@@ -21,9 +21,9 @@ struct OptimizationTree {
 	// list of tables joined up to this node
 	vector<string> tables;
 	// number of tuples in each of the tables (after selection predicates)
-	vector<unsigned int> tuples;
+	vector<double> tuples;
 	// number of tuples at this node
-	int noTuples;
+	double noTuples;
 
 	//default constructor
 	OptimizationTree();	
@@ -90,7 +90,7 @@ private:
 	// Utility Functions
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
-	OptimizationTree* singleNode(string& tName, unsigned int& tTuples);			// Create a single Opti Tree Nodes and return address
+	OptimizationTree* singleNode(string& tName, double& tTuples);			// Create a single Opti Tree Nodes and return address
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
