@@ -94,7 +94,7 @@ private:
 	// Utility Functions
 	string findTableName(string& attName);
 	void getPredicate(AndList* _predicate);
-	OptimizationTree* singleNode(string& tName, unsigned int& tTuples);			// Create a single Opti Tree Nodes and return address
+	OptimizationTree* singleNode(string& tName, double& tTuples);			// Create a single Opti Tree Nodes and return address
 public:
 	QueryOptimizer(Catalog& _catalog);
 	virtual ~QueryOptimizer();
