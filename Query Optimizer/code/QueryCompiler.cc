@@ -71,7 +71,7 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate) {
 	RelationalOp* left;
 	RelationalOp* right;
-	cout << "jointree\n";
+	/*cout << "jointree\n";
 	cout << "all tables in this node: ";
 	for (int i = 0; i < node->tables.size(); i++) {
 		cout << node->tables[i] << ", ";
@@ -79,16 +79,16 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	cout << endl;
 	cout << "check for left child: " << (node->leftChild != NULL) << endl;
 	cout << "check for right child: " << (node->rightChild != NULL)  << endl;
-
+	*/
 	//post order traversal to get the left producer and right producer
 	if (node->leftChild != NULL) {
-		cout << "	going left\n";
+		//cout << "	going left\n";
 		//cout << node << endl;
 		//cout << node->leftChild << endl;
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
-		cout << "	going right\n";
+		//cout << "	going right\n";
 		//cout << node << endl;
 		//for (int i = 0; i < node->tables.size(); ++i) {
 		//	cout << node->tables[i] << endl;
@@ -102,24 +102,24 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	//base case for queries dealing with only one table
 	if (node->tables.size() < 2)
 		{
-		cout << "	this is my table at the leaf (should only be one table): " << endl;
-		for (int i = 0; i < node->tables.size(); ++i) {
-			cout << node->tables[i] << endl;
-		}
+		//cout << "	this is my table at the leaf (should only be one table): " << endl;
+		//for (int i = 0; i < node->tables.size(); ++i) {
+		//	cout << node->tables[i] << endl;
+		//}
 		return GetRelOp(node->tables[0]);	//then search through our scan/select maps to find the relational op
 	}
 
 	//if there are 2 or more tables, then we need to join
 	// gets the left/right schemas/relationalOp from the children of this node
 	else {
-		cout << "making join" << endl;
+		//cout << "making join" << endl;
 		//make the join operator
 
 		//get schemas
-		cout << "getting schemas\n";
+		//cout << "getting schemas\n";
 		Schema left_schema = left->GetSchema();
 		Schema right_schema = right->GetSchema();
-		cout << "got schemas\n";
+		//cout << "got schemas\n";
 
 		//save left schema
 		Schema left_temp = left_schema;
@@ -133,8 +133,8 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		
 		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
 
-		cout << "this is our join: " << endl;
-		cout << j << endl;
+		//cout << "this is our join: " << endl;
+		//cout << j << endl;
 
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op
@@ -178,7 +178,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	OptimizationTree *root = new OptimizationTree();
 	optimizer->Optimize(_tables, _predicate, root);
 
-	cout << "done optimizing\n";
+	//cout << "done optimizing\n";
 
 	// create join operators based on the optimal order computed by the optimizer
 	// j will point to root of join tree
@@ -196,17 +196,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	{
 		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
 		
-		// Create SUM
-		string attName = "SUM";													// Name of output schema
-		string attType = "Float";												// Type of the output schema
-		vector<string> attNames;
-		attNames.push_back(attName);
-		vector<string> attTypes;
-		attTypes.push_back(attType);
-		vector<unsigned int> distincts;
-		distincts.push_back(1);
-		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:FLOAT [1])
-		
 		// Project input schema
 		Schema _projectSchema = j->GetSchema();									// Schema to project
 		int _atts_no = 0;														// Project size
@@ -215,19 +204,33 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			i = i->next;
 			++_atts_no;
 		}
+		unsigned int distinct = 1;
 		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
-		_keepMe = new int[_atts_no];													// Array of attributes to keep
+		_keepMe = new int[_atts_no];											// Array of attributes to keep
 		i = _groupingAtts;
 		for(int a = 0; a < _atts_no; ++a)										// Fill the vector and array
 		{
-			string name = i->name;
+			string name = i->name;												// Get a Grouping Attribute name
 			_keepMe[a] = _schemaIn.Index(name);
 			saveMe.push_back(_schemaIn.Index(name));
+			distinct *= _schemaIn.GetDistincts(name);							// Get distincts from the grouping attribute
 			i = i->next;
 		}
 		_projectSchema.Project(saveMe);											// Project the schema
-		_schemaOut.Append(_projectSchema);										// Add the projected one into the output
 		
+		// Create SUM
+		string attName = "SUM";													// Name of output schema
+		string attType = "Float";												// Type of the output schema
+		vector<string> attNames;
+		attNames.push_back(attName);
+		vector<string> attTypes;
+		attTypes.push_back(attType);
+		vector<unsigned int> distincts;											// Distincts of attributes
+		distincts.push_back(distinct);											// Push the distincts
+		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:FLOAT [#])
+		_projectSchema.Append(_schemaOut);										// Combine Project and SUM
+		_schemaOut.Swap(_projectSchema);										// Output = Project + SUM
+
 		// Create GroupBy here
 		Function _compute;
 		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
