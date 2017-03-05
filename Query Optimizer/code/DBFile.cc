@@ -68,8 +68,10 @@ void DBFile::AppendRecord (Record& rec) {
 int DBFile::GetNext (Record& rec) {
 
 	// Selection
+	/*while (producer->GetNext(rec) == false) {
 
 		Comparison->run();
 
+	}*/
 
 }
