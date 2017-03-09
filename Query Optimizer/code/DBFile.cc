@@ -47,6 +47,7 @@ int DBFile::Open (char* f_path) {
 	if (!inFile) {
 		cout << "Error opening DBFile" << endl;
 	}
+
 }
 
 void DBFile::Load (Schema& schema, char* textFile) {
@@ -72,22 +73,46 @@ void DBFile::Load (Schema& schema, char* textFile) {
 }
 
 int DBFile::Close () {
-/*
-	inFile.close();*/
+
+	inFile.close();
+
 }
 
 void DBFile::MoveFirst () {
 
 }
 
+//appends record to end of file
 void DBFile::AppendRecord (Record& rec) {
+	Page p;
+	file.GetPage(p, file.GetLength());	//get last page
+	if (p.Append(rec)) {	//append record to the last page
+		std::cout << "Appended Record\n";
+	}
+	else {	//if failed (page has not enough space) add a new page then append the record to the new page
+		Page pg;
+		file.AddPage(pg, file.GetLength());
+		pg.Append(rec);
+		std::cout << "Added a new page and appended record\n";
+	}
 }
 
 int DBFile::GetNext (Record& rec) {
 
+	/*RelationalOp* producer;
+	CNF predicate;
+
 	// Selection
+	while (producer->GetNext(rec) == true) {
 
-		//Comparison->run();
+		Comparison.run(rec, predicate);
 
+
+		if (predicate.run(rec, predicate) == true) {
+			// pass up
+		}
+
+
+	}*/
 
 }
