@@ -62,7 +62,19 @@ void DBFile::MoveFirst () {
 
 }
 
+//appends record to end of file
 void DBFile::AppendRecord (Record& rec) {
+	Page p;
+	file.GetPage(p, file.GetLength());	//get last page
+	if (p.Append(rec)) {	//append record to the last page
+		std::cout << "Appended Record\n";
+	}
+	else {	//if failed (page has not enough space) add a new page then append the record to the new page
+		Page pg;
+		file.AddPage(pg, file.GetLength());
+		pg.Append(rec);
+		std::cout << "Added a new page and appended record\n";
+	}
 }
 
 int DBFile::GetNext (Record& rec) {
