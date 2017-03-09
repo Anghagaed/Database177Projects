@@ -47,6 +47,7 @@ int DBFile::Open (char* f_path) {
 	if (!inFile) {
 		cout << "Error opening DBFile" << endl;
 	}
+
 }
 
 void DBFile::Load (Schema& schema, char* textFile) {
@@ -54,8 +55,9 @@ void DBFile::Load (Schema& schema, char* textFile) {
 }
 
 int DBFile::Close () {
-/*
-	inFile.close();*/
+
+	inFile.close();
+
 }
 
 void DBFile::MoveFirst () {
@@ -79,10 +81,17 @@ void DBFile::AppendRecord (Record& rec) {
 
 int DBFile::GetNext (Record& rec) {
 
-	// Selection
-	/*while (producer->GetNext(rec) == false) {
+	/*RelationalOp* producer;
+	CNF predicate;
 
-		Comparison->run();
+	// Selection
+	while (producer->GetNext(rec) == true) {
+
+		Comparison.run(rec, predicate);
+
+		if (predicate.run(rec, predicate) == true) {
+			// pass up
+		}
 
 	}*/
 
