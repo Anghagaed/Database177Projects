@@ -66,10 +66,10 @@ int main()
 			groupingAtts, distinctAtts, queryTree);
 
 		cout << queryTree << endl;
-		OptimizationTree ptr;
+		/*OptimizationTree ptr;
 
 		optimizer.getUniqueOrder(tables, predicate);
-		optimizer.Optimize(tables, predicate, &ptr);
+		optimizer.Optimize(tables, predicate, &ptr);*/
 		cout << "Do you wish to continue? Press 0 to exit. Press any other number else to continue" << endl;
 		int var;
 		cin >> var;

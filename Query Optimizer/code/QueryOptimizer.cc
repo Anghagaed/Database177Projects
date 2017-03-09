@@ -117,13 +117,13 @@ void QueryOptimizer::Optimize(TableList* _tables, AndList* _predicate,
 		tTuples = temp;
 		tree = singleNode(tName, tTuples);
 	}
-	//else if (true) {
-	else if (size == 2) {
+	else if (true) {
+	//else if (size == 2) {
 		tree = greedy(_tables, _predicate);
 	}
-	else {
-		tree = partition(_tables, _predicate);
-	} 
+	//else {
+	//	tree = partition(_tables, _predicate);
+	//} 
 	_root->Swap(*tree);
 }
 
@@ -293,7 +293,7 @@ OptimizationTree* QueryOptimizer::greedy(TableList* _tables, AndList* _predicate
 				for (int j = 0; j < popKey.size(); ++j) {
 					if (popKey[j]) {
 						//cout << "New creation" << endl;
-						cout << endl;
+						//cout << endl;
 						key = KeyString(currentKey[j]);
 						OptimizationTree* newOptimal = new OptimizationTree();
 						OptimizationTree* right = new OptimizationTree();
