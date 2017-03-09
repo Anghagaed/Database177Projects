@@ -50,7 +50,25 @@ int DBFile::Open (char* f_path) {
 }
 
 void DBFile::Load (Schema& schema, char* textFile) {
-
+	// Extract textFile to record
+	FILE* f = fopen(textFile, "r");
+	Record r;
+	int success = r.ExtractNextRecord(schema, *f);
+	if (success == 0)	// Error checking
+	{
+		std::cout << "Error -- Failed to extract record.\n";
+		return;
+	}
+	// Insert record into page
+	Page p;
+	success = p.Append(r);
+	if (success == 0)	// Error checking
+	{
+		std::cout << "Error -- Failed to append record.\n";
+		return;
+	}
+	// Insert page into file
+	file.AddPage(p, file.GetLength() + 1);
 }
 
 int DBFile::Close () {
@@ -69,7 +87,7 @@ int DBFile::GetNext (Record& rec) {
 
 	// Selection
 
-		Comparison->run();
+		//Comparison->run();
 
 
 }
