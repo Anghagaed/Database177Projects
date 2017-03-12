@@ -78,8 +78,14 @@ int DBFile::Close () {
 
 }
 
-void DBFile::MoveFirst () {
-
+void DBFile::MoveFirst ()
+{
+	off_t curr_length = file.GetLength();
+	Page pageTemp;
+	file.GetPage(pageTemp, curr_length);
+	Record first;
+	pageTemp.GetFirst(first);
+	return first;
 }
 
 //appends record to end of file
