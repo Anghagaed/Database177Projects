@@ -131,6 +131,14 @@ ostream& Project::print(ostream& _os) {
 	return _os << "\nProducer: " << *producer << endl;
 }
 
+bool Project::GetNext(Record& _record) {
+	// Assume Project is working correctly
+	// that is every private member variable is holding what it describes in header file
+	while (producer->GetNext(_record)) {
+		_record.Project(keepMe, numAttsOutput, numAttsInput);
+	}
+	return false;
+}
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	CNF& _predicate, RelationalOp* _left, RelationalOp* _right) {
