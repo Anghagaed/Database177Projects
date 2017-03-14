@@ -108,6 +108,20 @@ ostream& Select::print(ostream& _os) {
 	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<</*constants.print(_os,schema)<<*/"\nProducer: " << *producer << endl;
 }
 
+bool Select::GetNext(Record& _record) {
+
+	while (producer->GetNext(_record) == true) {
+
+		if (predicate.Run(_record, constants) == true) {	// constants = literals?
+			//_record.ExtractNextRecord(schema, file);	// textfile 
+			//_record.Swap(constants);
+			return false;
+		}
+
+	}
+	return false;
+
+}
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	int _numAttsOutput, int* _keepMe, RelationalOp* _producer) {

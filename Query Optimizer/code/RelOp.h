@@ -98,7 +98,7 @@ public:
 	RelationalOp* getRelational();
 	string getTable();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
 };
@@ -126,7 +126,7 @@ public:
 		int _numAttsOutput, int* _keepMe, RelationalOp* _producer);
 	virtual ~Project();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
 };
