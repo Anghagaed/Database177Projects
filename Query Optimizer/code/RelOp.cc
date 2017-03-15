@@ -3,6 +3,10 @@
 
 using namespace std;
 
+void QueryExecutionTree::ExecuteQuery() {
+	Record rec;
+	while (root->GetNext(rec)) {}
+}
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);

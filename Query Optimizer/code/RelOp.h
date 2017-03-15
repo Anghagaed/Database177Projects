@@ -253,7 +253,7 @@ public:
 	QueryExecutionTree() {}
 	virtual ~QueryExecutionTree() {}
 
-	void ExecuteQuery() {}
+	void ExecuteQuery();
 	void SetRoot(RelationalOp& _root) {root = &_root;}
 
     friend ostream& operator<<(ostream& _os, QueryExecutionTree& _op);
