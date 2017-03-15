@@ -4,13 +4,15 @@
 
 using namespace std;
 
-void QueryExecutionTree::ExecuteQuery() {
-	Record rec;
-	while (root->GetNext(rec)) {}
-}
-
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);
+}
+
+void QueryExecutionTree::ExecuteQuery() {
+	Record rec;
+	while (root->GetNext(rec)) {	//call getNext of root until there are no more tuples
+		rec.print(cout, root->GetSchema());	//print record
+	}
 }
 
 Scan::Scan(Schema& _schema, DBFile& _file, string table) {
@@ -239,6 +241,7 @@ ostream& GroupBy::print(ostream& _os) {
 
 WriteOut::WriteOut(Schema& _schema, string& _outFile, RelationalOp* _producer) {
 	schema = _schema;
+	s = _schema;
 	outFile = _outFile;
 	producer = _producer;
 }

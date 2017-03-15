@@ -93,8 +93,8 @@ void DBFile::AppendRecord (Record& rec) {
 	}
 	else {	//if failed (page has not enough space) add a new page then append the record to the new page
 		Page pg;
-		file.AddPage(pg, file.GetLength());
 		pg.Append(rec);
+		file.AddPage(pg, file.GetLength());
 		std::cout << "Added a new page and appended record\n";
 	}
 }
