@@ -71,29 +71,11 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate) {
 	RelationalOp* left;
 	RelationalOp* right;
-	/*cout << "jointree\n";
-	cout << "all tables in this node: ";
-	for (int i = 0; i < node->tables.size(); i++) {
-		cout << node->tables[i] << ", ";
-	}
-	cout << endl;
-	cout << "check for left child: " << (node->leftChild != NULL) << endl;
-	cout << "check for right child: " << (node->rightChild != NULL)  << endl;
-	*/
-	//post order traversal to get the left producer and right producer
+
 	if (node->leftChild != NULL) {
-		//cout << "	going left\n";
-		//cout << node << endl;
-		//cout << node->leftChild << endl;
 		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
-		//cout << "	going right\n";
-		//cout << node << endl;
-		//for (int i = 0; i < node->tables.size(); ++i) {
-		//	cout << node->tables[i] << endl;
-		//} 
-		//cout << node->rightChild  << endl;
 		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
 	}
 
@@ -102,24 +84,17 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 	//base case for queries dealing with only one table
 	if (node->tables.size() < 2)
 		{
-		//cout << "	this is my table at the leaf (should only be one table): " << endl;
-		//for (int i = 0; i < node->tables.size(); ++i) {
-		//	cout << node->tables[i] << endl;
-		//}
 		return GetRelOp(node->tables[0]);	//then search through our scan/select maps to find the relational op
 	}
 
 	//if there are 2 or more tables, then we need to join
 	// gets the left/right schemas/relationalOp from the children of this node
 	else {
-		//cout << "making join" << endl;
 		//make the join operator
 
 		//get schemas
-		//cout << "getting schemas\n";
 		Schema left_schema = left->GetSchema();
 		Schema right_schema = right->GetSchema();
-		//cout << "got schemas\n";
 
 		//save left schema
 		Schema left_temp = left_schema;
@@ -132,9 +107,6 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 		
 		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
-
-		//cout << "this is our join: " << endl;
-		//cout << j << endl;
 
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op
@@ -178,8 +150,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	OptimizationTree *root = new OptimizationTree();
 	optimizer->Optimize(_tables, _predicate, root);
 
-	//cout << "done optimizing\n";
-
 	// create join operators based on the optimal order computed by the optimizer
 	// j will point to root of join tree
 	// call j->getSchema() to get the final schema
@@ -191,7 +161,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// Create WriteOut here
 	WriteOut* writeout;
 
-	// ASSUME: Final Join's Schema = s1; Final Join's Pointer = j
+	// ASSUME: Final Join's Pointer = j
 	if (_groupingAtts != 0)														// Non-empty _groupingAtts -> GroupBy
 	{
 		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
@@ -310,5 +280,4 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	_queryTree = QueryExecutionTree();
 	_queryTree.SetRoot(*writeout);
 	DeleteThis.push_back(writeout);	//add writeout to stuff we need to delete later
-	// free the memory occupied by the parse tree since it is not necessary anymore
 }

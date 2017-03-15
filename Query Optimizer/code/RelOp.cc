@@ -105,7 +105,7 @@ void Select::Swap(Select& withMe)
 }
 
 ostream& Select::print(ostream& _os) {
-	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<</*constants.print(_os,schema)<<*/"\nProducer: " << *producer << endl;
+	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<<"\nProducer: " << *producer << endl;
 }
 
 bool Select::GetNext(Record& _record) {
@@ -209,11 +209,7 @@ Sum::~Sum() {
 	
 }
 
-ostream& Sum::print(ostream& _os) {/*
-	cout << "schemaIn = " << (_os, schemaIn) << endl;
-	cout << "schemaOut = " << (_os,schemaOut) << endl;
-	cout << "compute = " << compute.opList.recInput << " " << compute.numOps << " " << compute.returnInts << endl;
-	cout << "producer = " << producer.print(_os) << endl;*/
+ostream& Sum::print(ostream& _os) {
 	return _os << "SUM\nSchemaIn: " << schemaIn << "\nSchemaOut: " << schemaOut << " Function" << "Producer: " << *producer << endl;//told by TA to just use "Function"
 }
 
