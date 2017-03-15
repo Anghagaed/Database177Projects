@@ -8,6 +8,7 @@ extern "C" {
 #include "QueryOptimizer.h"
 #include "QueryCompiler.h"
 #include "RelOp.h"
+#include <fstream>
 
 using namespace std;
 
@@ -23,17 +24,40 @@ extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
 extern "C" int yyparse();
 extern "C" int yylex_destroy();
 
-/*void loadData(String tabName, String heapLoc, String textLoc) {
+string dbFile = "catalog.sqlite";
+Catalog catalog(dbFile);
 
+void loadData(string tabName, string heapLoc, string textLoc) {
 
-}*/
+	DBFile myDBFile;
+	FileType file_type;
+	file_type = Heap;
+
+	// Create 
+	char* path = new char[heapLoc.length() + 1];
+	strcpy(path, heapLoc.c_str());
+	myDBFile.Create(path, file_type);
+
+	// Load 
+	Schema schema;
+	catalog.GetSchema(tabName, schema);
+
+	path = new char[textLoc.length() + 1];
+	strcpy(path, textLoc.c_str());
+	myDBFile.Load(schema, path);
+
+	// Close
+	myDBFile.Close();
+	catalog.SetDataFile(tabName, heapLoc);
+
+}
 
 int main()
 {
-	/*char result;
-	String tabName;
-	String heapLoc;
-	String textLoc;
+	char result;
+	string tabName;
+	string heapLoc;
+	string textLoc;
 
 	cout << "Create heap files? y for yes, n for no: " << endl;
 	cin >> result;
@@ -51,15 +75,15 @@ int main()
 
 		cout << "Create more heap files? y for yes, n for no: " << endl;
 		cin >> result;
-	}*/
+	}
 
 	bool quit = true;
 	while (quit)
 	{
 		cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
-		string dbFile = "catalog.sqlite";
-		Catalog catalog(dbFile);
+		//string dbFile = "catalog.sqlite";
+		//Catalog catalog(dbFile);
 
 		// this is the query optimizer
 		// it is not invoked directly but rather passed to the query compiler
