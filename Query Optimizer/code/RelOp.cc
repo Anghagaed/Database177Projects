@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "RelOp.h"
 
 using namespace std;
@@ -256,7 +257,7 @@ WriteOut::~WriteOut() {
 bool WriteOut::GetNext(Record& _record) {
 
 	ofstream myOutputFile;
-	myOutputFile.open(_outfile);
+	myOutputFile.open(outFile.c_str());
 
 	while (producer->GetNext(_record)) {
 

@@ -23,9 +23,36 @@ extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
 extern "C" int yyparse();
 extern "C" int yylex_destroy();
 
+/*void loadData(String tabName, String heapLoc, String textLoc) {
+
+
+}*/
 
 int main()
 {
+	/*char result;
+	String tabName;
+	String heapLoc;
+	String textLoc;
+
+	cout << "Create heap files? y for yes, n for no: " << endl;
+	cin >> result;
+
+	while (result == 'y') {
+
+		cout << "Enter the table name: " << endl;
+		cin >> tabName;
+		cout << "Enter the location of the heap file: " << endl;
+		cin >> heapLoc;
+		cout << "Enter the location of the text file: " << endl;
+		cin >> textLoc;
+
+		loadData(tabName, heapLoc, textLoc);
+
+		cout << "Create more heap files? y for yes, n for no: " << endl;
+		cin >> result;
+	}*/
+
 	bool quit = true;
 	while (quit)
 	{
