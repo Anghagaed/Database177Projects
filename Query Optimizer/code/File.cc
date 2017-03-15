@@ -46,6 +46,11 @@ int Page :: GetFirst(Record& firstOne) {
 	return 1;
 }
 
+void Page :: Mover()
+{
+	myRecs.MoveToStart();
+}
+
 int Page :: Append (Record& addMe) {
 	char* b = addMe.GetBits();
 
