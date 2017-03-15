@@ -54,25 +54,20 @@ int DBFile::Open (char* f_path) {
 }
 
 void DBFile::Load (Schema& schema, char* textFile) {
-	// Extract textFile to record
-	FILE* f = fopen(textFile, "r");
+	FILE* f = fopen(textFile, "r");						// Extract textFile to record
 	Record r;
-	int success = r.ExtractNextRecord(schema, *f);
-	if (success == 0)	// Error checking
+	int successP;
+	Page p;									
+	while(r.ExtractNextRecord(schema, *f) == 1)
 	{
-		std::cout << "Error -- Failed to extract record.\n";
-		return;
+		successP = p.Append(r);							// Extract record to Page
+		if (successP == 0)								// Insert old Page into File and create a new Page when the Page is empty
+		{
+			file.AddPage(p, file.GetLength() + 1);
+			p.EmptyItOut();
+			p.Append(r);
+		}
 	}
-	// Insert record into page
-	Page p;
-	success = p.Append(r);
-	if (success == 0)	// Error checking
-	{
-		std::cout << "Error -- Failed to append record.\n";
-		return;
-	}
-	// Insert page into file
-	file.AddPage(p, file.GetLength() + 1);
 }
 
 int DBFile::Close () {
