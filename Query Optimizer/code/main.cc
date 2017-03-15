@@ -117,8 +117,11 @@ int main()
 			groupingAtts, distinctAtts, queryTree);
 
 		cout << queryTree << endl;
-		/*OptimizationTree ptr;
 
+		queryTree.ExecuteQuery();
+
+		/*OptimizationTree ptr;
+		
 		optimizer.getUniqueOrder(tables, predicate);
 		optimizer.Optimize(tables, predicate, &ptr);*/
 		cout << "Do you wish to continue? Press 0 to exit. Press any other number else to continue" << endl;

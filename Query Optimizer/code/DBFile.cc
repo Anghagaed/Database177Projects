@@ -81,7 +81,7 @@ void DBFile::MoveFirst () //issue here. Need to store the Record first some how.
 	off_t curr_length = 0;//file.GetLength();
 	Page pageTemp;						//page we are in
 	file.GetPage(pageTemp, curr_length);
-	//pageTemp.myRecs.MoveToStart();
+	pageTemp.Mover();
 }
 
 //appends record to end of file
@@ -93,8 +93,8 @@ void DBFile::AppendRecord (Record& rec) {
 	}
 	else {	//if failed (page has not enough space) add a new page then append the record to the new page
 		Page pg;
-		file.AddPage(pg, file.GetLength());
 		pg.Append(rec);
+		file.AddPage(pg, file.GetLength());
 		std::cout << "Added a new page and appended record\n";
 	}
 }
@@ -109,10 +109,10 @@ int DBFile::GetNext (Record& rec) {
 		page.GetFirst(firstOne);
 		rec = firstOne;
 
-		return 0;
+		return 1;
 	}
 	else {
-		return -1;
+		return 0;
 	}
 
 }
