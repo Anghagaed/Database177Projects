@@ -8,6 +8,7 @@ extern "C" {
 #include "QueryOptimizer.h"
 #include "QueryCompiler.h"
 #include "RelOp.h"
+#include <fstream>
 
 using namespace std;
 
@@ -24,7 +25,7 @@ extern "C" int yyparse();
 extern "C" int yylex_destroy();
 
 
-int main()
+/* int main()
 {
 	bool quit = true;
 	while (quit)
@@ -66,10 +67,10 @@ int main()
 			groupingAtts, distinctAtts, queryTree);
 
 		cout << queryTree << endl;
-		/*OptimizationTree ptr;
+		OptimizationTree ptr;
 
 		optimizer.getUniqueOrder(tables, predicate);
-		optimizer.Optimize(tables, predicate, &ptr);*/
+		optimizer.Optimize(tables, predicate, &ptr);
 		cout << "Do you wish to continue? Press 0 to exit. Press any other number else to continue" << endl;
 		int var;
 		cin >> var;
@@ -80,5 +81,16 @@ int main()
 		}
 	}
 	return 0;
+
+}*/
+
+int main() {
+
+	DBFile myDb;
+
+	FileType myType;
+	myType = Heap;
+
+	myDb.Create("test.txt", myType);
 
 }

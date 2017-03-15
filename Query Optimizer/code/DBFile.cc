@@ -35,6 +35,9 @@ int DBFile::Create (char* f_path, FileType f_type) {
 	if (f_type == Heap) {
 		// create heap file
 
+		ofstream outFile;
+
+		outFile.open(f_path);
 
 	}
 
