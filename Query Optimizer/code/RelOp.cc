@@ -19,6 +19,13 @@ Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 	this->table = table;
 }
 
+bool Scan::GetNext(Record& _record) {
+	if (file.GetNext(_record)) {
+		return true;
+	}
+	return false;
+}
+
 Scan::Scan()
 {
 	schema = Schema();
