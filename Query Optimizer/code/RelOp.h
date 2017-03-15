@@ -58,7 +58,7 @@ public:
 	void Swap(Scan& withMe);
 	void CopyFrom(Scan& withMe);
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	Schema& getSchema();
 	DBFile& getFile();
