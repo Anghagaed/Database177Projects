@@ -136,6 +136,7 @@ bool Project::GetNext(Record& _record) {
 	// that is every private member variable is holding what it describes in header file
 	while (producer->GetNext(_record)) {
 		_record.Project(keepMe, numAttsOutput, numAttsInput);
+		return true;
 	}
 	return false;
 }
