@@ -86,7 +86,7 @@ void DBFile::MoveFirst () //issue here. Need to store the Record first some how.
 	off_t curr_length = 0;//file.GetLength();
 	Page pageTemp;						//page we are in
 	file.GetPage(pageTemp, curr_length);
-	pageTemp.myRecs.MoveToStart();
+	//pageTemp.myRecs.MoveToStart();
 }
 
 //appends record to end of file
