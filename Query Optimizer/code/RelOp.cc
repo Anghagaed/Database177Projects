@@ -246,6 +246,21 @@ WriteOut::~WriteOut() {
 
 }
 
+bool WriteOut::GetNext(Record& _record) {
+
+	ofstream myOutputFile;
+	myOutputFile.open(_outfile);
+
+	while (producer->GetNext(_record)) {
+
+		_record.print(myOutputFile, schema);
+
+	}
+
+	myOutputFile.close();
+
+}
+
 ostream& WriteOut::print(ostream& _os) {
 	return _os << "OUTPUT\nSchema: " << schema << "\nOut File: " << outFile << "\nProducer:\n{\n" << *producer << "\n}\n";
 }
