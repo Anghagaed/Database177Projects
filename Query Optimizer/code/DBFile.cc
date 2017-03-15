@@ -105,20 +105,18 @@ void DBFile::AppendRecord (Record& rec) {
 
 int DBFile::GetNext (Record& rec) {
 
-	/*RelationalOp* producer;
-	CNF predicate;
+	Page page;
+	Record firstOne;
 
-	// Selection
-	while (producer->GetNext(rec) == true) {
+	if (file.GetPage(page, 0) == true) {
 
-		Comparison.run(rec, predicate);
+		page.GetFirst(firstOne);
+		rec = firstOne;
 
-
-		if (predicate.run(rec, predicate) == true) {
-			// pass up
-		}
-
-
-	}*/
+		return 0;
+	}
+	else {
+		return -1;
+	}
 
 }

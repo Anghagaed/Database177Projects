@@ -110,12 +110,16 @@ ostream& Select::print(ostream& _os) {
 
 bool Select::GetNext(Record& _record) {
 
-	while (producer->GetNext(_record) == true) {
+	Record record;
 
-		if (predicate.Run(_record, constants) == true) {	// constants = literals?
-			//_record.ExtractNextRecord(schema, file);	// textfile 
-			//_record.Swap(constants);
-			return false;
+	while (producer->GetNext(record) == true) {
+
+		if (predicate.Run(record, constants) == true) {	// constants = literals?
+			//record.ExtractNextRecord(schema, file);	// textfile 
+			//record.Swap(constants);
+			//record.AppendRecords()
+			_record = record;
+			return true;
 		}
 
 	}
@@ -175,7 +179,7 @@ Schema & Join::getSchema(){
 }
 
 ostream& Join::print(ostream& _os) {
-	return _os << "JOIN\nLeft Schema:\n" << schemaLeft << "\nRight Schema:\n" << schemaRight << "\nSchema Out:\n" << schemaOut << "\nPredicate:\n" << predicate << "\nLeft Operator:\n{\n" << *left << "\n}\nRight Operator:\n{\n " << *right << "\n}" << endl;
+	return _os << "JOIN\nLeft Schema:\n" << schemaLeft << "\nRight Schema:\n" << schemaRight << "\nSchema Out:\n" << schemaOut << "\nPredicate:\n" << predicate << "\nLeft Operator:\n{\n" << *left << "\n}\nRight Operator:\n{\n" << *right << "\n}" << endl;
 }
 
 
@@ -243,7 +247,7 @@ WriteOut::~WriteOut() {
 }
 
 ostream& WriteOut::print(ostream& _os) {
-	return _os << "OUTPUT\n Schema: " << schema << "\nOut File: " << outFile << "\n Producer:\n{\n" << *producer << "\n}\n";
+	return _os << "OUTPUT\nSchema: " << schema << "\nOut File: " << outFile << "\nProducer:\n{\n" << *producer << "\n}\n";
 }
 
 
