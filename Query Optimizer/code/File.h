@@ -33,7 +33,7 @@ public:
 	// return 0 if there are no records in the page, something else otherwise
 	int GetFirst(Record& firstOne);
 
-	void Mover();
+	//void Mover();
 
 	// append record to the end of page
 	// return 1 on success and 0 if there is no space on page
