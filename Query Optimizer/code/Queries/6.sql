@@ -1,2 +1,4 @@
-SELECT l_orderkey FROM lineitem WHERE l_quantity>30
+SELECT l_orderkey 
+FROM lineitem
+WHERE l_quantity>30
 

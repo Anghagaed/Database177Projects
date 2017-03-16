@@ -312,9 +312,9 @@ bool WriteOut::GetNext(Record& _record) {
 
 		//cout << "Record size " << _record.GetSize() << endl << endl;
 		//cout << _record.GetBits() << endl << endl;
-		cout << "RECORD:\n";
+	//	cout << "RECORD:\n";
 		_record.print(cout, schema);
-		cout << endl;
+		//cout << endl;
 		myOutputFile.close();
 			//out << "writeout get next end true\n";
 
