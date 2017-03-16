@@ -238,7 +238,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	{
 		// Create Project here
 		Schema _schemaIn = j->GetSchema();										// Schema from the previous relationalOp
-		Schema _schemaOut = Schema(j->GetSchema());								// Output
+		Schema _schemaOut = j->GetSchema();								// Output
 		int _numAttsInput = _schemaIn.GetAtts().size();							// Input size
 		int _numAttsOutput = 0;													// Output size
 		NameList* i = _attsToSelect;
@@ -246,18 +246,29 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			i = i->next;
 			++_numAttsOutput;
 		}
-		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
+		vector<int> saveMe;	
+		vector<int> temp;													// Vector of attributes to keep (for Project method)
 		_keepMe = new int [_numAttsOutput];	// Array of attributes to keep
 		i = _attsToSelect;
 		for(int a = 0; a < _numAttsOutput; ++a)									// Fill the vector and array
 		{
 			string name = i->name;
-			_keepMe[a] = _schemaIn.Index(name);
-			saveMe.push_back(_schemaIn.Index(name));
+			cout << name << endl;
+			//_keepMe[a] = _schemaIn.Index(name);
+			temp.push_back(_schemaIn.Index(name));
 			i = i->next;
 		}
-		_schemaOut.Project(saveMe);												// Project the schema
+		for(int b = temp.size()-1; b >= 0; --b )
+		{
+			_keepMe[temp.size()-1-b] = temp[b];
+			saveMe.push_back(temp[b]);
+		}
+		cout << "before:\n";
+		cout << _schemaOut << endl;
+		_schemaOut.Project(saveMe);	
+		cout << "after:\n" << _schemaOut << endl;											// Project the schema
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
+		cout << _schemaOut << endl;
 		DeleteThis.push_back(project);	//make sure to delete this later
 
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval

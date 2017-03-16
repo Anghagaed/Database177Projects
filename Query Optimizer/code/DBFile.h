@@ -16,7 +16,8 @@ class DBFile {
 private:
 	File file;
 	string fileName;
-
+	Page temp;
+	int count;
 	ifstream inFile;
 
 public:

@@ -38,7 +38,9 @@ int Page :: GetFirst(Record& firstOne) {
 
 	// and remove it
 	myRecs.Remove (firstOne);
+	//cout << "before numRecs: " << numRecs << endl;
 	numRecs--;
+	//cout << "after decrement: " << numRecs << endl;
 
 	char* b = firstOne.GetBits();
 	curSizeInBytes -= ((int*)b)[0];
@@ -53,7 +55,7 @@ int Page :: GetFirst(Record& firstOne) {
 
 int Page :: Append (Record& addMe) {
 	char* b = addMe.GetBits();
-
+	//cout << "hello im appending now\n";
 	// first see if we can fit the record
 	if (curSizeInBytes + ((int *) b)[0] > PAGE_SIZE) return 0;
 
@@ -196,6 +198,9 @@ void File :: AddPage (Page& addMe, off_t whichPage) {
 	}
 
 	// now write the page
+	if(whichPage == curLength)
+		curLength = whichPage + 1;
+
 	char* bits = new char[PAGE_SIZE];
 
 	addMe.ToBinary(bits);

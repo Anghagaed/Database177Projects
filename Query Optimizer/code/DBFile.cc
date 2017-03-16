@@ -7,18 +7,20 @@
 #include "DBFile.h"
 #include "RelOp.h"
 #include "Comparison.h"
+#include <stdio.h>
+#include <string.h>
 
 using namespace std;
 
 
-DBFile::DBFile () : fileName("") {
+DBFile::DBFile () : fileName(""), count(0) {
 }
 
 DBFile::~DBFile () {
 }
 
 DBFile::DBFile(const DBFile& _copyMe) :
-	file(_copyMe.file),	fileName(_copyMe.fileName) {}
+	file(_copyMe.file),	fileName(_copyMe.fileName), count(_copyMe.count) {}
 
 DBFile& DBFile::operator=(const DBFile& _copyMe) {
 	// handle self-assignment first
@@ -26,6 +28,7 @@ DBFile& DBFile::operator=(const DBFile& _copyMe) {
 
 	file = _copyMe.file;
 	fileName = _copyMe.fileName;
+	count = _copyMe.count;
 
 	return *this;
 }
@@ -37,42 +40,82 @@ int DBFile::Create (char* f_path, FileType f_type) {
 
 		ofstream outFile;
 
-		outFile.open(f_path);
+		outFile.open(f_path, std::ofstream::binary);
+		outFile.close();
 
 	}
+
+	fileName = f_path;
 
 }
 
 int DBFile::Open (char* f_path) {
 
-	inFile.open(f_path, std::ifstream::binary);	// operations performed in binary mode rather than text
+	if (file.Open(1, f_path) == -1) {
 
-	if (!inFile) {
 		cout << "Error opening DBFile" << endl;
+
 	}
 
 }
 
 void DBFile::Load (Schema& schema, char* textFile) {
+
+
+	char* myFileName = new char[fileName.length() + 1];
+	strcpy(myFileName, fileName.c_str());
+
+	file.Open(0, myFileName);
+
 	FILE* f = fopen(textFile, "r");						// Extract textFile to record
 	Record r;
 	int successP;
-	Page p;									
+	Page p;							
 	while(r.ExtractNextRecord(schema, *f) == 1)
 	{
 		successP = p.Append(r);							// Extract record to Page
 		if (successP == 0)								// Insert old Page into File and create a new Page when the Page is empty
 		{
-			file.AddPage(p, file.GetLength() + 1);
+			file.AddPage(p, file.GetLength());
 			p.EmptyItOut();
 			p.Append(r);
+
 		}
+
 	}
+	
+	file.AddPage(p, file.GetLength());
+	/*string heapLoc = "../Binary Files/region.bin";
+	char* path = new char[heapLoc.length() + 1];
+	strcpy(path, heapLoc.c_str());
+	file.Open(PAGE_SIZE, path);
+	Page p2;
+	cout << file.GetPage(p2, 1) << endl;
+	*/
+	/*Page p2;
+	Record r1;
+	cout << file.GetPage(p2, 0) << endl;
+	cout << file.GetLength() << endl;
+	while (p2.GetFirst(r1)) {
+		r1.print(cout, schema);
+		cout << endl;
+	}*/
+	/*
+	Record myRec;
+	Page p2;
+	cout << file.GetPage(p2, 0) << endl;
+	cout << p2.GetFirst(myRec) << endl;
+	cout << myRec.GetSize() << endl;
+	//p.EmptyItOut();
+	*/
+	
+
+	file.Close();
 }
 
 int DBFile::Close () {
 
-	inFile.close();
+	file.Close();
 
 }
 
@@ -101,18 +144,28 @@ void DBFile::AppendRecord (Record& rec) {
 
 int DBFile::GetNext (Record& rec) {
 
-	Page page;
-	Record firstOne;
+	//cout << file.GetLength() << endl;
+	//cout << "dbfile get next start\n";
 
-	if (file.GetPage(page, 0) == true) {
+	//if (file.GetPage(page, count) != -1) {
+	if (temp.GetFirst(rec) == 0) {
+		file.GetPage(temp, count);
+		count++;
 
-		page.GetFirst(firstOne);
-		rec = firstOne;
+		if (temp.GetFirst(rec) == 0) {
+			//cout << "db file get next false 1\n";
+			return 0;
+		}
 
-		return 1;
+		else {
+			//cout << "db file true 1\n";
+			//cout << "number of records: " << temp.numRecs << endl;
+			return 1;
+		}
+
 	}
-	else {
-		return 0;
-	}
+	//cout << "dbfile true 2\n";
+	//cout << "number of records: " << temp.numRecs << endl;
+	return 1;
 
 }

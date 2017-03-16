@@ -4,6 +4,8 @@
 
 using namespace std;
 
+int xyz = 0;
+
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);
 }
@@ -11,7 +13,7 @@ ostream& operator<<(ostream& _os, RelationalOp& _op) {
 void QueryExecutionTree::ExecuteQuery() {
 	Record rec;
 	while (root->GetNext(rec)) {	//call getNext of root until there are no more tuples
-		rec.print(cout, root->GetSchema());	//print record
+		//rec.print(cout, root->GetSchema());	//print record
 	}
 }
 
@@ -23,9 +25,13 @@ Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 }
 
 bool Scan::GetNext(Record& _record) {
+	//cout << "scan get next start\n";
 	if (file.GetNext(_record)) {
+		//_record.print(cout, schema);
+		//cout << "scan get next true\n";
 		return true;
 	}
+	//cout << "scan get next false\n";
 	return false;
 }
 
@@ -123,26 +129,35 @@ ostream& Select::print(ostream& _os) {
 }
 
 bool Select::GetNext(Record& _record) {
+	//cout << "select getnext start\n";
 
 	Record record;
 
 	while (producer->GetNext(record) == true) {
-
+		//cout << "iterations: " << xyz++ << endl;
 		if (predicate.Run(record, constants) == true) {	// constants = literals?
 			//record.ExtractNextRecord(schema, file);	// textfile 
 			//record.Swap(constants);
 			//record.AppendRecords()
+			//cout << "this is record: \n";
+			//record.print(cout, schema);
 			_record = record;
+			//cout << "this is _record: \n";
+			//_record.print(cout, schema);
+			//cout << "select get next true\n";
+
 			return true;
 		}
 
 	}
+	//cout << "select get next false\n";
 	return false;
 
 }
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	int _numAttsOutput, int* _keepMe, RelationalOp* _producer) {
+	s = _schemaOut;
 	schemaIn = _schemaIn;
 	schemaOut = _schemaOut;
 	numAttsInput = _numAttsInput;
@@ -167,7 +182,12 @@ bool Project::GetNext(Record& _record) {
 	// Assume Project is working correctly
 	// that is every private member variable is holding what it describes in header file
 	while (producer->GetNext(_record)) {
+		//cout << "before\n";
+		//_record.print(cout, schemaIn);
+		//cout << endl;
 		_record.Project(keepMe, numAttsOutput, numAttsInput);
+		//cout << "after\n";
+		//_record.print(cout, schemaOut);
 		return true;
 	}
 	return false;
@@ -258,18 +278,26 @@ WriteOut::~WriteOut() {
 }
 
 bool WriteOut::GetNext(Record& _record) {
-
+	//cout << "writeout get next start\n";
 	ofstream myOutputFile;
 	myOutputFile.open(outFile.c_str());
 
-	while (producer->GetNext(_record)) {
+	if (producer->GetNext(_record)) {
 
-		_record.print(myOutputFile, schema);
+		//cout << "Record size " << _record.GetSize() << endl << endl;
+		//cout << _record.GetBits() << endl << endl;
+		cout << "RECORD:\n";
+		_record.print(cout, schema);
+		cout << endl;
+		myOutputFile.close();
+			//out << "writeout get next end true\n";
 
+		return true;
 	}
+		//cout << "writeout get next end false\n";
 
 	myOutputFile.close();
-
+	return false;
 }
 
 ostream& WriteOut::print(ostream& _os) {

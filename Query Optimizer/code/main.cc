@@ -9,6 +9,7 @@ extern "C" {
 #include "QueryCompiler.h"
 #include "RelOp.h"
 #include <fstream>
+#include <vector>
 
 using namespace std;
 
@@ -27,62 +28,80 @@ extern "C" int yylex_destroy();
 string dbFile = "catalog.sqlite";
 Catalog catalog(dbFile);
 
-void loadData(string tabName, string heapLoc, string textLoc) {
+void loadData() {
 
-	DBFile myDBFile;
 	FileType file_type;
 	file_type = Heap;
 
+
+	DBFile myDBFile;
+	string tabName;
+	string heapLoc;
+	string textLoc;
+
+
+	vector<string> info;
+
+	info.push_back("customer");
+	info.push_back("../Binary Files/customer.bin");
+	info.push_back("../TxtFiles/customer.txt");
+	info.push_back("lineitem");
+	info.push_back("../Binary Files/lineitem.bin");
+	info.push_back("../TxtFiles/lineitem.txt");
+	info.push_back("nation");
+	info.push_back("../Binary Files/nation.bin");
+	info.push_back("../TxtFiles/nation.txt");
+	info.push_back("orders");
+	info.push_back("../Binary Files/orders.bin");
+	info.push_back("../TxtFiles/orders.txt");
+	info.push_back("part");
+	info.push_back("../Binary Files/part.bin");
+	info.push_back("../TxtFiles/part.txt");
+	info.push_back("partsupp");
+	info.push_back("../Binary Files/partsupp.bin");
+	info.push_back("../TxtFiles/partsupp.txt");
+	info.push_back("region");
+	info.push_back("../Binary Files/region.bin");
+	info.push_back("../TxtFiles/region.txt");
+	info.push_back("supplier");
+	info.push_back("../Binary Files/supplier.bin");
+	info.push_back("../TxtFiles/supplier.txt");
+
+
+
+	for (int i = 0; i < info.size(); i+=3) {
+
+	myDBFile = DBFile();
+
 	// Create 
-	char* path = new char[heapLoc.length() + 1];
-	strcpy(path, heapLoc.c_str());
+	char* path = new char[info[i+1].length() + 1];
+	strcpy(path,info[i+1].c_str());
 	myDBFile.Create(path, file_type);
 
 	// Load 
 	Schema schema;
-	catalog.GetSchema(tabName, schema);
+	catalog.GetSchema(info[i], schema);
 
-	path = new char[textLoc.length() + 1];
-	strcpy(path, textLoc.c_str());
+	path = new char[info[i+2].length() + 1];
+	strcpy(path, info[i+2].c_str());
 	myDBFile.Load(schema, path);
 
-	// Close
-	myDBFile.Close();
-	catalog.SetDataFile(tabName, heapLoc);
+	catalog.SetDataFile(info[i], info[i+1]);
+
+	}
+
+	exit(0);
+
+
 
 }
 
 int main()
 {
-	char result;
-	string tabName;
-	string heapLoc;
-	string textLoc;
 
-	cout << "Create heap files? y for yes, n for no: " << endl;
-	cin >> result;
-
-	while (result == 'y') {
-
-		cout << "Enter the table name: " << endl;
-		cin >> tabName;
-		cout << "Enter the location of the heap file: " << endl;
-		cin >> heapLoc;
-		cout << "Enter the location of the text file: " << endl;
-		cin >> textLoc;
-
-		loadData(tabName, heapLoc, textLoc);
-
-		cout << "Create more heap files? y for yes, n for no: " << endl;
-		cin >> result;
-	}
-
-	bool quit = true;
-	while (quit)
-	{
-		cout << "Enter a query and hit ctrl+D when done: " << endl;
+		//cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
-		//string dbFile = "catalog.sqlite";
+		string dbFile = "catalog.sqlite";
 		//Catalog catalog(dbFile);
 
 		// this is the query optimizer
@@ -108,6 +127,33 @@ int main()
 		yylex_destroy();
 
 		if (parse != 0) return -1;
+		
+		char result;
+
+		cout << "Create heap files (Make sure the Binary Files folder is empty)? y for yes, n for no: " << endl;
+		cin >> result;
+
+		if (result == 'y') {
+			loadData();
+		}
+/*
+		DBFile myDBFile;
+
+		myDBFile.Open("../Binary Files/nation.bin");
+
+		Record myRec;
+		myDBFile.GetNext(myRec);
+
+		Schema schema;
+
+		string tName = "nation";
+
+		catalog.GetSchema(tName, schema);
+
+		cout << myRec.GetSize() << endl;
+
+		myRec.print(cout, schema);
+*/
 
 		// at this point we have the parse tree in the ParseTree data structures
 		// we are ready to invoke the query compiler with the given query
@@ -119,20 +165,13 @@ int main()
 		cout << queryTree << endl;
 
 		queryTree.ExecuteQuery();
-
-		/*OptimizationTree ptr;
+/*
+		OptimizationTree ptr;
 		
 		optimizer.getUniqueOrder(tables, predicate);
-		optimizer.Optimize(tables, predicate, &ptr);*/
-		cout << "Do you wish to continue? Press 0 to exit. Press any other number else to continue" << endl;
-		int var;
-		cin >> var;
-		if (var == 0)
-		{
-			quit = false;
-			break;
-		}
-	}
+		optimizer.Optimize(tables, predicate, &ptr);
+		*/
+
 	return 0;
 
 }

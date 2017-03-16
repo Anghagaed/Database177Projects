@@ -14,7 +14,7 @@ class Record;
 class Page {
 private:
 	TwoWayList <Record> myRecs;
-	
+public:
 	int numRecs;
 	int curSizeInBytes;
 

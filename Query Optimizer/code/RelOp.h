@@ -16,7 +16,8 @@ class RelationalOp {
 protected:
 	// the number of pages that can be used by the operator in execution
 	int noPages;
-	Schema s;
+	Schema s;	//defined as the schema out
+
 public:
 	// empty constructor & destructor
 	RelationalOp() : noPages(-1) {}
