@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 class RelationalOp {
 protected:
 	// the number of pages that can be used by the operator in execution
@@ -82,6 +81,9 @@ private:
 	RelationalOp* producer;
 
 	string table;
+
+
+	int count;
 
 public:
 	Select(Schema& _schema, CNF& _predicate, Record& _constants,

@@ -1,1 +1,2 @@
-SELECT c_name, c_address, c_acctbal, c_mktsegment, c_comment, c_phone, c_custkey, c_nationkey FROM customer WHERE c_name = 'Customer#000070919'
+SELECT c_name, c_address, c_acctbal FROM customer WHERE c_name='Customer#000070919'
+

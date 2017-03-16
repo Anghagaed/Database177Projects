@@ -1,0 +1,35 @@
+OK!
+Create heap files (Make sure the Binary Files folder is empty)? y for yes, n for no: 
+c_acctbal
+c_address
+c_name
+before:
+(c_custkey:INTEGER [150000], c_name:STRING [150000], c_address:STRING [150000], c_nationkey:INTEGER [25], c_phone:STRING [150000], c_acctbal:FLOAT [140187], c_mktsegment:STRING [5], c_comment:STRING [149968])
+after:
+(c_name:STRING [150000], c_address:STRING [150000], c_acctbal:FLOAT [140187])
+(c_name:STRING [150000], c_address:STRING [150000], c_acctbal:FLOAT [140187])
+QUERY EXECUTION TREE(
+OUTPUT
+Schema: (c_name:STRING [150000], c_address:STRING [150000], c_acctbal:FLOAT [140187])
+Out File: output.txt
+Producer:
+{
+PROJECT: 
+Schema In: (c_custkey:INTEGER [150000], c_name:STRING [150000], c_address:STRING [150000], c_nationkey:INTEGER [25], c_phone:STRING [150000], c_acctbal:FLOAT [140187], c_mktsegment:STRING [5], c_comment:STRING [149968])
+Schema Out: (c_name:STRING [150000], c_address:STRING [150000], c_acctbal:FLOAT [140187])
+# Attributes Input: 8
+# Attributes Output: 3
+Keep: 1 2 5 
+Producer: SELECT
+Schema: (c_custkey:INTEGER [150000], c_name:STRING [150000], c_address:STRING [150000], c_nationkey:INTEGER [25], c_phone:STRING [150000], c_acctbal:FLOAT [140187], c_mktsegment:STRING [5], c_comment:STRING [149968])
+Predicate: (Left[1] = Const (String))
+Producer: SCAN
+Schema:(c_custkey:INTEGER [150000], c_name:STRING [150000], c_address:STRING [150000], c_nationkey:INTEGER [25], c_phone:STRING [150000], c_acctbal:FLOAT [140187], c_mktsegment:STRING [5], c_comment:STRING [149968])
+File
+
+
+}
+
+)
+RECORD:
+{c_name: Customer#000070919, c_address: b3rPDRarGuz, c_acctbal: 4309.34

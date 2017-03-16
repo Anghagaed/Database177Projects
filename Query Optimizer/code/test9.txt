@@ -1,0 +1,34 @@
+OK!
+Create heap files (Make sure the Binary Files folder is empty)? y for yes, n for no: 
+ps_supplycost
+ps_availqty
+ps_suppkey
+ps_partkey
+before:
+(ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865], ps_comment:STRING [799124])
+after:
+(ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865])
+(ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865])
+QUERY EXECUTION TREE(
+OUTPUT
+Schema: (ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865])
+Out File: output.txt
+Producer:
+{
+PROJECT: 
+Schema In: (ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865], ps_comment:STRING [799124])
+Schema Out: (ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865])
+# Attributes Input: 5
+# Attributes Output: 4
+Keep: 0 1 2 3 
+Producer: SELECT
+Schema: (ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865], ps_comment:STRING [799124])
+Predicate: (Left[0] = Const (Integer)) AND (Left[1] > Const (Integer)) AND (Left[1] < Const (Integer))
+Producer: SCAN
+Schema:(ps_partkey:INTEGER [200000], ps_suppkey:INTEGER [10000], ps_availqty:INTEGER [9999], ps_supplycost:FLOAT [99865], ps_comment:STRING [799124])
+File
+
+
+}
+
+)

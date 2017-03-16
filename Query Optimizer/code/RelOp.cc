@@ -83,6 +83,8 @@ Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
 	constants = _constants;
 	producer = _producer;
 	this->table = table;
+
+	count = 0;
 }
 
 Select::Select()
@@ -134,16 +136,40 @@ bool Select::GetNext(Record& _record) {
 	Record record;
 
 	while (producer->GetNext(record) == true) {
+		//count++;
+		/*
+		cout << "BEFOERE BEFORE BEFOREthis is record: \n";
+		record.print(cout, schema); 
+		cout << endl;
+		if(count > 500)
+			exit(1);
+
+		cout << "THIS IS constants:\n";
+		//constants.print(cout, schema);
+		for (int l = 0; l < 2; l++) {
+			cout << "l is " << l << endl;
+			cout << predicate.andList[l] << endl;
+		}
+		Schema test;
+		vector<Attribute>& atts = test.GetAtts();
+		vector<Attribute>& atts2 = schema.GetAtts();
+		atts.push_back(atts2[3]);
+		atts.push_back(atts2[5]);
+		cout << "Test is: " << test << endl;
+		cout << "Constant Prints" << endl;
+		constants.print(cout, test);
+		cout << endl;
+		exit(0);
+		*/
 		//cout << "iterations: " << xyz++ << endl;
 		if (predicate.Run(record, constants) == true) {	// constants = literals?
 			//record.ExtractNextRecord(schema, file);	// textfile 
 			//record.Swap(constants);
 			//record.AppendRecords()
-			//cout << "this is record: \n";
-			//record.print(cout, schema);
 			_record = record;
-			//cout << "this is _record: \n";
+			//cout << "AFTER AFTER AFTER AFTERthis is _record: \n";
 			//_record.print(cout, schema);
+			cout << endl;
 			//cout << "select get next true\n";
 
 			return true;

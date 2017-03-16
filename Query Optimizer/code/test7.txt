@@ -1,0 +1,42 @@
+OK!
+Create heap files (Make sure the Binary Files folder is empty)? y for yes, n for no: 
+s_phone
+s_name
+before:
+(s_suppkey:INTEGER [10000], s_name:STRING [10000], s_address:STRING [10000], s_nationkey:INTEGER [25], s_phone:STRING [10000], s_acctbal:FLOAT [9955], s_comment:STRING [10000])
+after:
+(s_name:STRING [10000], s_phone:STRING [10000])
+(s_name:STRING [10000], s_phone:STRING [10000])
+QUERY EXECUTION TREE(
+OUTPUT
+Schema: (s_name:STRING [10000], s_phone:STRING [10000])
+Out File: output.txt
+Producer:
+{
+PROJECT: 
+Schema In: (s_suppkey:INTEGER [10000], s_name:STRING [10000], s_address:STRING [10000], s_nationkey:INTEGER [25], s_phone:STRING [10000], s_acctbal:FLOAT [9955], s_comment:STRING [10000])
+Schema Out: (s_name:STRING [10000], s_phone:STRING [10000])
+# Attributes Input: 7
+# Attributes Output: 2
+Keep: 1 4 
+Producer: SELECT
+Schema: (s_suppkey:INTEGER [10000], s_name:STRING [10000], s_address:STRING [10000], s_nationkey:INTEGER [25], s_phone:STRING [10000], s_acctbal:FLOAT [9955], s_comment:STRING [10000])
+Predicate: (Left[3] = Const (Integer)) AND (Left[5] < Const (Float))
+Producer: SCAN
+Schema:(s_suppkey:INTEGER [10000], s_name:STRING [10000], s_address:STRING [10000], s_nationkey:INTEGER [25], s_phone:STRING [10000], s_acctbal:FLOAT [9955], s_comment:STRING [10000])
+File
+
+
+}
+
+)
+BEFOERE BEFORE BEFOREthis is record: 
+{s_suppkey: 1, s_name: Supplier#000000001, s_address:  N kD4on9OM Ipw3,gf0JBoQDd7tgrzrddZ, s_nationkey: 17, s_phone: 27-918-335-1736, s_acctbal: 5755.94, s_comment: each slyly above the careful
+THIS IS constants:
+l is 0
+Left[3] = Const (Integer)
+l is 1
+Left[5] < Const (Float)
+Test is: (s_nationkey:INTEGER [25], s_acctbal:FLOAT [9955])
+Constant Prints
+{s_nationkey: 10, s_acctbal: 0
