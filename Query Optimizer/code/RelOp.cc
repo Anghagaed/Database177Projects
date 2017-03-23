@@ -24,7 +24,7 @@ Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 }
 
 bool Scan::GetNext(Record& _record) {
-	if (file.GetNext(_record)) {
+	if(file.GetNext(_record)) {
 		return true;
 	}
 	return false;
@@ -128,8 +128,8 @@ ostream& Select::print(ostream& _os) {
 bool Select::GetNext(Record& _record) {
 	Record record;
 
-	while (producer->GetNext(record) == true) {
-		if (predicate.Run(record, constants) == true) {	// constants = literals?
+	while (producer->GetNext(record)) {
+		if (predicate.Run(record, constants)) {	// constants = literals?
 			_record = record;
 			return true;
 		}
@@ -164,7 +164,7 @@ ostream& Project::print(ostream& _os) {
 bool Project::GetNext(Record& _record) {
 	// Assume Project is working correctly
 	// that is every private member variable is holding what it describes in header file
-	while (producer->GetNext(_record)) {
+	if (producer->GetNext(_record)) {
 		_record.Project(keepMe, numAttsOutput, numAttsInput);
 		return true;
 	}
