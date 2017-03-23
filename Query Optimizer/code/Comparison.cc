@@ -450,10 +450,9 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			andList[numAnds].operand1 = Literal;
 			andList[numAnds].whichAtt1 = numFieldsInLiteral;
 			typeLeft = String;
-			//cout << "In Spring CNF Conversion" << endl;
 			// add to record literal
 			attStart[numFieldsInLiteral] = recSize;
-			int cLen = strlen(currCond->left->left->value);
+			int cLen = strlen(currCond->left->left->value) + 1;
 			memcpy(recPos, currCond->left->left->value, cLen);
 
 			if (cLen % sizeof (int) != 0) {
@@ -468,7 +467,6 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			andList[numAnds].operand1 = Literal;
 			andList[numAnds].whichAtt1 = numFieldsInLiteral;
 			typeLeft = Integer;
-			//cout << "In Integer CNF Conversion" << endl;
 			// add to record literal
 			attStart[numFieldsInLiteral] = recSize;
 			int cLen = sizeof(int);
@@ -521,7 +519,7 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 
 			// add to record literal
 			attStart[numFieldsInLiteral] = recSize;
-			int cLen = strlen(currCond->left->right->value);
+			int cLen = strlen(currCond->left->right->value) + 1;
 			memcpy(recPos, currCond->left->right->value, cLen);
 			//cout << "In String Conversion" << endl;
 			if (cLen % sizeof (int) != 0) {

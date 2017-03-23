@@ -8,6 +8,7 @@
 #include "DBFile.h"
 #include "Function.h"
 #include "Comparison.h"
+#include "EfficientMap.h"
 
 using namespace std;
 
@@ -222,7 +223,7 @@ public:
 		Function& _compute,	RelationalOp* _producer);
 	virtual ~GroupBy();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
 };

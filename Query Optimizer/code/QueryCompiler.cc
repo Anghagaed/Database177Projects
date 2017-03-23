@@ -263,10 +263,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			_keepMe[temp.size()-1-b] = temp[b];
 			saveMe.push_back(temp[b]);
 		}
-		cout << "before:\n";
-		cout << _schemaOut << endl;
 		_schemaOut.Project(saveMe);	
-		cout << "after:\n" << _schemaOut << endl;											// Project the schema
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
 		cout << _schemaOut << endl;
 		DeleteThis.push_back(project);	//make sure to delete this later

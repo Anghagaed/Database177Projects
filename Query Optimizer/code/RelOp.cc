@@ -13,7 +13,6 @@ ostream& operator<<(ostream& _os, RelationalOp& _op) {
 void QueryExecutionTree::ExecuteQuery() {
 	Record rec;
 	while (root->GetNext(rec)) {	//call getNext of root until there are no more tuples
-		//rec.print(cout, root->GetSchema());	//print record
 	}
 }
 
@@ -25,13 +24,9 @@ Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 }
 
 bool Scan::GetNext(Record& _record) {
-	//cout << "scan get next start\n";
 	if (file.GetNext(_record)) {
-		//_record.print(cout, schema);
-		//cout << "scan get next true\n";
 		return true;
 	}
-	//cout << "scan get next false\n";
 	return false;
 }
 
@@ -131,54 +126,16 @@ ostream& Select::print(ostream& _os) {
 }
 
 bool Select::GetNext(Record& _record) {
-	//cout << "select getnext start\n";
-
 	Record record;
 
 	while (producer->GetNext(record) == true) {
-		//count++;
-		/*
-		cout << "BEFOERE BEFORE BEFOREthis is record: \n";
-		record.print(cout, schema); 
-		cout << endl;
-		if(count > 500)
-			exit(1);
-
-		cout << "THIS IS constants:\n";
-		//constants.print(cout, schema);
-		for (int l = 0; l < 2; l++) {
-			cout << "l is " << l << endl;
-			cout << predicate.andList[l] << endl;
-		}
-		Schema test;
-		vector<Attribute>& atts = test.GetAtts();
-		vector<Attribute>& atts2 = schema.GetAtts();
-		atts.push_back(atts2[3]);
-		atts.push_back(atts2[5]);
-		cout << "Test is: " << test << endl;
-		cout << "Constant Prints" << endl;
-		constants.print(cout, test);
-		cout << endl;
-		exit(0);
-		*/
-		//cout << "iterations: " << xyz++ << endl;
 		if (predicate.Run(record, constants) == true) {	// constants = literals?
-			//record.ExtractNextRecord(schema, file);	// textfile 
-			//record.Swap(constants);
-			//record.AppendRecords()
 			_record = record;
-			//cout << "AFTER AFTER AFTER AFTERthis is _record: \n";
-			//_record.print(cout, schema);
-			cout << endl;
-			//cout << "select get next true\n";
-
 			return true;
 		}
 
 	}
-	//cout << "select get next false\n";
 	return false;
-
 }
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
@@ -208,12 +165,7 @@ bool Project::GetNext(Record& _record) {
 	// Assume Project is working correctly
 	// that is every private member variable is holding what it describes in header file
 	while (producer->GetNext(_record)) {
-		//cout << "before\n";
-		//_record.print(cout, schemaIn);
-		//cout << endl;
 		_record.Project(keepMe, numAttsOutput, numAttsInput);
-		//cout << "after\n";
-		//_record.print(cout, schemaOut);
 		return true;
 	}
 	return false;
@@ -283,6 +235,10 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	producer = _producer;
 }
 
+bool GroupBy::GetNext(Record& _record) {
+	return true;
+}
+
 GroupBy::~GroupBy() {
 
 }
@@ -304,23 +260,16 @@ WriteOut::~WriteOut() {
 }
 
 bool WriteOut::GetNext(Record& _record) {
-	//cout << "writeout get next start\n";
 	ofstream myOutputFile;
 	myOutputFile.open(outFile.c_str());
 
 	if (producer->GetNext(_record)) {
-
-		//cout << "Record size " << _record.GetSize() << endl << endl;
-		//cout << _record.GetBits() << endl << endl;
-	//	cout << "RECORD:\n";
 		_record.print(cout, schema);
-		//cout << endl;
+		cout << endl;
 		myOutputFile.close();
-			//out << "writeout get next end true\n";
 
 		return true;
 	}
-		//cout << "writeout get next end false\n";
 
 	myOutputFile.close();
 	return false;
