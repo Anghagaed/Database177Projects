@@ -236,6 +236,31 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 }
 
 bool GroupBy::GetNext(Record& _record) {
+	/*
+	Record temp;
+	KeyString groupatt(temp.GetColumn(1));
+	int iresult;
+	double dresult;
+
+	//create map
+	while (producer->GetNext(temp)) {
+		if (map.Find(groupatt))	//if this key already exists, then add to the running sum
+			map.Find(groupatt) += compute.Apply(temp, iresult, dresult);
+		else //if not then star the running sum
+			map.Insert(groupatt, (double)compute.Apply(temp, iresult, dresult));
+	}
+	Record result;
+	map.MoveToStart();	//reset iterator
+	if (map.AtEnd())	//if we are at the end, then we are done return tuples so return false
+		return false;
+	else {
+		string s = (string)map.CurrentData();
+		s += "|" + (string)map.CurrentKey() + "|";
+		File* fp = fmemopen(s.c_str(), s.length() * sizeof(char), "r");
+		result.ExtractNextRecord(schemaOut, *fp);
+		fp->Close();
+	}
+	*/
 	return true;
 }
 

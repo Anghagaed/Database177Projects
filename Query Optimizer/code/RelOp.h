@@ -8,7 +8,7 @@
 #include "DBFile.h"
 #include "Function.h"
 #include "Comparison.h"
-#include "EfficientMap.h"
+//#include "EfficientMap.h"
 
 using namespace std;
 
@@ -217,6 +217,9 @@ private:
 
 	// operator generating data
 	RelationalOp* producer;
+
+	//map
+	//EfficientMap<KeyString, double> map;
 
 public:
 	GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtts,
