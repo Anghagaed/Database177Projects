@@ -61,5 +61,6 @@ public:
 typedef Keyify<double> KeyDouble;
 typedef Keyify<int> KeyInt;
 typedef Keyify<string> KeyString;
+typedef Keyify<float> KeyFloat;
 
 #endif //_KEYIFY_H_
