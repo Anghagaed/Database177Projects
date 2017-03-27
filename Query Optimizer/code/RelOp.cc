@@ -1,7 +1,12 @@
 #include <iostream>
 #include <fstream>
 #include "RelOp.h"
-
+#include "EfficientMap.h"
+#include "EfficientMap.cc"
+#include "Keyify.h"
+#include "Config.h"
+#include "GBData.h"
+#include "Keyify.h"
 using namespace std;
 
 int xyz = 0;
@@ -235,29 +240,59 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	producer = _producer;
 }
 
+// TEST WITH Queries/Phase4Queries/11.sql
+// ONLY WORKS WITH int grouping attribute AND float SUM!!
+// KEY = GROUPING ATTRIBUTE; DATA = SUM
 bool GroupBy::GetNext(Record& _record) {
-	/*
+	// Assumes that there is only 1 grouping attributes
+	// Assume that the map is <int, float>
+	EfficientMap<Key, Data> map;
 	Record temp;
-	KeyString groupatt(temp.GetColumn(1));
-	int iresult;
-	double dresult;
-
-	//create map
-	while (producer->GetNext(temp)) {
-		if (map.Find(groupatt))	//if this key already exists, then add to the running sum
-			map.Find(groupatt) += compute.Apply(temp, iresult, dresult);
-		else //if not then star the running sum
-			map.Insert(groupatt, (double)compute.Apply(temp, iresult, dresult));
+	int column = groupingAtts.whichAtts[0];				// grouping attribute location
+	char* data;
+	int key;
+	Key gbkey;
+	Data gbdata;
+	int intResult;  double doubleResult;				// aggregate
+	double newSum;
+	while (producer->GetNext(temp) == true)
+	{
+		data = temp.GetColumn(column);					// get grouping attribute value
+		key = *((int*)data);							// cast to int
+		gbkey = Key(key);								// create a key
+		compute.Apply(temp, intResult, doubleResult);
+		if (map.IsThere(gbkey))							// the key is inside the map
+		{
+			newSum = map.Find(gbkey).getData() + doubleResult;
+			gbdata = Data((float)newSum);
+			map.Find(gbkey) = gbdata;
+		}
+		else											// the key is not inside the map
+		{
+			newSum = doubleResult;
+			gbdata = Data((float)newSum);
+			map.Insert(gbkey, gbdata);
+		}
 	}
-	Record result;
-	map.MoveToStart();	//reset iterator
+	map.MoveToStart();									//reset iterator
+	
+	// Test to ensure that there is some values inside the map
+	while (!map.AtEnd())
+	{
+		cout << map.CurrentKey().getKey() << " << " << map.CurrentData().getData()<<"\n";
+		map.Advance();
+	}
+	
+	// Fill _record with the map
+	// Work in progress... ()
+	/*
 	if (map.AtEnd())	//if we are at the end, then we are done return tuples so return false
 		return false;
 	else {
-		string s = (string)map.CurrentData();
-		s += "|" + (string)map.CurrentKey() + "|";
+		string s = "" + map.CurrentData().getData();
+		s += "|" + map.CurrentKey().getKey();
 		File* fp = fmemopen(s.c_str(), s.length() * sizeof(char), "r");
-		result.ExtractNextRecord(schemaOut, *fp);
+		_record.ExtractNextRecord(schemaOut, *fp);
 		fp->Close();
 	}
 	*/

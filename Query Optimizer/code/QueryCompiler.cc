@@ -175,20 +175,26 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			++_atts_no;
 		}
 		unsigned int distinct = 1;
-		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
+		vector<int> saveMe;
+		vector<int> temp;														// Vector of attributes to keep (for Project method)
 		_keepMe = new int[_atts_no];											// Array of attributes to keep
 		i = _groupingAtts;
 		for(int a = 0; a < _atts_no; ++a)										// Fill the vector and array
 		{
 			string name = i->name;												// Get a Grouping Attribute name
-			_keepMe[a] = _schemaIn.Index(name);
-			saveMe.push_back(_schemaIn.Index(name));
+			//_keepMe[a] = _schemaIn.Index(name);
+			temp.push_back(_schemaIn.Index(name));
 			distinct *= _schemaIn.GetDistincts(name);							// Get distincts from the grouping attribute
 			i = i->next;
 		}
-		_projectSchema.Project(saveMe);											// Project the schema
+		for(int b = temp.size()-1; b >= 0; --b )
+		{
+			_keepMe[temp.size()-1-b] = temp[b];
+			saveMe.push_back(temp[b]);
+		}
+		_projectSchema.Project(saveMe);												// Project the schema
 		
-		// Create SUM
+		// Create SUM Schema
 		string attName = "SUM";													// Name of output schema
 		string attType = "Float";												// Type of the output schema
 		vector<string> attNames;
@@ -198,8 +204,8 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		vector<unsigned int> distincts;											// Distincts of attributes
 		distincts.push_back(distinct);											// Push the distincts
 		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:FLOAT [#])
-		_projectSchema.Append(_schemaOut);										// Combine Project and SUM
-		_schemaOut.Swap(_projectSchema);										// Output = Project + SUM
+		
+		_schemaOut.Append(_projectSchema);										// Output = Project + SUM
 
 		// Create GroupBy here
 		Function _compute;
