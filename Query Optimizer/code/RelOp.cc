@@ -252,38 +252,49 @@ string convert(T x)
 	return convert.str(); 				// set 'Result' to the contents of the stream
 }
 
-// TEST WITH Queries/Phase4Queries/11.sql
-// ONLY WORKS WITH int grouping attribute AND float SUM!!
+// ASSUME: THERE IS ONLY 1 GROUPING ATTRIBUTE
+// NOW SUPPORTS ALL POSSIBLE GROUPING ATTRIBUTES AND SUMS
 // KEY = GROUPING ATTRIBUTE; DATA = SUM
+// POSSIBLE <KEY, DATA> COMBINATIONS:
+// <int, int>, <int, float>, <string, int>, <string, float>, <float, int>, <float, float>
+// TEST WITH:
+//		- Queries/Phase4Queries/11.sql for <int, float>
+//		- Queries/Phase4Queries/12.sql for <string, float>
+//		- Queries/Phase4Queries/13.sql for <float, float>
+//		- Queries/Phase4Queries/14.sql for <int, int>
+//		- Queries/Phase4Queries/15.sql for <string, int>
+//		- Queries/Phase4Queries/16.sql for <float, int>
 bool GroupBy::GetNext(Record& _record) {
-	// Assumes that there is only 1 grouping attributes
-	// Assume that the map is <int, (int or float)>
 	EfficientMap<Key, Data> map;
 	Record temp;											// temp Record
 	int column = groupingAtts.whichAtts[0];					// grouping attribute location
-	int key;  char* data;  Key gbkey;						// temp Key (check GBData.h for see more details)
+	int key; char* data; Key gbkey; Type keyType;			// temp Key (check GBData.h for see more details)
 	Data gbdata; float newSumF; int newSumI; int dataType;	// temp Data (check GBData.h for see more details)
 	int intResult;  double doubleResult; 					// for Function's Apply
-	//int tempI; float tempF;								// temp int and double for Data 
 	dataType = compute.GetSumType();						// receive SUM type from Function
+	keyType = groupingAtts.whichTypes[0];					// grouping attribute type
 	while (producer->GetNext(temp) == true)
 	{
 		data = temp.GetColumn(column);								// get grouping attribute value
-		key = *((int*)data);										// cast to int
-		gbkey = Key(key);											// create a key
-		compute.Apply(temp, intResult, doubleResult);
-		
+		if (keyType == Integer)										// Key is int
+			gbkey = Key(*((int*)data));
+		else
+		if (keyType == Float)										// Key is float
+			gbkey = Key((float)(*((double*)data)));
+		else														// Key is string
+			gbkey = Key((char *)data);
+		compute.Apply(temp, intResult, doubleResult);				// compute sum
 		if (map.IsThere(gbkey))										// the key is inside the map
 		{
 			if (dataType == 1)										// SUM is int
 			{
 				newSumI = map.Find(gbkey).getIntSum() + intResult;	// compute new sum
-				gbdata = Data(newSumI, dataType);					// convert to Data
+				gbdata = Data(newSumI);								// convert to Data
 			}
 			else													// SUM is float
 			{
 				newSumF = map.Find(gbkey).getFloatSum() + (float)doubleResult;	// compute new sum
-				gbdata = Data(newSumF, dataType);					// convert to Data
+				gbdata = Data(newSumF);								// convert to Data
 			}
 			map.Find(gbkey) = gbdata;								// update the SUM
 		}
@@ -292,12 +303,12 @@ bool GroupBy::GetNext(Record& _record) {
 			if (dataType == 1)										// SUM is int
 			{
 				newSumI = intResult;								// get the sum
-				gbdata = Data(newSumI, dataType);					// convert to Data
+				gbdata = Data(newSumI);					// convert to Data
 			}
 			else													// SUM is float
 			{
 				newSumF = (float)doubleResult;						// get the sum
-				gbdata = Data(newSumF, dataType);					// convert to Data
+				gbdata = Data(newSumF);					// convert to Data
 			}
 			map.Insert(gbkey, gbdata);								// insert into map
 		}
@@ -317,7 +328,7 @@ bool GroupBy::GetNext(Record& _record) {
 	{
 		// Intention: Fill _record with the map
 		// Current: Print records with the map. _record contains nothing
-		// Work in progress...
+		// Work in progress...?
 		string s;
 		string separator = convert('|');
 		FILE* fp;
@@ -327,18 +338,28 @@ bool GroupBy::GetNext(Record& _record) {
 		int length2;
 		while (!map.AtEnd())
 		{
-			//map.CurrentData().getData(tempI, tempF, dataType);	// get the current SUM
+			// Create a mini record (temp) to print
+			// Create a "FILE"
 			if (dataType == 1)										// SUM is int
 				s += convert(map.CurrentData().getIntSum());
 			else													// SUM is float
 				s += convert(map.CurrentData().getFloatSum());
-			s += separator + convert(map.CurrentKey().getKey()) + separator;
-			cout << s << endl;
-			char* str = new char[s.length() + 1];
+			s += separator;
+			if (keyType == Integer)									// Key is int
+				s += convert(map.CurrentKey().getIntKey());
+			else
+			if (keyType == Float)									// Key is float
+				s += convert(map.CurrentKey().getFloatKey());
+			else													// Key is string
+				s += convert(map.CurrentKey().getStringKey());
+			s += separator;
+			char* str = new char[s.length() + 1];					// string to char* converter
 			strcpy(str, s.c_str());
-			fp = fmemopen(str, s.length() * sizeof(char), "r");
+			fp = fmemopen(str, s.length() * sizeof(char), "r");		// create a FILE here
+			
+			// Extract the "FILE"
 			temp.ExtractNextRecord(schemaOut, *fp);
-			temp.print(cout, schemaOut);
+			temp.print(cout, schemaOut);							// Print the record
 			cout << endl;
 			/*
 			if (_record.GetSize() > 0)

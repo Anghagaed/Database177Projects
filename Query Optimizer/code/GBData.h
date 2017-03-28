@@ -13,88 +13,114 @@ using namespace std;
 // Compatible with EfficientMap
 
 // Key
+// Key is meant to contain integer, string, OR float.
+// Since this is a struct, it can contain all at the same time,
+// which is not the intention of this data structure. Please
+// don't abuse that feature and use only one of them.
 struct Key {
 private:
-	int keyInt;									// INCOMPLETE: Key only contains int (will contain more)
+	string stringKey;
+	int intKey;		
+	float floatKey;
 public:
-	Key() { keyInt = 0; }
-	Key(int keyInt) 
+	Key() { stringKey = ""; intKey = 0; floatKey = 0.0f; }
+	Key(int intKey) 
 	{
-		this->keyInt = keyInt;
+		this->intKey = intKey;
+	}
+	Key(string stringKey)
+	{
+		this->stringKey = stringKey;
+	}
+	Key(float floatKey)
+	{
+		this->floatKey = floatKey;
 	}
 
 	// Keyify functions
 	void Swap(Key& withMe)
 	{
-		SWAP(keyInt, withMe.getKey());
+		SWAP(intKey, withMe.getIntKey());
+		SWAP(floatKey, withMe.getFloatKey());
+		SWAP(stringKey, withMe.getStringKey());
 	}
 	void CopyFrom(Key& withMe)
 	{
-		this->keyInt = withMe.getKey();
+		this->intKey = withMe.getIntKey();
+		this->floatKey = withMe.getFloatKey();
+		this->stringKey = withMe.getStringKey();
 	}
-	int IsEqual(Key &checkMe)
+	int IsEqual(Key &checkMe)										// assumes that both Keys have only one of them
 	{
-		return keyInt == checkMe.getKey();
+		bool intCheck = intKey == checkMe.getIntKey();
+		bool floatCheck = floatKey == checkMe.getFloatKey();
+		bool stringCheck = stringKey == checkMe.getStringKey();
+		return intCheck && floatCheck && stringCheck;
 	}
-	int LessThan(Key &checkMe)
+	int LessThan(Key &checkMe)										// assumes that both Keys have only one of them
 	{
-		return keyInt < checkMe.getKey();
+		bool intCheck = intKey < checkMe.getIntKey();
+		bool floatCheck = floatKey < checkMe.getFloatKey();
+		bool stringCheck = stringKey < checkMe.getStringKey();
+		return intCheck || floatCheck || stringCheck;
 	}
 
 	// Object Interface
-	int& getKey()
+	int& getIntKey()
 	{
-		return keyInt;
+		return intKey;
+	}
+	float& getFloatKey()
+	{
+		return floatKey;
+	}
+	string& getStringKey()
+	{
+		return stringKey;
 	}
 };
 
 // Data
+// Data is meant to contain integer sum OR float sum.
+// Since this is a struct, it can contain both at the same time,
+// which is not the intention of this data structure. Please
+// don't abuse that feature and use only one of them.
 struct Data {
 private:
-	// 1 = int
-	// 0 = float
-	int whichSum;							// determines which type of data it is
 	int intSum;
 	float floatSum;
-private:
-	// some helper functions for Keyify...
 public:
-	Data() { whichSum = 0;  intSum = 0; floatSum = 0.0f; }
-	Data(float sum, int whichSum)
+	// Constructors
+	Data() { intSum = 0; floatSum = 0.0f; }	// default
+	Data(float sum)							// float sum
 	{
-		this->whichSum = whichSum;
-		if(this->whichSum == 1)				// int sum
-			this->intSum = (int)sum;
-		else								// float sum
-			this->floatSum = sum;
+		floatSum = sum;
+	}
+	Data(int sum)							// int sum
+	{
+		intSum = sum;
 	}
 
 	// Keyify functions
 	void Swap(Data& withMe)
 	{
-		SWAP(whichSum, withMe.whichType());
 		SWAP(intSum, withMe.getIntSum());
 		SWAP(floatSum, withMe.getFloatSum());
 	}
 	void CopyFrom(Data& withMe)
 	{
-		this->whichSum = withMe.whichType();
 		this->intSum = withMe.getIntSum();
 		this->floatSum = withMe.getFloatSum();
 	}
 	
 	// Object Interface
-	int& getIntSum()
+	int& getIntSum()						// returns intSum (assumes that this Data is intSum)
 	{
 		return intSum;
 	}
-	float& getFloatSum()
+	float& getFloatSum()					// returns floatSum (assumes that this Data is floatSum)
 	{
 		return floatSum;
-	}
-	int& whichType()								// 1 = int; 0 = float
-	{
-		return whichSum;
 	}
 };
 
