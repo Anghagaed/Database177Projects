@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>			// used for var to str conversion
+#include <string.h>			// used for memcpy and memmove
 #include "RelOp.h"
 #include "EfficientMap.h"
 #include "EfficientMap.cc"
@@ -132,7 +134,6 @@ ostream& Select::print(ostream& _os) {
 
 bool Select::GetNext(Record& _record) {
 	Record record;
-
 	while (producer->GetNext(record)) {
 		if (predicate.Run(record, constants)) {	// constants = literals?
 			_record = record;
@@ -240,6 +241,17 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	producer = _producer;
 }
 
+// Slow Variable to String Conversion Method
+// Alternative Options (may require downloading):
+// http://stackoverflow.com/questions/191757/how-to-concatenate-a-stdstring-and-an-int
+template <typename T>
+string convert(T x)
+{
+	ostringstream convert;   			// stream used for the conversion
+	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
+	return convert.str(); 				// set 'Result' to the contents of the stream
+}
+
 // TEST WITH Queries/Phase4Queries/11.sql
 // ONLY WORKS WITH int grouping attribute AND float SUM!!
 // KEY = GROUPING ATTRIBUTE; DATA = SUM
@@ -275,28 +287,70 @@ bool GroupBy::GetNext(Record& _record) {
 		}
 	}
 	map.MoveToStart();									//reset iterator
-	
+	/*
 	// Test to ensure that there is some values inside the map
 	while (!map.AtEnd())
 	{
 		cout << map.CurrentKey().getKey() << " << " << map.CurrentData().getData()<<"\n";
 		map.Advance();
 	}
-	
+	*/
 	// Fill _record with the map
 	// Work in progress... ()
-	/*
 	if (map.AtEnd())	//if we are at the end, then we are done return tuples so return false
 		return false;
 	else {
-		string s = "" + map.CurrentData().getData();
-		s += "|" + map.CurrentKey().getKey();
-		File* fp = fmemopen(s.c_str(), s.length() * sizeof(char), "r");
-		_record.ExtractNextRecord(schemaOut, *fp);
-		fp->Close();
+		string s;
+		string separator = convert('|');
+		FILE* fp;
+		int i = 1;
+		char* result;
+		int length1;
+		int length2;
+		while (!map.AtEnd())
+		{
+			s += convert(map.CurrentData().getData()) + separator + convert(map.CurrentKey().getKey()) + separator;
+			char* str = new char[s.length() + 1];
+			strcpy(str, s.c_str());
+			fp = fmemopen(str, s.length() * sizeof(char), "r");
+			temp.ExtractNextRecord(schemaOut, *fp);
+			temp.print(cout, schemaOut);
+			cout << endl;
+			/*
+			if (_record.GetSize() > 0)
+			{
+				cout << "yes\n";
+				length1 = _record.GetSize();
+				length2 = temp.GetSize();
+				result = new char[length1 + length2];					// array to hold the result.
+				memcpy(result, _record.GetBits(), length1);					// copy memory _record into the result.
+				memmove(result + length1, temp.GetBits(), length2);	// append memory temp record to the result.
+				string c = result;
+				cout << c << endl;
+				_record.CopyBits(result, length1+length2);												// transfer result into _record
+				_record.print(cout, schemaOut);
+				cout << endl;
+			}
+			else
+			{
+				cout << "no\n";
+				length2 = temp.GetSize();
+				result = new char[length2];										// array to hold the result.
+				memcpy(result, temp.GetBits(), length2);							// copy memory _record one into the result.
+				_record.CopyBits(result, length2);												// transfer result into _record
+				string c = result;
+				cout << c << endl;
+				_record.print(cout, schemaOut);
+				cout << endl;
+			}
+			*/
+			s = "";
+			fclose(fp);
+			delete str;
+			map.Advance();
+		}
 	}
-	*/
-	return true;
+	return false;
 }
 
 GroupBy::~GroupBy() {
