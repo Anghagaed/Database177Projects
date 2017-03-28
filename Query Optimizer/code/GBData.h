@@ -51,32 +51,50 @@ public:
 // Data
 struct Data {
 private:
-	float sum;							// INCOMPLETE: Data only contains float (will contain more)
+	// 1 = int
+	// 0 = float
+	int whichSum;							// determines which type of data it is
+	int intSum;
+	float floatSum;
+private:
+	// some helper functions for Keyify...
 public:
-	Data() { sum = 0; }
-	Data(float sum)
+	Data() { whichSum = 0;  intSum = 0; floatSum = 0.0f; }
+	Data(float sum, int whichSum)
 	{
-		this->sum = sum;
+		this->whichSum = whichSum;
+		if(this->whichSum == 1)				// int sum
+			this->intSum = (int)sum;
+		else								// float sum
+			this->floatSum = sum;
 	}
 
 	// Keyify functions
 	void Swap(Data& withMe)
 	{
-		SWAP(sum, withMe.getData());
+		SWAP(whichSum, withMe.whichType());
+		SWAP(intSum, withMe.getIntSum());
+		SWAP(floatSum, withMe.getFloatSum());
 	}
 	void CopyFrom(Data& withMe)
 	{
-		this->sum = withMe.getData();
+		this->whichSum = withMe.whichType();
+		this->intSum = withMe.getIntSum();
+		this->floatSum = withMe.getFloatSum();
 	}
-
+	
 	// Object Interface
-	void setSum(float newsum)
+	int& getIntSum()
 	{
-		sum = newsum;
+		return intSum;
 	}
-	float& getData()
+	float& getFloatSum()
 	{
-		return sum;
+		return floatSum;
+	}
+	int& whichType()								// 1 = int; 0 = float
+	{
+		return whichSum;
 	}
 };
 

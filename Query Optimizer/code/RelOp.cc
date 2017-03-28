@@ -257,36 +257,52 @@ string convert(T x)
 // KEY = GROUPING ATTRIBUTE; DATA = SUM
 bool GroupBy::GetNext(Record& _record) {
 	// Assumes that there is only 1 grouping attributes
-	// Assume that the map is <int, float>
+	// Assume that the map is <int, (int or float)>
 	EfficientMap<Key, Data> map;
-	Record temp;
-	int column = groupingAtts.whichAtts[0];				// grouping attribute location
-	char* data;
-	int key;
-	Key gbkey;
-	Data gbdata;
-	int intResult;  double doubleResult;				// aggregate
-	double newSum;
+	Record temp;											// temp Record
+	int column = groupingAtts.whichAtts[0];					// grouping attribute location
+	int key;  char* data;  Key gbkey;						// temp Key (check GBData.h for see more details)
+	Data gbdata; float newSumF; int newSumI; int dataType;	// temp Data (check GBData.h for see more details)
+	int intResult;  double doubleResult; 					// for Function's Apply
+	//int tempI; float tempF;								// temp int and double for Data 
+	dataType = compute.GetSumType();						// receive SUM type from Function
 	while (producer->GetNext(temp) == true)
 	{
-		data = temp.GetColumn(column);					// get grouping attribute value
-		key = *((int*)data);							// cast to int
-		gbkey = Key(key);								// create a key
+		data = temp.GetColumn(column);								// get grouping attribute value
+		key = *((int*)data);										// cast to int
+		gbkey = Key(key);											// create a key
 		compute.Apply(temp, intResult, doubleResult);
-		if (map.IsThere(gbkey))							// the key is inside the map
+		
+		if (map.IsThere(gbkey))										// the key is inside the map
 		{
-			newSum = map.Find(gbkey).getData() + doubleResult;
-			gbdata = Data((float)newSum);
-			map.Find(gbkey) = gbdata;
+			if (dataType == 1)										// SUM is int
+			{
+				newSumI = map.Find(gbkey).getIntSum() + intResult;	// compute new sum
+				gbdata = Data(newSumI, dataType);					// convert to Data
+			}
+			else													// SUM is float
+			{
+				newSumF = map.Find(gbkey).getFloatSum() + (float)doubleResult;	// compute new sum
+				gbdata = Data(newSumF, dataType);					// convert to Data
+			}
+			map.Find(gbkey) = gbdata;								// update the SUM
 		}
-		else											// the key is not inside the map
+		else														// the key is not inside the map
 		{
-			newSum = doubleResult;
-			gbdata = Data((float)newSum);
-			map.Insert(gbkey, gbdata);
+			if (dataType == 1)										// SUM is int
+			{
+				newSumI = intResult;								// get the sum
+				gbdata = Data(newSumI, dataType);					// convert to Data
+			}
+			else													// SUM is float
+			{
+				newSumF = (float)doubleResult;						// get the sum
+				gbdata = Data(newSumF, dataType);					// convert to Data
+			}
+			map.Insert(gbkey, gbdata);								// insert into map
 		}
 	}
-	map.MoveToStart();									//reset iterator
+	map.MoveToStart();												// reset iterator
 	/*
 	// Test to ensure that there is some values inside the map
 	while (!map.AtEnd())
@@ -295,11 +311,13 @@ bool GroupBy::GetNext(Record& _record) {
 		map.Advance();
 	}
 	*/
-	// Fill _record with the map
-	// Work in progress... ()
-	if (map.AtEnd())	//if we are at the end, then we are done return tuples so return false
+	if (map.AtEnd())												// if we are at the end, then we are done return tuples so return false
 		return false;
-	else {
+	else 
+	{
+		// Intention: Fill _record with the map
+		// Current: Print records with the map. _record contains nothing
+		// Work in progress...
 		string s;
 		string separator = convert('|');
 		FILE* fp;
@@ -309,7 +327,13 @@ bool GroupBy::GetNext(Record& _record) {
 		int length2;
 		while (!map.AtEnd())
 		{
-			s += convert(map.CurrentData().getData()) + separator + convert(map.CurrentKey().getKey()) + separator;
+			//map.CurrentData().getData(tempI, tempF, dataType);	// get the current SUM
+			if (dataType == 1)										// SUM is int
+				s += convert(map.CurrentData().getIntSum());
+			else													// SUM is float
+				s += convert(map.CurrentData().getFloatSum());
+			s += separator + convert(map.CurrentKey().getKey()) + separator;
+			cout << s << endl;
 			char* str = new char[s.length() + 1];
 			strcpy(str, s.c_str());
 			fp = fmemopen(str, s.length() * sizeof(char), "r");
