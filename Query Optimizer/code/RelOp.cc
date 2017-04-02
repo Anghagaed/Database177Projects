@@ -214,6 +214,34 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer << endl;
 }
 
+bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
+{
+	Record recTemp; //to check if there are more records
+	//OrderMaker(schema); //ordermaker used to execute Run for comparing
+	vector <Record> duplTemp; //store the records in temporarily
+	while (producer->GetNext(recTemp) == true)
+	{
+		int i = 0;	//for iteration
+		bool check = true;	//for checking if duplicate
+		while (i < duplTemp.size())
+		{
+			//if (OrderMaker(schema).Run(recTemp, duplTemp.begin() + i) ==0)
+			//{
+			//	check = false; //is a duplicate
+			//}
+			//else
+			//{
+			//	i++; //iterate
+			//}
+		}
+		if (check) //check for duplicate
+		{
+			duplTemp.push_back(recTemp);	//push into vector
+		}
+		
+	}
+	return true;
+}
 
 Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 	RelationalOp* _producer) {
@@ -225,6 +253,11 @@ Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 
 Sum::~Sum() {
 	
+}
+
+bool Sum::GetNext(Record & _record)
+{
+	return false;
 }
 
 ostream& Sum::print(ostream& _os) {

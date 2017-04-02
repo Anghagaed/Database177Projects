@@ -175,7 +175,7 @@ public:
 	DuplicateRemoval(Schema& _schema, RelationalOp* _producer);
 	virtual ~DuplicateRemoval();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
 };
@@ -198,7 +198,7 @@ public:
 		RelationalOp* _producer);
 	virtual ~Sum();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
 };
