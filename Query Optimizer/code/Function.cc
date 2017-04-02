@@ -347,3 +347,8 @@ Type Function :: Apply (Record& toMe, int &intResult, double &doubleResult) {
 		return Float;
 	}
 }
+
+int Function :: GetSumType ()
+{
+	return returnsInt;
+}

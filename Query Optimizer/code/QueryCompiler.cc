@@ -175,38 +175,49 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 			++_atts_no;
 		}
 		unsigned int distinct = 1;
-		vector<int> saveMe;														// Vector of attributes to keep (for Project method)
+		vector<int> saveMe;
+		vector<int> temp;														// Vector of attributes to keep (for Project method)
 		_keepMe = new int[_atts_no];											// Array of attributes to keep
 		i = _groupingAtts;
 		for(int a = 0; a < _atts_no; ++a)										// Fill the vector and array
 		{
 			string name = i->name;												// Get a Grouping Attribute name
-			_keepMe[a] = _schemaIn.Index(name);
-			saveMe.push_back(_schemaIn.Index(name));
+			temp.push_back(_schemaIn.Index(name));
 			distinct *= _schemaIn.GetDistincts(name);							// Get distincts from the grouping attribute
 			i = i->next;
 		}
+		for(int b = temp.size()-1; b >= 0; --b )
+		{
+			_keepMe[temp.size()-1-b] = temp[b];
+			saveMe.push_back(temp[b]);
+		}
 		_projectSchema.Project(saveMe);											// Project the schema
 		
-		// Create SUM
+		// Create Function
+		Function _compute;
+		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
+		
+		// Create SUM Schema
 		string attName = "SUM";													// Name of output schema
-		string attType = "Float";												// Type of the output schema
-		vector<string> attNames;
+		string attType;															// Type of the output schema
+		if (_compute.GetSumType() == 1)											// attType is Integer
+			attType = "Integer";
+		else																	// attType is Float
+			attType = "Float";
+		vector<string> attNames;												// vector form of Name
 		attNames.push_back(attName);
-		vector<string> attTypes;
+		vector<string> attTypes;												// vector form of Type
 		attTypes.push_back(attType);
 		vector<unsigned int> distincts;											// Distincts of attributes
 		distincts.push_back(distinct);											// Push the distincts
-		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:FLOAT [#])
-		_projectSchema.Append(_schemaOut);										// Combine Project and SUM
-		_schemaOut.Swap(_projectSchema);										// Output = Project + SUM
-
-		// Create GroupBy here
-		Function _compute;
-		_compute.GrowFromParseTree(_finalFunction, _schemaIn);					// Insert all relevant values into Function
+		Schema _schemaOut = Schema(attNames, attTypes, distincts);				// (SUM:(FLOAT or INTEGER) [#])
+		_schemaOut.Append(_projectSchema);										// Output = Project + SUM
+		
 		OrderMaker _groupAtts = OrderMaker(_schemaIn, _keepMe, _atts_no);		// Insert all relevant values into OrderMaker
+		
+		// Create GroupBy
 		GroupBy* groupby = new GroupBy(_schemaIn, _schemaOut, _groupAtts, _compute, j);		// j = Final join operator
-		DeleteThis.push_back(groupby);	//make sure to delete this later
+		DeleteThis.push_back(groupby);											//make sure to delete this later
 
 		string outFile = "output.txt";
 		writeout = new WriteOut(_schemaOut, outFile, groupby);					// Insert all relevant values into WriteOut
@@ -253,8 +264,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		for(int a = 0; a < _numAttsOutput; ++a)									// Fill the vector and array
 		{
 			string name = i->name;
-			cout << name << endl;
-			//_keepMe[a] = _schemaIn.Index(name);
 			temp.push_back(_schemaIn.Index(name));
 			i = i->next;
 		}
@@ -265,7 +274,6 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		}
 		_schemaOut.Project(saveMe);	
 		Project* project = new Project(_schemaIn, _schemaOut, _numAttsInput, _numAttsOutput, _keepMe, j);	// Insert results in Project
-		cout << _schemaOut << endl;
 		DeleteThis.push_back(project);	//make sure to delete this later
 
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval

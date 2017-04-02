@@ -1,10 +1,15 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>			// used for var to str conversion
+#include <string.h>			// used for memcpy and memmove
 #include "RelOp.h"
-
+#include "EfficientMap.h"
+#include "EfficientMap.cc"
+#include "Keyify.h"
+#include "Config.h"
+#include "GBData.h"
+#include "Keyify.h"
 using namespace std;
-
-int xyz = 0;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);
@@ -143,7 +148,6 @@ bool Select::GetNext(Record& _record) {
 			//_record = record;
 			return true;
 		}
-
 	}
 	return false;
 }
@@ -219,6 +223,34 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer << endl;
 }
 
+bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
+{
+	Record recTemp; //to check if there are more records
+	//OrderMaker(schema); //ordermaker used to execute Run for comparing
+	vector <Record> duplTemp; //store the records in temporarily
+	while (producer->GetNext(recTemp) == true)
+	{
+		int i = 0;	//for iteration
+		bool check = true;	//for checking if duplicate
+		while (i < duplTemp.size())
+		{
+			//if (OrderMaker(schema).Run(recTemp, duplTemp.begin() + i) ==0)
+			//{
+			//	check = false; //is a duplicate
+			//}
+			//else
+			//{
+			//	i++; //iterate
+			//}
+		}
+		if (check) //check for duplicate
+		{
+			duplTemp.push_back(recTemp);	//push into vector
+		}
+		
+	}
+	return true;
+}
 
 Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 	RelationalOp* _producer) {
@@ -230,6 +262,11 @@ Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 
 Sum::~Sum() {
 	
+}
+
+bool Sum::GetNext(Record & _record)
+{
+	return false;
 }
 
 ostream& Sum::print(ostream& _os) {
@@ -246,33 +283,161 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	producer = _producer;
 }
 
-bool GroupBy::GetNext(Record& _record) {
-	/*
-	Record temp;
-	KeyString groupatt(temp.GetColumn(1));
-	int iresult;
-	double dresult;
+// Slow Variable to String Conversion Method
+// Alternative Options (may require downloading):
+// http://stackoverflow.com/questions/191757/how-to-concatenate-a-stdstring-and-an-int
+template <typename T>
+string convert(T x)
+{
+	ostringstream convert;   			// stream used for the conversion
+	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
+	return convert.str(); 				// set 'Result' to the contents of the stream
+}
 
-	//create map
-	while (producer->GetNext(temp)) {
-		if (map.Find(groupatt))	//if this key already exists, then add to the running sum
-			map.Find(groupatt) += compute.Apply(temp, iresult, dresult);
-		else //if not then star the running sum
-			map.Insert(groupatt, (double)compute.Apply(temp, iresult, dresult));
+// ASSUME: THERE IS ONLY 1 GROUPING ATTRIBUTE
+// NOW SUPPORTS ALL POSSIBLE GROUPING ATTRIBUTES AND SUMS
+// KEY = GROUPING ATTRIBUTE; DATA = SUM
+// POSSIBLE <KEY, DATA> COMBINATIONS:
+// <int, int>, <int, float>, <string, int>, <string, float>, <float, int>, <float, float>
+// TEST WITH:
+//		- Queries/Phase4Queries/11.sql for <int, float>
+//		- Queries/Phase4Queries/12.sql for <string, float>
+//		- Queries/Phase4Queries/13.sql for <float, float>
+//		- Queries/Phase4Queries/14.sql for <int, int>
+//		- Queries/Phase4Queries/15.sql for <string, int>
+//		- Queries/Phase4Queries/16.sql for <float, int>
+bool GroupBy::GetNext(Record& _record) {
+	EfficientMap<Key, Data> map;
+	Record temp;											// temp Record
+	int column = groupingAtts.whichAtts[0];					// grouping attribute location
+	int key; char* data; Key gbkey; Type keyType;			// temp Key (check GBData.h for see more details)
+	Data gbdata; float newSumF; int newSumI; int dataType;	// temp Data (check GBData.h for see more details)
+	int intResult;  double doubleResult; 					// for Function's Apply
+	dataType = compute.GetSumType();						// receive SUM type from Function
+	keyType = groupingAtts.whichTypes[0];					// grouping attribute type
+	while (producer->GetNext(temp) == true)
+	{
+		data = temp.GetColumn(column);								// get grouping attribute value
+		if (keyType == Integer)										// Key is int
+			gbkey = Key(*((int*)data));
+		else
+		if (keyType == Float)										// Key is float
+			gbkey = Key((float)(*((double*)data)));
+		else														// Key is string
+			gbkey = Key((char *)data);
+		compute.Apply(temp, intResult, doubleResult);				// compute sum
+		if (map.IsThere(gbkey))										// the key is inside the map
+		{
+			if (dataType == 1)										// SUM is int
+			{
+				newSumI = map.Find(gbkey).getIntSum() + intResult;	// compute new sum
+				gbdata = Data(newSumI);								// convert to Data
+			}
+			else													// SUM is float
+			{
+				newSumF = map.Find(gbkey).getFloatSum() + (float)doubleResult;	// compute new sum
+				gbdata = Data(newSumF);								// convert to Data
+			}
+			map.Find(gbkey) = gbdata;								// update the SUM
+		}
+		else														// the key is not inside the map
+		{
+			if (dataType == 1)										// SUM is int
+			{
+				newSumI = intResult;								// get the sum
+				gbdata = Data(newSumI);					// convert to Data
+			}
+			else													// SUM is float
+			{
+				newSumF = (float)doubleResult;						// get the sum
+				gbdata = Data(newSumF);					// convert to Data
+			}
+			map.Insert(gbkey, gbdata);								// insert into map
+		}
 	}
-	Record result;
-	map.MoveToStart();	//reset iterator
-	if (map.AtEnd())	//if we are at the end, then we are done return tuples so return false
-		return false;
-	else {
-		string s = (string)map.CurrentData();
-		s += "|" + (string)map.CurrentKey() + "|";
-		File* fp = fmemopen(s.c_str(), s.length() * sizeof(char), "r");
-		result.ExtractNextRecord(schemaOut, *fp);
-		fp->Close();
+	map.MoveToStart();												// reset iterator
+	/*
+	// Test to ensure that there is some values inside the map
+	while (!map.AtEnd())
+	{
+		cout << map.CurrentKey().getKey() << " << " << map.CurrentData().getData()<<"\n";
+		map.Advance();
 	}
 	*/
-	return true;
+	if (map.AtEnd())												// if we are at the end, then we are done return tuples so return false
+		return false;
+	else 
+	{
+		// Intention: Fill _record with the map
+		// Current: Print records with the map. _record contains nothing
+		// Work in progress...?
+		string s;
+		string separator = convert('|');
+		FILE* fp;
+		int i = 1;
+		char* result;
+		int length1;
+		int length2;
+		while (!map.AtEnd())
+		{
+			// Create a mini record (temp) to print
+			// Create a "FILE"
+			if (dataType == 1)										// SUM is int
+				s += convert(map.CurrentData().getIntSum());
+			else													// SUM is float
+				s += convert(map.CurrentData().getFloatSum());
+			s += separator;
+			if (keyType == Integer)									// Key is int
+				s += convert(map.CurrentKey().getIntKey());
+			else
+			if (keyType == Float)									// Key is float
+				s += convert(map.CurrentKey().getFloatKey());
+			else													// Key is string
+				s += convert(map.CurrentKey().getStringKey());
+			s += separator;
+			char* str = new char[s.length() + 1];					// string to char* converter
+			strcpy(str, s.c_str());
+			fp = fmemopen(str, s.length() * sizeof(char), "r");		// create a FILE here
+			
+			// Extract the "FILE"
+			temp.ExtractNextRecord(schemaOut, *fp);
+			temp.print(cout, schemaOut);							// Print the record
+			cout << endl;
+			/*
+			if (_record.GetSize() > 0)
+			{
+				cout << "yes\n";
+				length1 = _record.GetSize();
+				length2 = temp.GetSize();
+				result = new char[length1 + length2];					// array to hold the result.
+				memcpy(result, _record.GetBits(), length1);					// copy memory _record into the result.
+				memmove(result + length1, temp.GetBits(), length2);	// append memory temp record to the result.
+				string c = result;
+				cout << c << endl;
+				_record.CopyBits(result, length1+length2);												// transfer result into _record
+				_record.print(cout, schemaOut);
+				cout << endl;
+			}
+			else
+			{
+				cout << "no\n";
+				length2 = temp.GetSize();
+				result = new char[length2];										// array to hold the result.
+				memcpy(result, temp.GetBits(), length2);							// copy memory _record one into the result.
+				_record.CopyBits(result, length2);												// transfer result into _record
+				string c = result;
+				cout << c << endl;
+				_record.print(cout, schemaOut);
+				cout << endl;
+			}
+			*/
+			s = "";
+			fclose(fp);
+			delete str;
+			map.Advance();
+		}
+	}
+	return false;
 }
 
 GroupBy::~GroupBy() {
