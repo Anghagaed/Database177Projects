@@ -9,10 +9,13 @@ int xyz = 0;
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
 	return _op.print(_os);
 }
-
+int counterEQ = 0;
 void QueryExecutionTree::ExecuteQuery() {
 	Record rec;
+	// Delete Me
+	//cout << "Execution Tree Counter: " << counterEQ++ << endl;
 	while (root->GetNext(rec)) {	//call getNext of root until there are no more tuples
+		//cout << "Execution Tree Counter: " << counterEQ++ << endl;
 	}
 }
 
@@ -21,9 +24,13 @@ Scan::Scan(Schema& _schema, DBFile& _file, string table) {
 	s = _schema;
 	file = _file;
 	this->table = table;
+	counter = 0;
 }
 
 bool Scan::GetNext(Record& _record) {
+	//cout << "Scan Counter: " << counter++ << endl;
+	//if (counter > 100)
+	//	exit(0);
 	if(file.GetNext(_record)) {
 		return true;
 	}
@@ -34,6 +41,7 @@ Scan::Scan()
 {
 	schema = Schema();
 	file =  DBFile();
+	counter = 0;
 }
 
 Scan::~Scan() {
@@ -79,11 +87,13 @@ Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
 	producer = _producer;
 	this->table = table;
 
-	count = 0;
+	counter = 0;
 }
 
 Select::Select()
-{}
+{
+	counter = 0;
+}
 
 Select::~Select() {
 
@@ -126,11 +136,11 @@ ostream& Select::print(ostream& _os) {
 }
 
 bool Select::GetNext(Record& _record) {
-	Record record;
-
-	while (producer->GetNext(record)) {
-		if (predicate.Run(record, constants)) {	// constants = literals?
-			_record = record;
+	//Record record;
+	//cout << "Select Counter: " << counter++ << endl;
+	while (producer->GetNext(_record)) {
+		if (predicate.Run(_record, constants)) {	// constants = literals?
+			//_record = record;
 			return true;
 		}
 
@@ -147,6 +157,7 @@ Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	numAttsOutput = _numAttsOutput;
 	keepMe = _keepMe;
 	producer = _producer; 
+	counter = 0;
 }
 
 Project::~Project() {
@@ -278,6 +289,7 @@ WriteOut::WriteOut(Schema& _schema, string& _outFile, RelationalOp* _producer) {
 	s = _schema;
 	outFile = _outFile;
 	producer = _producer;
+	counter = 0;
 }
 
 WriteOut::~WriteOut() {
@@ -285,18 +297,20 @@ WriteOut::~WriteOut() {
 }
 
 bool WriteOut::GetNext(Record& _record) {
-	ofstream myOutputFile;
-	myOutputFile.open(outFile.c_str());
+	//ofstream myOutputFile;								// Unn, no difference
+	//myOutputFile.open(outFile.c_str());					// Unn, no difference
 
+	// Delete Me
+	//cout << "Write Out Counter: " << counter++ << endl;
 	if (producer->GetNext(_record)) {
 		_record.print(cout, schema);
-		cout << endl;
-		myOutputFile.close();
+		cout << endl;	
+		//myOutputFile.close();								// Unn, no difference
 
 		return true;
 	}
 
-	myOutputFile.close();
+	//myOutputFile.close();									// Unn, no difference
 	return false;
 }
 
