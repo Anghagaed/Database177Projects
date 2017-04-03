@@ -8,6 +8,7 @@
 #include "DBFile.h"
 #include "Function.h"
 #include "Comparison.h"
+#include <set>
 //#include "EfficientMap.h"
 
 using namespace std;
@@ -176,6 +177,8 @@ public:
 	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
+
+	int comp(Record inSet, Record outSet, Schema _schema);
 };
 
 class Sum : public RelationalOp {

@@ -223,31 +223,27 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer << endl;
 }
 
+int DuplicateRemoval::comp(Record inSet, Record outSet, Schema _schema)
+{
+	return OrderMaker(_schema).Run(inSet, outSet); 
+};
+
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
-	Record recTemp; //to check if there are more records
-	//OrderMaker(schema); //ordermaker used to execute Run for comparing
-	vector <Record> duplTemp; //store the records in temporarily
-	while (producer->GetNext(recTemp) == true)
+	Record recTemp;
+	//set<Record, comp(recTemp,_record)> duplTemp; //store the records in set
+	while (producer->GetNext(_record) == true)
 	{
-		int i = 0;	//for iteration
-		bool check = true;	//for checking if duplicate
-		while (i < duplTemp.size())
+		/*
+		int i=0;
+		int check;
+		check=ordermaker(_schema).Run(set[i], _record));
+		if(check==0)
 		{
-			//if (OrderMaker(schema).Run(recTemp, duplTemp.begin() + i) ==0)
-			//{
-			//	check = false; //is a duplicate
-			//}
-			//else
-			//{
-			//	i++; //iterate
-			//}
+			duplTemp.insert(_record);
+			i++;
 		}
-		if (check) //check for duplicate
-		{
-			duplTemp.push_back(recTemp);	//push into vector
-		}
-		
+		*/
 	}
 	return true;
 }
