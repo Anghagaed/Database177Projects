@@ -279,9 +279,21 @@ Sum::~Sum() {
 	
 }
 
+// TEST WITH:
+//		- Queries/Phase4Queries/1.sql, 2, 5, 9, 11-16
 bool Sum::GetNext(Record & _record)
 {
-	return false;
+	Record temp;
+	int valI; double valD;
+	float runningSum;
+
+	while (producer->GetNext(temp)) {
+		//runningSum += Function.Run(temp);
+		runningSum += compute.Apply(temp, valI, valD);
+	}
+	// create recrod with running sum
+
+	return true;
 }
 
 ostream& Sum::print(ostream& _os) {
