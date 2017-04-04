@@ -10,8 +10,11 @@
 #include "Comparison.h"
 #include "EfficientMap.h"
 #include "Keyify.h"
+#include <set>
 
 using namespace std;
+
+static OrderMaker myOrder;
 
 class RelationalOp {
 protected:
@@ -170,6 +173,8 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
+	//struct sComp(Schema _schema);
+
 public:
 	DuplicateRemoval(Schema& _schema, RelationalOp* _producer);
 	virtual ~DuplicateRemoval();
@@ -177,6 +182,8 @@ public:
 	virtual bool GetNext(Record& _record);
 
 	virtual ostream& print(ostream& _os);
+
+	//bool sComp(Record inSet, Record outSet);
 };
 
 class Sum : public RelationalOp {
