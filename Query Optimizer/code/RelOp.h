@@ -13,6 +13,8 @@
 
 using namespace std;
 
+static OrderMaker myOrder;
+
 class RelationalOp {
 protected:
 	// the number of pages that can be used by the operator in execution
@@ -170,6 +172,8 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
+	//struct sComp(Schema _schema);
+
 public:
 	DuplicateRemoval(Schema& _schema, RelationalOp* _producer);
 	virtual ~DuplicateRemoval();
@@ -178,7 +182,7 @@ public:
 
 	virtual ostream& print(ostream& _os);
 
-	int comp(Record inSet, Record outSet, Schema _schema);
+	//bool sComp(Record inSet, Record outSet);
 };
 
 class Sum : public RelationalOp {

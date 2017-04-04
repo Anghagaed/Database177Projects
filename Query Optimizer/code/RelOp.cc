@@ -223,27 +223,46 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer << endl;
 }
 
-int DuplicateRemoval::comp(Record inSet, Record outSet, Schema _schema)
-{
-	return OrderMaker(_schema).Run(inSet, outSet); 
-};
+//bool sComp(Record inSet, Record outSet)
+//{
+//	if (OrderMaker(_schema).Run(inSet, outSet) == -1)
+//	{
+//		return true;
+//	}
+//	else
+//	{
+//		return false;
+//	}
+//};
+
+
 
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
-	Record recTemp;
-	//set<Record, comp(recTemp,_record)> duplTemp; //store the records in set
+	myOrder = OrderMaker(this->schema);
+	struct sComp
+	{
+		bool operator () (const Record& inSet, const Record& outSet) const
+		{
+			const Record * left = &inSet;
+			const Record * right = &outSet;
+			Record * set = (const_cast<Record*> (left));
+			Record * noSet = (const_cast<Record*> (right));
+			if (myOrder.Run((*set), (*noSet)) == -1)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	};
+	//bool(*fn_pt)(Record, Record, Schema) = sComp;
+	//set<Record, sComp> duplTemp; //store the records in set
 	while (producer->GetNext(_record) == true)
 	{
-		/*
-		int i=0;
-		int check;
-		check=ordermaker(_schema).Run(set[i], _record));
-		if(check==0)
-		{
-			duplTemp.insert(_record);
-			i++;
-		}
-		*/
+			//duplTemp.insert(_record);		
 	}
 	return true;
 }
