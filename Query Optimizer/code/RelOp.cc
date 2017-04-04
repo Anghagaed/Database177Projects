@@ -237,6 +237,7 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
+	/*
 	myOrder = OrderMaker(this->schema);
 	struct sComp
 	{
@@ -262,6 +263,7 @@ bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 	{
 			//duplTemp.insert(_record);		
 	}
+	*/
 	return true;
 }
 
@@ -320,6 +322,13 @@ string convert(T x)
 bool GroupBy::GetNext(Record& _record) {
 	if (first)																	// check if this is called the first time
 	{
+		Schema groupAttz = schemaIn;
+		vector<int> keepMe;
+		for (int i = 0; i < groupingAtts.numAtts; ++i)
+		{
+			keepMe.push_back(groupingAtts.whichAtts[i]);
+		}
+		groupAttz.Project(keepMe);
 		Record temp, projtemp;													// Records to insert
 		int intResult = 0; double doubleResult = 0;										// for Function's Apply (computing sum)
 		int returnsInt;															// to determine whether the sum type is int
@@ -334,31 +343,78 @@ bool GroupBy::GetNext(Record& _record) {
 			temp.Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
 			projtemp = temp;													// extract only grouping attributes from Record
 			td = KeyDouble(sum);
+			//projtemp.print(cout, groupAttz);
+			//cout << " " << sum << endl;
+			//cout << map.IsThere(projtemp) << endl;
 			if (map.IsThere(projtemp))											// the map has the record
-				map.Find(projtemp) = KeyDouble(map.Find(projtemp)+sum);				// update sum
+				map.Find(projtemp) = KeyDouble(map.Find(projtemp) + sum);				// update sum
 			else																// the map doesn't have the record
 				map.Insert(projtemp, td);										// insert into map
 			intResult = 0; doubleResult = 0;
 		}
 		first = false;															// set first time to false
+		map.MoveToStart();
 	}
-
 	// Print Records and Sums
-	Schema test = schemaIn;
+	Schema groupAttz = schemaIn;
 	vector<int> keepMe;
 	for (int i = 0; i < groupingAtts.numAtts; ++i)
 	{
 		keepMe.push_back(groupingAtts.whichAtts[i]);
 	}
-	test.Project(keepMe);
-	map.MoveToStart();
+	groupAttz.Project(keepMe);
+	/*
 	while (!map.AtEnd())
 	{
-		map.CurrentKey().print(cout, test);
-		cout << " << " << map.CurrentData() << "\n";
-		map.Advance();
+	map.CurrentKey().print(cout, groupAttz);
+	cout << " << " << map.CurrentData() << "\n";
+	map.Advance();
 	}
-	return false;
+	*/
+
+	if (map.AtEnd())
+		return false;
+
+	Record r1, r2;
+	char* c; 
+	int size;
+	
+	/*
+	// r1 test
+	size = map.CurrentKey().GetSize();
+	c = map.CurrentKey().GetBits();
+	r1.CopyBits(c, size);
+	r1.print(cout, groupAttz);
+	cout << endl;
+	map.Advance();
+	*/
+	// Create a FILE here
+	FILE* fp;
+	string s;
+	string separator = convert('|');
+	double doubletemp = map.CurrentData();
+	s = convert(doubletemp) + separator;
+	char* str = new char[s.length() + 1];					// string to char* converter
+	strcpy(str, s.c_str());
+	fp = fmemopen(str, s.length() * sizeof(char), "r");
+
+
+	//Extract the "FILE"
+	vector<int> x;
+	x.push_back(0);
+	Schema sumz = schemaOut;
+	sumz.Project(x);
+	r1.ExtractNextRecord(sumz, *fp);
+
+	c = map.CurrentKey().GetBits();
+	size = map.CurrentKey().GetSize();
+	r2.CopyBits(c, size);
+	_record.AppendRecords(r1, r2, 1, 1);
+	
+	fclose(fp);
+	delete str;
+	map.Advance();
+	return true;
 }
 
 GroupBy::~GroupBy() {
