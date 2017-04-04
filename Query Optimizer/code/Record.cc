@@ -8,12 +8,14 @@
 #include "Swap.h"
 #include "Schema.h"
 #include "Record.h"
+#include "Comparison.h"
 
 using namespace std;
 
 
 Record :: Record () {
 	bits = NULL;
+	compOrder = NULL;
 }
 
 Record::Record (const Record& copyMe) {
@@ -21,6 +23,8 @@ Record::Record (const Record& copyMe) {
 	delete [] bits;
 	bits = new char[((int *) copyMe.bits)[0]];
 	memcpy (bits, copyMe.bits, ((int *) copyMe.bits)[0]);
+
+	compOrder = copyMe.compOrder;
 }
 
 Record& Record::operator=(const Record& copyMe) {
@@ -32,16 +36,20 @@ Record& Record::operator=(const Record& copyMe) {
 	bits = new char[((int *) copyMe.bits)[0]];
 	memcpy (bits, copyMe.bits, ((int *) copyMe.bits)[0]);
 
+	compOrder = copyMe.compOrder;
+
 	return *this;
 }
 
 Record :: ~Record () {
 	delete [] bits;
 	bits = NULL;
+	compOrder = NULL;
 }
 
 void Record::Swap(Record& _other) {
 	SWAP(bits, _other.bits);
+	SWAP(compOrder, _other.compOrder);
 }
 
 void Record :: Consume (char*& fromMe) {
@@ -101,11 +109,6 @@ int Record :: ExtractNextRecord (Schema& mySchema, FILE& textFile) {
 			currentPosInRec += sizeof (double);
 		}
 		else if (atts[i].type == String) {
-			// align things to the size of an integer if needed
-			if (len % sizeof (int) != 0) {
-				len += sizeof (int) - (len % sizeof (int));
-			}
-
 			strcpy (&(recSpace[currentPosInRec]), space); 
 			currentPosInRec += len;
 		} 
@@ -392,7 +395,7 @@ void Record :: AppendRecords (Record& left, Record& right,
 	}
 }
 
-ostream& Record :: print(ostream& _os, Schema& mySchema) {
+void Record :: print(ostream& _os, Schema& mySchema) {
 	int n = mySchema.GetNumAtts();
 	vector<Attribute> atts = mySchema.GetAtts();
 
@@ -411,17 +414,17 @@ ostream& Record :: print(ostream& _os, Schema& mySchema) {
 		// depending on the type we then print out the contents
 		// first is integer
 		if (atts[i].type == Integer) {
-			int *myInt = (int *) &(bits[pointer]);
-			_os << *myInt;
+			int myInt; memcpy(&myInt, bits+pointer, sizeof(int));
+			_os << myInt;
 		}
 		// then is a double
 		else if (atts[i].type == Float) {
-			double *myDouble = (double *) &(bits[pointer]);
-			_os << *myDouble;
+			double myDouble; memcpy(&myDouble, bits+pointer, sizeof(double));
+			_os << myDouble;
 		}
 		// then is a character string
 		else if (atts[i].type == String) {
-			char *myString = (char *) &(bits[pointer]);
+			char *myString = bits+pointer;
 			_os << myString;
 		} 
 
@@ -431,47 +434,24 @@ ostream& Record :: print(ostream& _os, Schema& mySchema) {
 		}
 	}
 
-	return _os;
+	_os << '}';
 }
 
-//void Record::print(Schema& mySchema) {
-//	int n = mySchema.GetNumAtts();
-//	vector<Attribute> atts = mySchema.GetAtts();
-//
-//	cout << '{';
-//
-//	// loop through all of the attributes
-//	for (int i = 0; i < n; i++) {
-//		// print the attribute name
-//		cout << atts[i].name << ": ";
-//
-//		// use the i^th slot at the head of the record to get the
-//		// offset to the correct attribute in the record
-//		int pointer = ((int *)bits)[i + 1];
-//
-//		// here we determine the type, which given in the schema;
-//		// depending on the type we then print out the contents
-//		// first is integer
-//		if (atts[i].type == Integer) {
-//			int *myInt = (int *) &(bits[pointer]);
-//			cout << *myInt;
-//		}
-//		// then is a double
-//		else if (atts[i].type == Float) {
-//			double *myDouble = (double *) &(bits[pointer]);
-//			cout << *myDouble;
-//		}
-//		// then is a character string
-//		else if (atts[i].type == String) {
-//			char *myString = (char *) &(bits[pointer]);
-//			cout << myString;
-//		}
-//
-//		// print out a comma as needed to make things pretty
-//		if (i != n - 1) {
-//			cout << ", ";
-//		}
-//	}
-//
-//	return;
-//}
+
+bool Record::operator< (Record& _withMe) {
+	int ret = compOrder->Run(*this, _withMe, *_withMe.compOrder);
+	if (ret == -1) return true;
+	return false;
+}
+
+bool Record::IsEqual (Record& _withMe) {
+	int ret = compOrder->Run(*this, _withMe, *_withMe.compOrder);
+	if (ret == 0) return true;
+	return false;
+}
+
+bool Record::LessThan (Record& _withMe) {
+	int ret = compOrder->Run(*this, _withMe, *_withMe.compOrder);
+	if (ret == -1) return true;
+	return false;
+}
