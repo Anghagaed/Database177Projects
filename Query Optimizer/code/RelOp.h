@@ -8,7 +8,8 @@
 #include "DBFile.h"
 #include "Function.h"
 #include "Comparison.h"
-//#include "EfficientMap.h"
+#include "EfficientMap.h"
+#include "Keyify.h"
 
 using namespace std;
 
@@ -216,8 +217,10 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
-	//map
-	//EfficientMap<KeyString, double> map;
+	// for GetNext()
+	EfficientMap<Record, KeyDouble> map;
+	bool first = true;
+
 
 public:
 	GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtts,

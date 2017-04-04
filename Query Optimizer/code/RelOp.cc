@@ -7,8 +7,6 @@
 #include "EfficientMap.cc"
 #include "Keyify.h"
 #include "Config.h"
-#include "GBData.h"
-#include "Keyify.h"
 using namespace std;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
@@ -294,11 +292,9 @@ string convert(T x)
 	return convert.str(); 				// set 'Result' to the contents of the stream
 }
 
-// ASSUME: THERE IS ONLY 1 GROUPING ATTRIBUTE
+
 // NOW SUPPORTS ALL POSSIBLE GROUPING ATTRIBUTES AND SUMS
-// KEY = GROUPING ATTRIBUTE; DATA = SUM
-// POSSIBLE <KEY, DATA> COMBINATIONS:
-// <int, int>, <int, float>, <string, int>, <string, float>, <float, int>, <float, float>
+// KEY = Record(GROUPING ATTRIBUTE); DATA = SUM
 // TEST WITH:
 //		- Queries/Phase4Queries/11.sql for <int, float>
 //		- Queries/Phase4Queries/12.sql for <string, float>
@@ -307,135 +303,45 @@ string convert(T x)
 //		- Queries/Phase4Queries/15.sql for <string, int>
 //		- Queries/Phase4Queries/16.sql for <float, int>
 bool GroupBy::GetNext(Record& _record) {
-	EfficientMap<Key, Data> map;
-	Record temp;											// temp Record
-	int column = groupingAtts.whichAtts[0];					// grouping attribute location
-	int key; char* data; Key gbkey; Type keyType;			// temp Key (check GBData.h for see more details)
-	Data gbdata; float newSumF; int newSumI; int dataType;	// temp Data (check GBData.h for see more details)
-	int intResult;  double doubleResult; 					// for Function's Apply
-	dataType = compute.GetSumType();						// receive SUM type from Function
-	keyType = groupingAtts.whichTypes[0];					// grouping attribute type
-	while (producer->GetNext(temp) == true)
+	if (first)																	// check if this is called the first time
 	{
-		data = temp.GetColumn(column);								// get grouping attribute value
-		if (keyType == Integer)										// Key is int
-			gbkey = Key(*((int*)data));
-		else
-		if (keyType == Float)										// Key is float
-			gbkey = Key((float)(*((double*)data)));
-		else														// Key is string
-			gbkey = Key((char *)data);
-		compute.Apply(temp, intResult, doubleResult);				// compute sum
-		if (map.IsThere(gbkey))										// the key is inside the map
+		Record temp, projtemp;													// Records to insert
+		int intResult = 0; double doubleResult = 0;										// for Function's Apply (computing sum)
+		int returnsInt;															// to determine whether the sum type is int
+		double sum;																// SUM to insert
+		KeyDouble td;															// temp KeyDouble
+		while (producer->GetNext(temp))
 		{
-			if (dataType == 1)										// SUM is int
-			{
-				newSumI = map.Find(gbkey).getIntSum() + intResult;	// compute new sum
-				gbdata = Data(newSumI);								// convert to Data
-			}
-			else													// SUM is float
-			{
-				newSumF = map.Find(gbkey).getFloatSum() + (float)doubleResult;	// compute new sum
-				gbdata = Data(newSumF);								// convert to Data
-			}
-			map.Find(gbkey) = gbdata;								// update the SUM
+			// Get the projected record (only grouping attributes)
+			temp.SetOrderMaker(&groupingAtts);
+			returnsInt = compute.Apply(temp, intResult, doubleResult);			// compute sum
+			sum = intResult + doubleResult;										// get sum
+			temp.Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
+			projtemp = temp;													// extract only grouping attributes from Record
+			td = KeyDouble(sum);
+			if (map.IsThere(projtemp))											// the map has the record
+				map.Find(projtemp) = KeyDouble(map.Find(projtemp)+sum);				// update sum
+			else																// the map doesn't have the record
+				map.Insert(projtemp, td);										// insert into map
+			intResult = 0; doubleResult = 0;
 		}
-		else														// the key is not inside the map
-		{
-			if (dataType == 1)										// SUM is int
-			{
-				newSumI = intResult;								// get the sum
-				gbdata = Data(newSumI);					// convert to Data
-			}
-			else													// SUM is float
-			{
-				newSumF = (float)doubleResult;						// get the sum
-				gbdata = Data(newSumF);					// convert to Data
-			}
-			map.Insert(gbkey, gbdata);								// insert into map
-		}
+		first = false;															// set first time to false
 	}
-	map.MoveToStart();												// reset iterator
-	/*
-	// Test to ensure that there is some values inside the map
+
+	// Print Records and Sums
+	Schema test = schemaIn;
+	vector<int> keepMe;
+	for (int i = 0; i < groupingAtts.numAtts; ++i)
+	{
+		keepMe.push_back(groupingAtts.whichAtts[i]);
+	}
+	test.Project(keepMe);
+	map.MoveToStart();
 	while (!map.AtEnd())
 	{
-		cout << map.CurrentKey().getKey() << " << " << map.CurrentData().getData()<<"\n";
+		map.CurrentKey().print(cout, test);
+		cout << " << " << map.CurrentData() << "\n";
 		map.Advance();
-	}
-	*/
-	if (map.AtEnd())												// if we are at the end, then we are done return tuples so return false
-		return false;
-	else 
-	{
-		// Intention: Fill _record with the map
-		// Current: Print records with the map. _record contains nothing
-		// Work in progress...?
-		string s;
-		string separator = convert('|');
-		FILE* fp;
-		int i = 1;
-		char* result;
-		int length1;
-		int length2;
-		while (!map.AtEnd())
-		{
-			// Create a mini record (temp) to print
-			// Create a "FILE"
-			if (dataType == 1)										// SUM is int
-				s += convert(map.CurrentData().getIntSum());
-			else													// SUM is float
-				s += convert(map.CurrentData().getFloatSum());
-			s += separator;
-			if (keyType == Integer)									// Key is int
-				s += convert(map.CurrentKey().getIntKey());
-			else
-			if (keyType == Float)									// Key is float
-				s += convert(map.CurrentKey().getFloatKey());
-			else													// Key is string
-				s += convert(map.CurrentKey().getStringKey());
-			s += separator;
-			char* str = new char[s.length() + 1];					// string to char* converter
-			strcpy(str, s.c_str());
-			fp = fmemopen(str, s.length() * sizeof(char), "r");		// create a FILE here
-			
-			// Extract the "FILE"
-			temp.ExtractNextRecord(schemaOut, *fp);
-			temp.print(cout, schemaOut);							// Print the record
-			cout << endl;
-			/*
-			if (_record.GetSize() > 0)
-			{
-				cout << "yes\n";
-				length1 = _record.GetSize();
-				length2 = temp.GetSize();
-				result = new char[length1 + length2];					// array to hold the result.
-				memcpy(result, _record.GetBits(), length1);					// copy memory _record into the result.
-				memmove(result + length1, temp.GetBits(), length2);	// append memory temp record to the result.
-				string c = result;
-				cout << c << endl;
-				_record.CopyBits(result, length1+length2);												// transfer result into _record
-				_record.print(cout, schemaOut);
-				cout << endl;
-			}
-			else
-			{
-				cout << "no\n";
-				length2 = temp.GetSize();
-				result = new char[length2];										// array to hold the result.
-				memcpy(result, temp.GetBits(), length2);							// copy memory _record one into the result.
-				_record.CopyBits(result, length2);												// transfer result into _record
-				string c = result;
-				cout << c << endl;
-				_record.print(cout, schemaOut);
-				cout << endl;
-			}
-			*/
-			s = "";
-			fclose(fp);
-			delete str;
-			map.Advance();
-		}
 	}
 	return false;
 }
