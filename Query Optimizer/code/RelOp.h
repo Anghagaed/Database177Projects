@@ -146,6 +146,14 @@ private:
 	// schema of records output by operator
 	Schema schemaOut;
 
+
+	// Data Structure Build
+	vector<Record> myDS;
+	vector<Record> appendRecords;
+	int appendIndex;
+	bool buildCheck;
+
+
 	// selection predicate in conjunctive normal form
 	CNF predicate;
 
@@ -158,7 +166,7 @@ public:
 		CNF& _predicate, RelationalOp* _left, RelationalOp* _right);
 	virtual ~Join();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	Schema& getSchema();	//function to get schemaOut
 

@@ -193,9 +193,68 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	predicate = _predicate;
 	left = _left;
 	right = _right;
+	appendIndex = 0;
+	buildCheck = true;
 }
 
 Join::~Join() {
+
+}
+
+bool Join::GetNext(Record& _record) {
+
+	if (buildCheck) {
+
+		buildCheck = false;
+
+		Record temp;
+
+		// Build
+
+		while (right->GetNext(temp)) {
+
+			myDS.push_back(temp);
+
+		}
+
+
+		// Probe
+
+		while (left->GetNext(temp)) {
+
+			for (int i = 0; i < myDS.size(); i++) {
+
+				if (predicate.Run(temp, myDS[i])) {
+
+					Record merge;
+					merge.AppendRecords(temp, myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+					appendRecords.push_back(merge);
+
+				}
+
+			}
+
+		}
+
+	}
+
+
+	// Returns
+
+
+	if (appendIndex < appendRecords.size()) {
+
+		_record = appendRecords[appendIndex];
+		appendIndex++;
+		return true;
+
+	}
+
+	else {
+
+		return false;
+
+	}
 
 }
 
