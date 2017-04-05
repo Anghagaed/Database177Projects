@@ -267,6 +267,17 @@ bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 	return true;
 }
 
+// Slow Variable to String Conversion Method
+// Alternative Options (may require downloading):
+// http://stackoverflow.com/questions/191757/how-to-concatenate-a-stdstring-and-an-int
+template <typename T>
+string convert(T x)
+{
+	ostringstream convert;   			// stream used for the conversion
+	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
+	return convert.str(); 				// set 'Result' to the contents of the stream
+}
+
 Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 	RelationalOp* _producer) {
 	schemaIn = _schemaIn;
@@ -285,13 +296,42 @@ bool Sum::GetNext(Record & _record)
 {
 	Record temp;
 	int valI; double valD;
-	float runningSum;
+	double runningSum = 0;
+	
+	if (first) {
+		while (producer->GetNext(temp)) {
 
-	while (producer->GetNext(temp)) {
-		//runningSum += Function.Run(temp);
-		runningSum += compute.Apply(temp, valI, valD);
+			compute.Apply(temp, valI, valD);
+
+			if (compute.GetSumType() == 1) {		// int 
+				runningSum += valI;
+			}
+			else if (compute.GetSumType() == 0) {	// double
+				runningSum += valD;
+			}
+		}
+		first = false;
 	}
+	else {
+		return false;
+	}
+
 	// create recrod with running sum
+	FILE* fp;
+	string s;
+	string separator = convert('|');
+
+	s = convert(runningSum) + separator;
+	char* str = new char[s.length() + 1];			// string to char* converter
+	strcpy(str, s.c_str());
+	fp = fmemopen(str, s.length() * sizeof(char), "r");
+
+	//Extract the "FILE"
+	vector<int> x;
+	x.push_back(0);
+	Schema sumz = schemaOut;
+	sumz.Project(x);
+	_record.ExtractNextRecord(sumz, *fp);
 
 	return true;
 }
@@ -308,17 +348,6 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	groupingAtts.Swap(_groupingAtts);
 	compute = _compute;
 	producer = _producer;
-}
-
-// Slow Variable to String Conversion Method
-// Alternative Options (may require downloading):
-// http://stackoverflow.com/questions/191757/how-to-concatenate-a-stdstring-and-an-int
-template <typename T>
-string convert(T x)
-{
-	ostringstream convert;   			// stream used for the conversion
-	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
-	return convert.str(); 				// set 'Result' to the contents of the stream
 }
 
 

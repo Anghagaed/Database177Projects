@@ -199,6 +199,8 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
+	bool first = true;
+
 public:
 	Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 		RelationalOp* _producer);
