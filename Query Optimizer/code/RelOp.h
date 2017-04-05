@@ -14,7 +14,7 @@
 
 using namespace std;
 
-static OrderMaker myOrder;
+//static OrderMaker myOrder;
 
 class RelationalOp {
 protected:
@@ -182,6 +182,11 @@ private:
 	RelationalOp* producer;
 
 	//struct sComp(Schema _schema);
+
+	bool check = true; //check if first
+
+	vector <Record> duplTemp;//store non-duplicates
+	int it;//iterator
 
 public:
 	DuplicateRemoval(Schema& _schema, RelationalOp* _producer);

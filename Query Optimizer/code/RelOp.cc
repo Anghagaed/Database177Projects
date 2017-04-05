@@ -296,34 +296,32 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
-	/*
-	myOrder = OrderMaker(this->schema);
-	struct sComp
+	if (check)
 	{
-		bool operator () (const Record& inSet, const Record& outSet) const
+		Record recTemp;
+		producer->GetNext(recTemp);
+		duplTemp.push_back(recTemp);
+		check = false;
+		int i = 0; //iterator
+		it = 0;//global iterator
+		while (producer->GetNext(recTemp) == true)
 		{
-			const Record * left = &inSet;
-			const Record * right = &outSet;
-			Record * set = (const_cast<Record*> (left));
-			Record * noSet = (const_cast<Record*> (right));
-			if (myOrder.Run((*set), (*noSet)) == -1)
+			if (duplTemp[i] < recTemp)
 			{
-				return true;
-			}
-			else
-			{
-				return false;
+				duplTemp.push_back(recTemp);
 			}
 		}
-	};
-	//bool(*fn_pt)(Record, Record, Schema) = sComp;
-	//set<Record, sComp> duplTemp; //store the records in set
-	while (producer->GetNext(_record) == true)
-	{
-			//duplTemp.insert(_record);		
 	}
-	*/
-	return true;
+	if (it == duplTemp.size())
+	{
+		return false;
+	}
+	else
+	{
+		_record=duplTemp[it];
+		return true;
+	}
+	
 }
 
 // Slow Variable to String Conversion Method
