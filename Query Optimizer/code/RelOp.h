@@ -148,8 +148,8 @@ private:
 
 
 	// Data Structure Build
-	vector<Record> myDS;
-	vector<Record> appendRecords;
+	vector<Record*> myDS;
+	vector<Record*> appendRecords;
 	int appendIndex;
 	bool buildCheck;
 

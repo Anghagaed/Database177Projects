@@ -205,6 +205,7 @@ bool Join::GetNext(Record& _record) {
 
 	if (buildCheck) {
 
+		//cout << "Building " << endl;
 		buildCheck = false;
 
 		Record temp;
@@ -212,23 +213,44 @@ bool Join::GetNext(Record& _record) {
 		// Build
 
 		while (right->GetNext(temp)) {
+			//cout << "Building a record" << endl;
+			//cout << temp.GetSize() << endl;
 
-			myDS.push_back(temp);
+			Record* temp2 = new Record();
+
+			*temp2 = temp;
+
+			myDS.push_back(temp2);
+			
+			//cout << "Pushed" << endl;
 
 		}
 
+		//cout << "Done building DS" << endl;
 
 		// Probe
 
 		while (left->GetNext(temp)) {
 
+			//cout << "Fetching tuple" << endl;
+
 			for (int i = 0; i < myDS.size(); i++) {
 
-				if (predicate.Run(temp, myDS[i])) {
+				if (predicate.Run(temp, *myDS[i])) {
+
+					//cout << "Found match at " << i << endl;
 
 					Record merge;
-					merge.AppendRecords(temp, myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
-					appendRecords.push_back(merge);
+					merge.AppendRecords(temp, *myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+
+					//cout << "Appended" << endl;
+
+					Record* merge2 = new Record();
+					*merge2 = merge;
+
+					appendRecords.push_back(merge2);
+
+					//cout << "Pushed" << endl;
 
 				}
 
@@ -238,14 +260,18 @@ bool Join::GetNext(Record& _record) {
 
 	}
 
+	//cout << "Built" << endl;
+
 
 	// Returns
 
+	//cout << appendIndex << " " << appendRecords.size() << endl;
 
 	if (appendIndex < appendRecords.size()) {
 
-		_record = appendRecords[appendIndex];
+		_record = *appendRecords[appendIndex];
 		appendIndex++;
+		//cout << "Returned: " << appendIndex << endl;
 		return true;
 
 	}
