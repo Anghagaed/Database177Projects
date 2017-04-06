@@ -200,7 +200,10 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		// Create SUM Schema
 		string attName = "SUM";													// Name of output schema
 		string attType;															// Type of the output schema
-		attType = "Float";
+		if (_compute.GetSumType() == 1)											// attType is Integer
+			attType = "Integer";
+		else																	// attType is Float
+			attType = "Float";
 		vector<string> attNames;												// vector form of Name
 		attNames.push_back(attName);
 		vector<string> attTypes;												// vector form of Type

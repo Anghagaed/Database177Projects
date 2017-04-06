@@ -127,7 +127,7 @@ int main()
 		yylex_destroy();
 
 		if (parse != 0) return -1;
-		
+		/*
 		char result;
 
 		cout << "Create heap files (Make sure the Binary Files folder is empty)? y for yes, n for no: " << endl;
@@ -135,7 +135,7 @@ int main()
 
 		if (result == 'y') {
 			loadData();
-		}
+		}*/
 /*
 		DBFile myDBFile;
 

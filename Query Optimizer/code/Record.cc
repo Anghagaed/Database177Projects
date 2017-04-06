@@ -52,6 +52,10 @@ void Record::Swap(Record& _other) {
 	SWAP(compOrder, _other.compOrder);
 }
 
+void Record::CopyFrom(Record& _toCopy) {
+	*(this) = _toCopy;
+}
+
 void Record :: Consume (char*& fromMe) {
 	delete [] bits;
 	bits = fromMe;
@@ -439,19 +443,19 @@ void Record :: print(ostream& _os, Schema& mySchema) {
 
 
 bool Record::operator< (Record& _withMe) {
-	int ret = compOrder->Run(*this, _withMe, *_withMe.compOrder);
+	int ret = compOrder->Run(*this, _withMe);
 	if (ret == -1) return true;
 	return false;
 }
 
 bool Record::IsEqual (Record& _withMe) {
-	int ret = compOrder->Run(*this, _withMe, *_withMe.compOrder);
+	int ret = compOrder->Run(*this, _withMe);
 	if (ret == 0) return true;
 	return false;
 }
 
 bool Record::LessThan (Record& _withMe) {
-	int ret = compOrder->Run(*this, _withMe, *_withMe.compOrder);
+	int ret = compOrder->Run(*this, _withMe);
 	if (ret == -1) return true;
 	return false;
 }

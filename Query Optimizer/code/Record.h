@@ -31,7 +31,7 @@ public:
 	Record& operator=(const Record& _other);
 	// swap function
 	void Swap(Record& _other);
-
+	void CopyFrom(Record& _toCopy);
 	virtual ~Record();
 
 	// reads the next record from a pointer to a text file; also requires

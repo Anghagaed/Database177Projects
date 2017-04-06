@@ -216,7 +216,8 @@ void OrderMaker::ANDMerge(OrderMaker& om1, OrderMaker& om2) {
 		}
 	}
 }
-
+// Delete Me
+using namespace std;
 int OrderMaker :: Run(Record& left, Record& right) {
 	char *val1, *val2;
 
@@ -256,8 +257,18 @@ int OrderMaker :: Run(Record& left, Record& right) {
 				break;
 			}
 			default: {
+				string temp1, temp2;
+				temp1 = val1; 
+				temp2 = val2;
+				//cout << "temp1 is: " << temp1 << " and temp2 is: " << temp2 << endl;
 				int sc = strcmp (val1, val2);
-				if (sc != 0) return sc;
+				if (!(temp1.compare(temp2)) && sc) {
+					cout << "Matching but sc is not 0" << endl;
+					cout << "temp1 is: " << temp1 << " and temp2 is: " << temp2 << endl;
+					cout << "sc is: " << sc << endl;
+				}
+				//cout << "sc is: " << sc << endl;
+				if (sc != 0) return -1;
 
 				break;
 			}
@@ -266,6 +277,10 @@ int OrderMaker :: Run(Record& left, Record& right) {
 
 	return 0;
 }
+
+// Delete Me
+
+using namespace std;
 
 int OrderMaker :: Run (Record& left, Record& right, OrderMaker& orderRight) {
 	char *val1, *val2;
@@ -308,6 +323,7 @@ int OrderMaker :: Run (Record& left, Record& right, OrderMaker& orderRight) {
 			default: {
 				int sc = strcmp (val1, val2);
 				if (sc != 0) return sc;
+				//if (sc != 0) return -1;
 
 				break;
 			}

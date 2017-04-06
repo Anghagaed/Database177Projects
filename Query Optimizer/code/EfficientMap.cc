@@ -201,17 +201,20 @@ EfficientMap <Key, Data> :: IsThere (Key &key) {
 		while (1) {
 
 			// keep looping until either we reach the end
-			if (AtEnd (i))
+			if (AtEnd(i)) {
+				cout << "Map At the end" << endl;
 				break;
-
+			}
 			// or we find a larger item
-			if (key.LessThan (CurrentKey (i)))
+			if (key.LessThan(CurrentKey(i))) {
+				cout << "Found larger item" << endl;
 				break;
-
+			}
 			// see if we actually found it
-			if (key.IsEqual (CurrentKey (i)))
+			if (key.IsEqual(CurrentKey(i))) {
+				cout << "Found same stuff" << endl;
 				return 1;
-
+			}
 			// if we made it here, we have more data to loop thru
 			Advance (i);
 		}
