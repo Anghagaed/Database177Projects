@@ -172,7 +172,10 @@ void Record :: Project (int* attsToKeep, int numAttsToKeep, int numAttsNow) {
 	}
 
 	// now, allocate the new bits
+//	cout << "PLAY "<< totSpace <<endl;
+//	cout << attsToKeep[2] << endl;
 	char *newBits = new char[totSpace];
+//	cout << "END" << endl;
 
 	// record the total length of the record
 	*((int *) newBits) = totSpace;
@@ -443,7 +446,9 @@ void Record :: print(ostream& _os, Schema& mySchema) {
 
 
 bool Record::operator< (Record& _withMe) {
+	//cout << "About to call compOrder->Run()" << endl;
 	int ret = compOrder->Run(*this, _withMe);
+//	cout << "called compOrder->Run()" << endl;
 	if (ret == -1) return true;
 	return false;
 }

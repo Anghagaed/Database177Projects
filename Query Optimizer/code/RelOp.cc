@@ -293,10 +293,11 @@ ostream& Join::print(ostream& _os) {
 }
 
 
-DuplicateRemoval::DuplicateRemoval(Schema& _schema, RelationalOp* _producer) {
+DuplicateRemoval::DuplicateRemoval(Schema& _schema, RelationalOp* _producer, OrderMaker &_duplComp) {
 	schema = _schema;
 	producer = _producer;
 	check = true;
+	duplComp.Swap(_duplComp);
 }
 
 DuplicateRemoval::~DuplicateRemoval() {
@@ -307,59 +308,65 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 	return _os << "DISTINCT \nSchema: " << schema << "\nProducer: " << *producer << endl;
 }
 
-//bool sComp(Record inSet, Record outSet)
-//{
-//	if (OrderMaker(_schema).Run(inSet, outSet) == -1)
-//	{
-//		return true;
-//	}
-//	else
-//	{
-//		return false;
-//	}
-//};
-
-
-
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
-	cout << "hi" << endl;
+	//cout << "hi" << endl;
 	if (check)
 	{
 	//	cout << "Making" << endl;
 		Record recTemp;
 		producer->GetNext(recTemp);
-		Record *makerPtr = new Record();
-		*makerPtr = recTemp;
+	//	cout << schema << endl;
+		recTemp.SetOrderMaker(&duplComp);
+	//	cout << "ordered" << duplComp << duplComp.numAtts<<endl;
+	//	recTemp.Project(duplComp.whichAtts, duplComp.numAtts, schema.GetNumAtts());
+	//	Record *makerPtr = new Record();
+	//	*makerPtr = recTemp;
 	//	cout << "Pushing first" << endl;
-		duplTemp.push_back(makerPtr);
+		KeyInt AMARSUCKSCOCK = KeyInt(1);
+		duplTemp.Insert(recTemp, AMARSUCKSCOCK);
 	//	cout << "Pushed" << endl;
 		check = false;
-		int i = 0; //iterator
-		it = 0;//global iterator
-		while (producer->GetNext(recTemp))
+	//	it = 0;//global iterator
+	//	cout << "entering" << endl;
+		Record recTemp2;
+		while (producer->GetNext(recTemp2))
 		{
-			cout << "filling" << i << endl;
-			Record *RecPtr = new Record();
-			cout << "Amar" << endl;
-			*RecPtr = recTemp;
-			cout << "cumdumpster" << i;
-			if (*duplTemp[i] < recTemp)
+			AMARSUCKSCOCK = KeyInt(1);
+			recTemp2.SetOrderMaker(&duplComp);
+	//		cout << duplComp<< endl;
+			//recTemp2.Project(duplComp.whichAtts, duplComp.numAtts, schema.GetNumAtts());
+	//		cout << "filling" << i << endl;
+	//		Record *RecPtr = new Record();
+	//		cout << "Amar" << endl;
+	//		*RecPtr = recTemp2;
+	//		cout << "cumdumpster" << i;
+		/*	duplTemp[i]->print(cout, schema);
+			cout << endl;
+			cout<< " COMPARING " <<endl;
+			recTemp2.print(cout,schema);
+			cout << endl;*/
+	//		recTemp2.print(cout, schema);
+	//		cout << endl;
+	//		cout << schema << endl;
+			if (!duplTemp.IsThere(recTemp2))
 			{
-				cout << "faggot" << i<<endl;
-				duplTemp.push_back(RecPtr);
+	//			cout << "faggot" << i<<endl;
+				duplTemp.Insert(recTemp2,AMARSUCKSCOCK);
 			}
-			cout << "no homo" << i<<endl;
+	//		cout << "no homo" << i<<endl;
 		}
+		duplTemp.MoveToStart();
 	}
-	cout << "Run " << it << endl;
-	if (it == duplTemp.size())
+//	cout << "Run " << it << endl;
+	if (duplTemp.AtEnd())
 	{
 		return false;
 	}
 	else
 	{
-		_record=*duplTemp[it];
+		_record=duplTemp.CurrentKey();
+		duplTemp.Advance();
 		return true;
 	}
 	

@@ -183,11 +183,14 @@ private:
 
 	bool check; //check if first
 
-	vector <Record*> duplTemp;//store non-duplicates
-	int it;//iterator
+	EfficientMap <Record, KeyInt> duplTemp;
+	
+	//vector <Record*> duplTemp;//store non-duplicates
+	
+	OrderMaker duplComp; //	orderMaker for duplicateRemoval
 	
 public:
-	DuplicateRemoval(Schema& _schema, RelationalOp* _producer);
+	DuplicateRemoval(Schema& _schema, RelationalOp* _producer, OrderMaker &_duplComp);
 	virtual ~DuplicateRemoval();
 
 	virtual bool GetNext(Record& _record);

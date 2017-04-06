@@ -276,7 +276,12 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 		if (_distinctAtts != 0)													// _distinctAtts != 0 -> DuplicateRemoval
 		{
 			// Create DuplicateRemoval here
-			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaIn, project);
+			int* _keepThese;
+			_keepThese = new int[_numAttsOutput];
+			for (int c = 0; c < _numAttsOutput; ++c)
+				_keepThese[c] = c;
+			OrderMaker duplComp(_schemaOut, _keepThese, _numAttsOutput);
+			DuplicateRemoval* duplicateRemoval = new DuplicateRemoval(_schemaOut, project, duplComp);
 			DeleteThis.push_back(duplicateRemoval);	//make sure to delete this later
 			string outFile = "output.txt";
 			writeout = new WriteOut(_schemaOut, outFile, duplicateRemoval);		// Insert all relevant values into WriteOut
