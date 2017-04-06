@@ -423,6 +423,21 @@ bool Sum::GetNext(Record & _record)
 	}
 
 	// create recrod with running sum
+	// Create bits
+	double doubletemp = runningSum;
+	// size = (size of bits) + (location of double) + (size of double)
+	int bitsize = sizeof(int) + sizeof(int) + sizeof(double);
+	char* bits = new char[bitsize];								// temp storage
+																// columnLoc = (size of bits) + (location of double)
+	int columnLoc = sizeof(int) + sizeof(int);					// column location
+	*((double *) &(bits[columnLoc])) = doubletemp;				// insert sum
+	((int *)bits)[0] = bitsize;									// size of bits
+	((int *)bits)[1] = columnLoc;								// location of the sum
+
+	_record.Consume(bits);										// Define _record (SUM Record)
+	delete bits;												// Delete bits
+
+	/*
 	FILE* fp;
 	string s;
 	string separator = convert('|');
@@ -438,7 +453,7 @@ bool Sum::GetNext(Record & _record)
 	Schema sumz = schemaOut;
 	sumz.Project(x);
 	_record.ExtractNextRecord(sumz, *fp);
-
+	*/
 	return true;
 }
 
@@ -501,7 +516,7 @@ bool GroupBy::GetNext(Record& _record) {
 	int size;
 
 	// Create a FILE here
-	FILE* fp;
+	/*FILE* fp;
 	string s;
 	string separator = convert('|');
 	double doubletemp = map.CurrentData();
@@ -511,20 +526,39 @@ bool GroupBy::GetNext(Record& _record) {
 	fp = fmemopen(str, s.length() * sizeof(char), "r");
 
 	//Extract the "FILE"
+	
 	vector<int> x;
 	x.push_back(0);
 	Schema sumz = schemaOut;
 	sumz.Project(x);
 	r1.ExtractNextRecord(sumz, *fp);
+	*/
 
+	// Create bits
+	double doubletemp = map.CurrentData();
+	// size = (size of bits) + (location of double) + (size of double)
+	int bitsize = sizeof(int) + sizeof(int) + sizeof(double);
+	char* bits = new char[bitsize];								// temp storage
+	// columnLoc = (size of bits) + (location of double)
+	int columnLoc = sizeof(int) + sizeof(int);					// column location
+	*((double *) &(bits[columnLoc])) = doubletemp;				// insert sum
+	((int *)bits)[0] = bitsize;									// size of bits
+	((int *)bits)[1] = columnLoc;								// location of the sum
+	
+	r1.Consume(bits);											// Define r1 (SUM Record)
+	delete bits;												// Delete bits
+
+	// Create r2 (GroupingAtts)
 	map.CurrentKey().Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
 	c = map.CurrentKey().GetBits();
 	size = map.CurrentKey().GetSize();
 	r2.CopyBits(c, size);
-	_record.AppendRecords(r1, r2, 1, groupingAtts.numAtts);
+	
+	_record.AppendRecords(r1, r2, 1, groupingAtts.numAtts);		// Merge 2 records
 
-	fclose(fp);
-	delete str;
+	//fclose(fp);
+	//delete str;
+	//delete c;
 	map.Advance();
 	return true;
 }
