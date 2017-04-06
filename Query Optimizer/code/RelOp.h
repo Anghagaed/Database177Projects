@@ -13,6 +13,7 @@
 
 using namespace std;
 
+
 class RelationalOp {
 protected:
 	// the number of pages that can be used by the operator in execution
@@ -143,6 +144,14 @@ private:
 	// schema of records output by operator
 	Schema schemaOut;
 
+
+	// Data Structure Build
+	vector<Record*> myDS;
+	vector<Record*> appendRecords;
+	int appendIndex;
+	bool buildCheck;
+
+
 	// selection predicate in conjunctive normal form
 	CNF predicate;
 
@@ -155,7 +164,7 @@ public:
 		CNF& _predicate, RelationalOp* _left, RelationalOp* _right);
 	virtual ~Join();
 
-	virtual bool GetNext(Record& _record) {}
+	virtual bool GetNext(Record& _record);
 
 	Schema& getSchema();	//function to get schemaOut
 
@@ -170,6 +179,13 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
+	//struct sComp(Schema _schema);
+
+	bool check = true; //check if first
+
+	vector <Record> duplTemp;//store non-duplicates
+	int it;//iterator
+	
 public:
 	DuplicateRemoval(Schema& _schema, RelationalOp* _producer);
 	virtual ~DuplicateRemoval();
@@ -191,6 +207,8 @@ private:
 
 	// operator generating data
 	RelationalOp* producer;
+
+	bool first = true;
 
 public:
 	Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,

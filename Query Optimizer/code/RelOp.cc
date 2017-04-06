@@ -193,9 +193,94 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	predicate = _predicate;
 	left = _left;
 	right = _right;
+	appendIndex = 0;
+	buildCheck = true;
 }
 
 Join::~Join() {
+
+}
+
+bool Join::GetNext(Record& _record) {
+
+	if (buildCheck) {
+
+		//cout << "Building " << endl;
+		buildCheck = false;
+
+		Record temp;
+
+		// Build
+
+		while (right->GetNext(temp)) {
+			//cout << "Building a record" << endl;
+			//cout << temp.GetSize() << endl;
+
+			Record* temp2 = new Record();
+
+			*temp2 = temp;
+
+			myDS.push_back(temp2);
+			
+			//cout << "Pushed" << endl;
+
+		}
+
+		//cout << "Done building DS" << endl;
+
+		// Probe
+
+		while (left->GetNext(temp)) {
+
+			//cout << "Fetching tuple" << endl;
+
+			for (int i = 0; i < myDS.size(); i++) {
+
+				if (predicate.Run(temp, *myDS[i])) {
+
+					//cout << "Found match at " << i << endl;
+
+					Record merge;
+					merge.AppendRecords(temp, *myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+
+					//cout << "Appended" << endl;
+
+					Record* merge2 = new Record();
+					*merge2 = merge;
+
+					appendRecords.push_back(merge2);
+
+					//cout << "Pushed" << endl;
+
+				}
+
+			}
+
+		}
+
+	}
+
+	//cout << "Built" << endl;
+
+
+	// Returns
+
+	//cout << appendIndex << " " << appendRecords.size() << endl;
+
+	if (appendIndex < appendRecords.size()) {
+
+		_record = *appendRecords[appendIndex];
+		appendIndex++;
+		//cout << "Returned: " << appendIndex << endl;
+		return true;
+
+	}
+
+	else {
+
+		return false;
+
+	}
 
 }
 
@@ -237,32 +322,43 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
-	//myOrder = OrderMaker(this->schema);
-	//struct sComp
-	//{
-	//	bool operator () (const Record& inSet, const Record& outSet) const
-	//	{
-	//		const Record * left = &inSet;
-	//		const Record * right = &outSet;
-	//		Record * set = (const_cast<Record*> (left));
-	//		Record * noSet = (const_cast<Record*> (right));
-	//		if (myOrder.Run((*set), (*noSet)) == -1)
-	//		{
-	//			return true;
-	//		}
-	//		else
-	//		{
-	//			return false;
-	//		}
-	//	}
-	//};
-	////bool(*fn_pt)(Record, Record, Schema) = sComp;
-	////set<Record, sComp> duplTemp; //store the records in set
-	//while (producer->GetNext(_record) == true)
-	//{
-	//		//duplTemp.insert(_record);		
-	//}
-	//return true;
+	if (check)
+	{
+		Record recTemp;
+		producer->GetNext(recTemp);
+		duplTemp.push_back(recTemp);
+		check = false;
+		int i = 0; //iterator
+		it = 0;//global iterator
+		while (producer->GetNext(recTemp) == true)
+		{
+			if (duplTemp[i] < recTemp)
+			{
+				duplTemp.push_back(recTemp);
+			}
+		}
+	}
+	if (it == duplTemp.size())
+	{
+		return false;
+	}
+	else
+	{
+		_record=duplTemp[it];
+		return true;
+	}
+	
+}
+
+// Slow Variable to String Conversion Method
+// Alternative Options (may require downloading):
+// http://stackoverflow.com/questions/191757/how-to-concatenate-a-stdstring-and-an-int
+template <typename T>
+string convert(T x)
+{
+	ostringstream convert;   			// stream used for the conversion
+	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
+	return convert.str(); 				// set 'Result' to the contents of the stream
 }
 
 Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
@@ -277,9 +373,50 @@ Sum::~Sum() {
 	
 }
 
+// TEST WITH:
+//		- Queries/Phase4Queries/1.sql, 2, 5, 9, 11-16
 bool Sum::GetNext(Record & _record)
 {
-	return false;
+	Record temp;
+	int valI; double valD;
+	double runningSum = 0;
+	
+	if (first) {
+		while (producer->GetNext(temp)) {
+
+			compute.Apply(temp, valI, valD);
+
+			if (compute.GetSumType() == 1) {		// int 
+				runningSum += valI;
+			}
+			else if (compute.GetSumType() == 0) {	// double
+				runningSum += valD;
+			}
+		}
+		first = false;
+	}
+	else {
+		return false;
+	}
+
+	// create recrod with running sum
+	FILE* fp;
+	string s;
+	string separator = convert('|');
+
+	s = convert(runningSum) + separator;
+	char* str = new char[s.length() + 1];			// string to char* converter
+	strcpy(str, s.c_str());
+	fp = fmemopen(str, s.length() * sizeof(char), "r");
+
+	//Extract the "FILE"
+	vector<int> x;
+	x.push_back(0);
+	Schema sumz = schemaOut;
+	sumz.Project(x);
+	_record.ExtractNextRecord(sumz, *fp);
+
+	return true;
 }
 
 ostream& Sum::print(ostream& _os) {
@@ -294,17 +431,6 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	groupingAtts.Swap(_groupingAtts);
 	compute = _compute;
 	producer = _producer;
-}
-
-// Slow Variable to String Conversion Method
-// Alternative Options (may require downloading):
-// http://stackoverflow.com/questions/191757/how-to-concatenate-a-stdstring-and-an-int
-template <typename T>
-string convert(T x)
-{
-	ostringstream convert;   			// stream used for the conversion
-	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
-	return convert.str(); 				// set 'Result' to the contents of the stream
 }
 
 
