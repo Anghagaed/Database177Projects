@@ -296,6 +296,7 @@ ostream& Join::print(ostream& _os) {
 DuplicateRemoval::DuplicateRemoval(Schema& _schema, RelationalOp* _producer) {
 	schema = _schema;
 	producer = _producer;
+	check = true;
 }
 
 DuplicateRemoval::~DuplicateRemoval() {
@@ -381,6 +382,7 @@ Sum::Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
 	schemaOut = _schemaOut;
 	compute = _compute;
 	producer = _producer;
+	first = true;
 }
 
 Sum::~Sum() {
@@ -445,6 +447,8 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 	groupingAtts.Swap(_groupingAtts);
 	compute = _compute;
 	producer = _producer;
+	first = true;
+	counter = 0;
 }
 
 
@@ -458,17 +462,9 @@ GroupBy::GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtt
 //		- Queries/Phase4Queries/15.sql for <string, int>
 //		- Queries/Phase4Queries/16.sql for <float, int>
 bool GroupBy::GetNext(Record& _record) {
+	
 	if (first)																	// check if this is called the first time
 	{
-		Schema groupAttz = schemaIn;
-		cout << groupingAtts << endl;
-		/*vector<int> keepMe;
-		for (int i = 0; i < groupingAtts.numAtts; ++i)
-		{
-			keepMe.push_back(groupingAtts.whichAtts[i]);
-		}
-		groupAttz.Project(keepMe);
-		*/
 		Record temp, projtemp;													// Records to insert
 		int intResult = 0; double doubleResult = 0;										// for Function's Apply (computing sum)
 		int returnsInt;															// to determine whether the sum type is int
@@ -476,124 +472,26 @@ bool GroupBy::GetNext(Record& _record) {
 		KeyDouble td;															// temp KeyDouble
 		while (producer->GetNext(temp))
 		{
-			//temp.SetOrderMaker(&groupingAtts);
 			returnsInt = compute.Apply(temp, intResult, doubleResult);			// compute sum
 			sum = intResult + doubleResult;										// get sum
-			//temp.Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
 			projtemp = temp;													// extract only grouping attributes from Record
 			projtemp.SetOrderMaker(&groupingAtts);
 			td = KeyDouble(sum);
-			//cout << " " << sum << endl;
-			//cout << map.IsThere(projtemp) << endl;
-			cout << "Start IsThere\n";
-			bool cond = map.IsThere(projtemp);
-			projtemp.print(cout, groupAttz);
-			cout << endl;
-			cout << "End IsThere\n";
-			if (cond) {											// the map has the record
-				//KeyDouble& kd = map.Find(projtemp);
-				//kd = kd + sum;				// update sum
+			if (map.IsThere(projtemp))											// the map has the record
 				map.Find(projtemp) = KeyDouble(map.Find(projtemp) + sum);
-				//cout << "update the sum!" << endl;
-			}
 			else																// the map doesn't have the record
-			{
 				map.Insert(projtemp, td);										// insert into map
-				//cout << "insert the sum!\n";
-			}
 			intResult = 0; doubleResult = 0;
 		}
 		first = false;															// set first time to false
 		map.MoveToStart();
 	}
-	/*
-	// Print Records and Sums
-	Schema groupAttz = schemaIn;
-	vector<int> keepMe;
-	for (int i = 0; i < groupingAtts.numAtts; ++i)
-	{
-		keepMe.push_back(groupingAtts.whichAtts[i]);
-	}
-	groupAttz.Project(keepMe);
-	
-	while (!map.AtEnd())
-	{
-		map.CurrentKey().Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
-		map.CurrentKey().print(cout, groupAttz);
-		cout << " << " << map.CurrentData() << "\n";
-		map.Advance();
-	}
-	return false;
-	*/
 	
 	if (map.AtEnd())
 		return false;
-
-	Record& cr = map.CurrentKey();
-	KeyDouble& kd = map.CurrentData();
-
-	Record rr; rr = cr; rr.Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
-
-	
-	// Create a FILE here
-	FILE* fp;
-	string s;
-	string separator = convert('|');
-	double doubletemp = map.CurrentData();
-	s = convert(kd) + separator;
-	char* str = new char[s.length() + 1];					// string to char* converter
-	strcpy(str, s.c_str());
-	fp = fmemopen(str, s.length() * sizeof(char), "r");
-
-
-	//Extract the "FILE"
-	vector<int> x;
-	x.push_back(0);
-	Schema sumz = schemaOut;
-	sumz.Project(x);
-
-	Record newR; newR.ExtractNextRecord(sumz, *fp);
-
-	fclose(fp);
-	delete str;
-
-	_record.AppendRecords(newR, rr, 1, groupingAtts.numAtts);
-
-	map.Advance();
-	return true;
-	
-
-/*
-	// Print Records and Sums
-	Schema groupAttz = schemaIn;
-	vector<int> keepMe;
-	for (int i = 0; i < groupingAtts.numAtts; ++i)
-	{
-		keepMe.push_back(groupingAtts.whichAtts[i]);
-	}
-	groupAttz.Project(keepMe);
-	/*
-	while (!map.AtEnd())
-	{
-	map.CurrentKey().print(cout, groupAttz);
-	cout << " << " << map.CurrentData() << "\n";
-	map.Advance();
-	}
-
-	if (map.AtEnd())
-		return false;
-
 	Record r1, r2;
-	char* c; 
+	char* c;
 	int size;
-	
-	// r1 test
-	size = map.CurrentKey().GetSize();
-	c = map.CurrentKey().GetBits();
-	r1.CopyBits(c, size);
-	r1.print(cout, groupAttz);
-	cout << endl;
-	map.Advance();
 
 	// Create a FILE here
 	FILE* fp;
@@ -605,7 +503,6 @@ bool GroupBy::GetNext(Record& _record) {
 	strcpy(str, s.c_str());
 	fp = fmemopen(str, s.length() * sizeof(char), "r");
 
-
 	//Extract the "FILE"
 	vector<int> x;
 	x.push_back(0);
@@ -613,17 +510,16 @@ bool GroupBy::GetNext(Record& _record) {
 	sumz.Project(x);
 	r1.ExtractNextRecord(sumz, *fp);
 
+	map.CurrentKey().Project(groupingAtts.whichAtts, groupingAtts.numAtts, schemaIn.GetNumAtts());
 	c = map.CurrentKey().GetBits();
 	size = map.CurrentKey().GetSize();
 	r2.CopyBits(c, size);
-	_record.AppendRecords(r1, r2, 1, 1);
-	
+	_record.AppendRecords(r1, r2, 1, groupingAtts.numAtts);
+
 	fclose(fp);
 	delete str;
 	map.Advance();
 	return true;
-*/
-
 }
 
 GroupBy::~GroupBy() {

@@ -181,7 +181,7 @@ private:
 
 	//struct sComp(Schema _schema);
 
-	bool check = true; //check if first
+	bool check; //check if first
 
 	vector <Record*> duplTemp;//store non-duplicates
 	int it;//iterator
@@ -208,7 +208,7 @@ private:
 	// operator generating data
 	RelationalOp* producer;
 
-	bool first = true;
+	bool first;
 
 public:
 	Sum(Schema& _schemaIn, Schema& _schemaOut, Function& _compute,
@@ -237,8 +237,8 @@ private:
 
 	// for GetNext()
 	EfficientMap<Record, KeyDouble> map;
-	bool first = true;
-
+	bool first;
+	int counter;
 
 public:
 	GroupBy(Schema& _schemaIn, Schema& _schemaOut, OrderMaker& _groupingAtts,

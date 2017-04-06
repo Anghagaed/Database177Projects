@@ -260,15 +260,16 @@ int OrderMaker :: Run(Record& left, Record& right) {
 				string temp1, temp2;
 				temp1 = val1; 
 				temp2 = val2;
-				//cout << "temp1 is: " << temp1 << " and temp2 is: " << temp2 << endl;
 				int sc = strcmp (val1, val2);
-				if (!(temp1.compare(temp2)) && sc) {
-					cout << "Matching but sc is not 0" << endl;
-					cout << "temp1 is: " << temp1 << " and temp2 is: " << temp2 << endl;
-					cout << "sc is: " << sc << endl;
+				if (sc != 0) { 
+					if (sc > 0) {
+						return 1;
+					}
+					else {
+						return -1;
+					}
+				
 				}
-				//cout << "sc is: " << sc << endl;
-				if (sc != 0) return -1;
 
 				break;
 			}
@@ -451,7 +452,6 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			// so we check to see if it is an attribute name, and if so,
 			// we look it up in the schema
 			// see if we can find this attribute in the schema
-			//cout << "In Name CNF Conversion" << endl;
 			string s(currCond->left->left->value);
 			int leftIdx = schema.Index(s);
 			if (leftIdx != -1) {
@@ -496,7 +496,6 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			andList[numAnds].operand1 = Literal;
 			andList[numAnds].whichAtt1 = numFieldsInLiteral;
 			typeLeft = Float;
-			//cout << "In Float CNF Conversion" << endl;
 			// add to record literal
 			attStart[numFieldsInLiteral] = recSize;
 			int cLen = sizeof(double);
@@ -537,21 +536,18 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			attStart[numFieldsInLiteral] = recSize;
 			int cLen = strlen(currCond->left->right->value) + 1;
 			memcpy(recPos, currCond->left->right->value, cLen);
-			//cout << "In String Conversion" << endl;
 			if (cLen % sizeof (int) != 0) {
 				cLen += sizeof (int) - (cLen % sizeof (int));
 			}
 			recSize += cLen;
 			recPos += cLen;
 			numFieldsInLiteral += 1;
-			cout << *recPos << endl;
 		}
 		else if (currCond->left->right->code == INTEGER) {
 			// see if it is an integer
 			andList[numAnds].operand2 = Literal;
 			andList[numAnds].whichAtt2 = numFieldsInLiteral;
 			typeRight = Integer;
-			//cout << "In Integer Conversion" << endl;
 			// add to record literal
 			attStart[numFieldsInLiteral] = recSize;
 			int cLen = sizeof(int);
@@ -559,14 +555,12 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			recSize += cLen;
 			recPos += cLen;
 			numFieldsInLiteral += 1;
-			cout << atoi(currCond->left->right->value) << endl;
 		}
 		else if (currCond->left->right->code == FLOAT) {
 			// see if it is a double
 			andList[numAnds].operand2 = Literal;
 			andList[numAnds].whichAtt2 = numFieldsInLiteral;
 			typeRight = Float;
-			//cout << "In Float Conversion" << endl;
 			// add to record literal
 			attStart[numFieldsInLiteral] = recSize;
 			int cLen = sizeof(double);
@@ -574,7 +568,6 @@ int CNF::ExtractCNF (AndList& parseTree, Schema& schema, Record& literal) {
 			recSize += cLen;
 			recPos += cLen;
 			numFieldsInLiteral += 1;
-			cout << (double)atof(currCond->left->right->value) << endl;
 		}
 		else {
 			// catch-all case
