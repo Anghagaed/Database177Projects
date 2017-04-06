@@ -322,29 +322,43 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
+	cout << "hi" << endl;
 	if (check)
 	{
+	//	cout << "Making" << endl;
 		Record recTemp;
 		producer->GetNext(recTemp);
-		duplTemp.push_back(recTemp);
+		Record *makerPtr = new Record();
+		*makerPtr = recTemp;
+	//	cout << "Pushing first" << endl;
+		duplTemp.push_back(makerPtr);
+	//	cout << "Pushed" << endl;
 		check = false;
 		int i = 0; //iterator
 		it = 0;//global iterator
-		while (producer->GetNext(recTemp) == true)
+		while (producer->GetNext(recTemp))
 		{
-			if (duplTemp[i] < recTemp)
+			cout << "filling" << i << endl;
+			Record *RecPtr = new Record();
+			cout << "Amar" << endl;
+			*RecPtr = recTemp;
+			cout << "cumdumpster" << i;
+			if (*duplTemp[i] < recTemp)
 			{
-				duplTemp.push_back(recTemp);
+				cout << "faggot" << i<<endl;
+				duplTemp.push_back(RecPtr);
 			}
+			cout << "no homo" << i<<endl;
 		}
 	}
+	cout << "Run " << it << endl;
 	if (it == duplTemp.size())
 	{
 		return false;
 	}
 	else
 	{
-		_record=duplTemp[it];
+		_record=*duplTemp[it];
 		return true;
 	}
 	

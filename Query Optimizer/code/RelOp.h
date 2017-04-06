@@ -183,7 +183,7 @@ private:
 
 	bool check = true; //check if first
 
-	vector <Record> duplTemp;//store non-duplicates
+	vector <Record*> duplTemp;//store non-duplicates
 	int it;//iterator
 	
 public:
