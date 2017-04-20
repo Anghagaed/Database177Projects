@@ -135,7 +135,7 @@ void Select::Swap(Select& withMe)
 }
 
 ostream& Select::print(ostream& _os) {
-	return _os << "SELECT\nSchema: "<<schema<<"\nPredicate: "<<predicate<<"\nProducer: " << *producer << endl;
+	return _os << "SELECT\nSchema: " << schema << "\nPredicate: " << predicate << "\nProducer: " << *producer << endl;
 }
 
 bool Select::GetNext(Record& _record) {
@@ -158,7 +158,7 @@ Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	numAttsInput = _numAttsInput;
 	numAttsOutput = _numAttsOutput;
 	keepMe = _keepMe;
-	producer = _producer; 
+	producer = _producer;
 	counter = 0;
 }
 
@@ -195,93 +195,114 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	right = _right;
 	appendIndex = 0;
 	buildCheck = true;
+	//joinComp.Swap(_joinComp);
 }
 
 Join::~Join() {
 
 }
 
-bool Join::GetNext(Record& _record) {
+void Join::mergeJoin(int leftSize, int rightSize)
+{
+	if (buildCheck)
+	{
 
-	if (buildCheck) {
+		if (predicate.GetSortOrders(leftComp, rightComp) == 0) {
+
+			cout << "Could not get Sort Orders" << endl;
+
+		}
 
 		//cout << "Building " << endl;
 		buildCheck = false;
-
-		Record temp;
-
+		Record recTemp;
+		//left side first cuz normal people go left to right, not right to left. Freaking amar
+		recTemp.SetOrderMaker(&leftComp);
+		KeyInt AMAREATSCOCK = KeyInt(1);
+		leftTemp.Insert(recTemp, AMAREATSCOCK);
 		// Build
+		while (left->GetNext(recTemp))
+		{
+			//if (memFull) // flush
+			//{
 
-		while (right->GetNext(temp)) {
-			//cout << "Building a record" << endl;
-			//cout << temp.GetSize() << endl;
-
-			Record* temp2 = new Record();
-
-			*temp2 = temp;
-
-			myDS.push_back(temp2);
-			
-			//cout << "Pushed" << endl;
-
-		}
-
-		//cout << "Done building DS" << endl;
-
-		// Probe
-
-		while (left->GetNext(temp)) {
-
-			//cout << "Fetching tuple" << endl;
-
-			for (int i = 0; i < myDS.size(); i++) {
-
-				if (predicate.Run(temp, *myDS[i])) {
-
-					//cout << "Found match at " << i << endl;
-
-					Record merge;
-					merge.AppendRecords(temp, *myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
-
-					//cout << "Appended" << endl;
-
-					Record* merge2 = new Record();
-					*merge2 = merge;
-
-					appendRecords.push_back(merge2);
-
-					//cout << "Pushed" << endl;
-
-				}
-
+			//}
+			//else
+			{
+				AMAREATSCOCK = KeyInt(1);
+				leftTemp.Insert(recTemp, AMAREATSCOCK);
 			}
 
 		}
+		leftTemp.MoveToStart();
+		while (right->GetNext(recTemp))
+		{
+			//if (memFull) //flush
+			//{
 
+			//}
+			//else
+			{
+				AMAREATSCOCK = KeyInt(1);
+				rightTemp.Insert(recTemp, AMAREATSCOCK);
+			}
+		}
+		rightTemp.MoveToStart();
 	}
+}
 
+bool Join::GetNext(Record& _record)
+{
+	if (buildCheck) 
+	{
+		//cout << "Building " << endl;
+		buildCheck = false;
+		Record temp;
+		// Build
+		while (right->GetNext(temp))
+		{
+			//cout << "Building a record" << endl;
+			//cout << temp.GetSize() << endl;
+			Record* temp2 = new Record();
+			*temp2 = temp;
+			myDS.push_back(temp2);		
+			//cout << "Pushed" << endl;
+		}
+		//cout << "Done building DS" << endl;
+		// Probe
+		while (left->GetNext(temp))
+		{
+			//cout << "Fetching tuple" << endl;
+			for (int i = 0; i < myDS.size(); i++)
+			{
+				if (predicate.Run(temp, *myDS[i]))
+				{
+					//cout << "Found match at " << i << endl;
+					Record merge;
+					merge.AppendRecords(temp, *myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+					//cout << "Appended" << endl;
+					Record* merge2 = new Record();
+					*merge2 = merge;
+					appendRecords.push_back(merge2);
+					//cout << "Pushed" << endl;
+				}
+			}
+		}
+	}
 	//cout << "Built" << endl;
-
-
 	// Returns
-
 	//cout << appendIndex << " " << appendRecords.size() << endl;
-
-	if (appendIndex < appendRecords.size()) {
-
+	if (appendIndex < appendRecords.size())
+	{
 		_record = *appendRecords[appendIndex];
 		appendIndex++;
 		//cout << "Returned: " << appendIndex << endl;
 		return true;
-
 	}
-
-	else {
-
+	else
+	{
 		return false;
-
 	}
-
 }
 
 Schema & Join::getSchema(){
@@ -310,55 +331,26 @@ ostream& DuplicateRemoval::print(ostream& _os) {
 
 bool DuplicateRemoval::GetNext(Record& _record)//compiles but is not finished
 {
-	//cout << "hi" << endl;
 	if (check)
 	{
-	//	cout << "Making" << endl;
 		Record recTemp;
 		producer->GetNext(recTemp);
-	//	cout << schema << endl;
 		recTemp.SetOrderMaker(&duplComp);
-	//	cout << "ordered" << duplComp << duplComp.numAtts<<endl;
-	//	recTemp.Project(duplComp.whichAtts, duplComp.numAtts, schema.GetNumAtts());
-	//	Record *makerPtr = new Record();
-	//	*makerPtr = recTemp;
-	//	cout << "Pushing first" << endl;
 		KeyInt AMARSUCKSCOCK = KeyInt(1);
 		duplTemp.Insert(recTemp, AMARSUCKSCOCK);
-	//	cout << "Pushed" << endl;
 		check = false;
-	//	it = 0;//global iterator
-	//	cout << "entering" << endl;
 		Record recTemp2;
 		while (producer->GetNext(recTemp2))
 		{
 			AMARSUCKSCOCK = KeyInt(1);
 			recTemp2.SetOrderMaker(&duplComp);
-	//		cout << duplComp<< endl;
-			//recTemp2.Project(duplComp.whichAtts, duplComp.numAtts, schema.GetNumAtts());
-	//		cout << "filling" << i << endl;
-	//		Record *RecPtr = new Record();
-	//		cout << "Amar" << endl;
-	//		*RecPtr = recTemp2;
-	//		cout << "cumdumpster" << i;
-		/*	duplTemp[i]->print(cout, schema);
-			cout << endl;
-			cout<< " COMPARING " <<endl;
-			recTemp2.print(cout,schema);
-			cout << endl;*/
-	//		recTemp2.print(cout, schema);
-	//		cout << endl;
-	//		cout << schema << endl;
 			if (!duplTemp.IsThere(recTemp2))
 			{
-	//			cout << "faggot" << i<<endl;
 				duplTemp.Insert(recTemp2,AMARSUCKSCOCK);
 			}
-	//		cout << "no homo" << i<<endl;
 		}
 		duplTemp.MoveToStart();
 	}
-//	cout << "Run " << it << endl;
 	if (duplTemp.AtEnd())
 	{
 		return false;
