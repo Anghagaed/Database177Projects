@@ -103,10 +103,28 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		CNF predicate;
 		predicate.ExtractCNF(*_predicate, left_schema, right_schema);
 
+		//get sum of tuples in children
+		double leftTuples = 0.0;
+		double rightTuples = 0.0;
+
+		std::cout << "left schema " << left_schema << std::endl;
+		std::cout << "right schema: " << right_schema << std::endl;
+		std::cout << "left tuples: \n";// << node->leftChild->noTuples << " right tuples: " << node->rightChild->noTuples << "\n";
+		for (int i = 0; i < node->leftChild->tuples.size(); i++) {
+			std::cout << node->leftChild->tuples[i] << std::endl;
+			leftTuples += node->leftChild->tuples[i];
+		}
+		
+		std::cout << "node tuples: \n";// << node->noTuples << std::endl;
+		for (int i = 0; i < node->rightChild->tuples.size(); i++) {
+			std::cout << node->rightChild->tuples[i] << std::endl;
+			rightTuples += node->rightChild->tuples[i];
+		}
+
 		//get resulting schema
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 		
-		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right);
+		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, left->getSum() , right->getSum());
 
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op

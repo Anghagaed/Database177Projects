@@ -35,6 +35,8 @@ bool Scan::GetNext(Record& _record) {
 	//if (counter > 100)
 	//	exit(0);
 	if(file.GetNext(_record)) {
+		sum += _record.GetSize();
+		_sum += _record.GetSize();
 		return true;
 	}
 	return false;
@@ -144,6 +146,8 @@ bool Select::GetNext(Record& _record) {
 	while (producer->GetNext(_record)) {
 		if (predicate.Run(_record, constants)) {	// constants = literals?
 			//_record = record;
+			sum += _record.GetSize();
+			_sum += _record.GetSize();
 			return true;
 		}
 	}
@@ -185,7 +189,7 @@ bool Project::GetNext(Record& _record) {
 }
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-	CNF& _predicate, RelationalOp* _left, RelationalOp* _right) {
+	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples) {
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
@@ -193,6 +197,9 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	predicate = _predicate;
 	left = _left;
 	right = _right;
+
+	leftTuples = _leftTuples;
+	rightTuples = _rightTuples;
 	appendIndex = 0;
 	buildCheck = true;
 }
@@ -202,6 +209,27 @@ Join::~Join() {
 }
 
 bool Join::GetNext(Record& _record) {
+	//std::cout << "lefttuples: "  << leftTuples << std::endl;
+	//std::cout << "righttuples: " << rightTuples << std::endl;
+
+	if (leftTuples < rightTuples) {
+		if (leftTuples < 1) {
+			//do in-memory
+		}
+		else {
+			//do two-pass sort-merge
+		}
+	}
+	else {
+		if (rightTuples < 1) {
+			//do in-mem
+		}
+		else {
+			//do two-pass
+		}
+	}
+
+
 
 	if (buildCheck) {
 
@@ -210,11 +238,34 @@ bool Join::GetNext(Record& _record) {
 
 		Record temp;
 
+
+
+
+		//RelationalOp* rightTemp = right;
+		//RelationalOp* leftTemp = left;
+		/*
+		double rightSum = 0.0;
+		double leftSum = 0.0;
+		//get size of tuples to check if it fits in mem
+		while (rightTemp->GetNext(temp)) {
+			rightSum += temp.GetSize();
+		}
+		while (leftTemp->GetNext(temp)) {
+			leftSum += temp.GetSize();
+		}
+		*/
+
+
+
 		// Build
 
+
 		while (right->GetNext(temp)) {
-			//cout << "Building a record" << endl;
+			cout << "Building a record" << endl;
+			//cout << right->GetSchema() << endl;
 			//cout << temp.GetSize() << endl;
+			sum += temp.GetSize();	//summing right size
+			_sum += temp.GetSize();
 
 			Record* temp2 = new Record();
 
@@ -231,6 +282,9 @@ bool Join::GetNext(Record& _record) {
 		// Probe
 
 		while (left->GetNext(temp)) {
+			sum += temp.GetSize();	//summing left size
+			_sum += temp.GetSize();
+
 
 			//cout << "Fetching tuple" << endl;
 

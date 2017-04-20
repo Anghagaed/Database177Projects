@@ -21,6 +21,10 @@ protected:
 	int counter;	// Delete Me
 	Schema s;	//defined as the schema out
 
+
+
+	double _sum;
+
 public:
 	// empty constructor & destructor
 	RelationalOp() : noPages(-1) {}
@@ -30,6 +34,8 @@ public:
 	void SetNoPages(int _noPages) {noPages = _noPages;}
 
 	Schema& GetSchema() { return s; }
+
+	double getSum() { return _sum; }
 
 	// every operator has to implement this method
 	virtual bool GetNext(Record& _record) = 0;
@@ -53,6 +59,12 @@ private:
 	DBFile file;
 
 	string table;
+
+
+	//sum of size of tuples
+	double sum;
+
+	
 
 public:
 	Scan(Schema& _schema, DBFile& _file, string table);
@@ -85,6 +97,9 @@ private:
 	RelationalOp* producer;
 
 	string table;
+
+
+	double sum;
 
 public:
 	Select(Schema& _schema, CNF& _predicate, Record& _constants,
@@ -159,9 +174,17 @@ private:
 	RelationalOp* left;
 	RelationalOp* right;
 
+	//# of tuples in children, from query optimizer vector<double> tuples
+	double leftTuples;
+	double rightTuples;
+
+
+
+	double sum;
+
 public:
 	Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-		CNF& _predicate, RelationalOp* _left, RelationalOp* _right);
+		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples);
 	virtual ~Join();
 
 	virtual bool GetNext(Record& _record);
