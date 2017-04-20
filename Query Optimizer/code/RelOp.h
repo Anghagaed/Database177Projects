@@ -192,6 +192,18 @@ public:
 	Schema& getSchema();	//function to get schemaOut
 
 	virtual ostream& print(ostream& _os);
+
+	void mergeJoin(int leftSize, int rightSize);
+
+	bool InMem(Record& _record);
+
+	EfficientMap <Record, KeyInt> leftTemp;
+
+	EfficientMap <Record, KeyInt> rightTemp;
+
+	OrderMaker leftComp;
+
+	OrderMaker rightComp;
 };
 
 class DuplicateRemoval : public RelationalOp {
