@@ -155,12 +155,19 @@ int main()
 		myRec.print(cout, schema);
 */
 
+		int numPages = 1;
+
+		//cout << "Enter number of pages:\n";
+		//cin >> numPages;
+
+		double memCapacity = numPages * PAGE_SIZE;
+
 		// at this point we have the parse tree in the ParseTree data structures
 		// we are ready to invoke the query compiler with the given query
 		// the result is the execution tree built from the parse tree and optimized
 		QueryExecutionTree queryTree;
 		compiler.Compile(tables, attsToSelect, finalFunction, predicate,
-			groupingAtts, distinctAtts, queryTree);
+			groupingAtts, distinctAtts, queryTree, memCapacity);
 
 		cout << queryTree << endl;
 

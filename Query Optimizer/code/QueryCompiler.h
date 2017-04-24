@@ -36,10 +36,10 @@ public:
 	void Compile(TableList* _tables, NameList* _attsToSelect,
 		FuncOperator* _finalFunction, AndList* _predicate,
 		NameList* _groupingAtts, int& _distinctAtts,
-		QueryExecutionTree& _queryTree);
+		QueryExecutionTree& _queryTree, double memCapacity);
 	
 	int tableSize(TableList* _tables);//makes it easy to iterate
-	RelationalOp* JoinTree(OptimizationTree* root, AndList* _predicate);	//recursive function to create join tree for non-left deep trees
+	RelationalOp* JoinTree(OptimizationTree* root, AndList* _predicate, double _memCapacity);	//recursive function to create join tree for non-left deep trees
 	RelationalOp* GetRelOp(string table);	//goes through select/scan maps to get relational operator associated with table
 };
 

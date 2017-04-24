@@ -16,7 +16,7 @@ using namespace std;
 
 
 QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
-	catalog(&_catalog), optimizer(&_optimizer) {
+	catalog(&_catalog), optimizer(&_optimizer){
 	catalog = &_catalog;
 	optimizer = &_optimizer;
 	_keepMe = NULL;
@@ -68,15 +68,15 @@ RelationalOp* QueryCompiler::GetRelOp(string table) {
 //traverses in post order - reaches both children before parent
 //returns the root of the join tree as a relational op pointer
 //resulting schema can be accessed with the root's schemaOut
-RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate) {
+RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predicate, double _memCapacity) {
 	RelationalOp* left;
 	RelationalOp* right;
 
 	if (node->leftChild != NULL) {
-		left = JoinTree(node->leftChild, _predicate);	//get the relational op of left child
+		left = JoinTree(node->leftChild, _predicate, _memCapacity);	//get the relational op of left child
 	}
 	if (node->rightChild != NULL) {
-		right = JoinTree(node->rightChild, _predicate);	//get the relational op of right child
+		right = JoinTree(node->rightChild, _predicate, _memCapacity);	//get the relational op of right child
 	}
 
 	//check how many tables are at this node
@@ -107,15 +107,15 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		double leftTuples = 0.0;
 		double rightTuples = 0.0;
 
-		std::cout << "left schema " << left_schema << std::endl;
-		std::cout << "right schema: " << right_schema << std::endl;
+		//std::cout << "left schema " << left_schema << std::endl;
+		//std::cout << "right schema: " << right_schema << std::endl;
 		std::cout << "left tuples: \n";// << node->leftChild->noTuples << " right tuples: " << node->rightChild->noTuples << "\n";
 		for (int i = 0; i < node->leftChild->tuples.size(); i++) {
 			std::cout << node->leftChild->tuples[i] << std::endl;
 			leftTuples += node->leftChild->tuples[i];
 		}
 		
-		std::cout << "node tuples: \n";// << node->noTuples << std::endl;
+		std::cout << "right tuples: \n";// << node->noTuples << std::endl;
 		for (int i = 0; i < node->rightChild->tuples.size(); i++) {
 			std::cout << node->rightChild->tuples[i] << std::endl;
 			rightTuples += node->rightChild->tuples[i];
@@ -124,7 +124,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		//get resulting schema
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 		
-		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, left->getSum() , right->getSum());
+		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, left->getSum() , right->getSum(), _memCapacity);
 
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op
@@ -134,7 +134,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	FuncOperator* _finalFunction, AndList* _predicate,
 	NameList* _groupingAtts, int& _distinctAtts,
-	QueryExecutionTree& _queryTree) {
+	QueryExecutionTree& _queryTree, double _memCapacity) {
 	
 	// create a SCAN operator for each table in the query
 	int size = tableSize(_tables);
@@ -171,7 +171,7 @@ void QueryCompiler::Compile(TableList* _tables, NameList* _attsToSelect,
 	// create join operators based on the optimal order computed by the optimizer
 	// j will point to root of join tree
 	// call j->getSchema() to get the final schema
-	RelationalOp* j = JoinTree(root, _predicate);
+	RelationalOp* j = JoinTree(root, _predicate, _memCapacity);
 	
 	// create the remaining operators based on the query
 

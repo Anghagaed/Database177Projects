@@ -189,7 +189,7 @@ bool Project::GetNext(Record& _record) {
 }
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples) {
+	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double _memCapacity) {
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
@@ -202,6 +202,8 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	rightTuples = _rightTuples;
 	appendIndex = 0;
 	buildCheck = true;
+
+	memCapacity = _memCapacity;
 	//joinComp.Swap(_joinComp);
 }
 
@@ -213,7 +215,11 @@ bool Join::GetNext(Record& _record) {
 	//std::cout << "lefttuples: "  << leftTuples << std::endl;
 	//std::cout << "righttuples: " << rightTuples << std::endl;
 
+	std::cout <<"memCapacity: " << memCapacity << std::endl;
+
+	/*
 	if (leftTuples < rightTuples) {
+		//std::cout << "mem needed: " << memory needed << std::endl;
 		if (leftTuples < 1) {
 			//do in-memory
 		}
@@ -222,6 +228,7 @@ bool Join::GetNext(Record& _record) {
 		}
 	}
 	else {
+		//std::cout << "mem needed: " << memory needed << std::endl;
 		if (rightTuples < 1) {
 			//do in-mem
 		}
@@ -229,10 +236,12 @@ bool Join::GetNext(Record& _record) {
 			//do two-pass
 		}
 	}
+	*/
+	mergeJoin(memCapacity);
 }
 
 
-void Join::mergeJoin(int leftSize, int rightSize)
+void Join::mergeJoin(double memCapacity)
 {
 	if (buildCheck)
 	{

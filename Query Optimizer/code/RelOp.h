@@ -179,12 +179,14 @@ private:
 	double rightTuples;
 
 
+	double memCapacity;
+
 
 	double sum;
 
 public:
 	Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples);
+		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double memCapacity);
 	virtual ~Join();
 
 	virtual bool GetNext(Record& _record);
@@ -193,7 +195,7 @@ public:
 
 	virtual ostream& print(ostream& _os);
 
-	void mergeJoin(int leftSize, int rightSize);
+	void mergeJoin(double memCapacity);
 
 	bool InMem(Record& _record);
 
