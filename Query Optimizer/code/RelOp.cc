@@ -215,7 +215,7 @@ bool Join::GetNext(Record& _record) {
 	//std::cout << "lefttuples: "  << leftTuples << std::endl;
 	//std::cout << "righttuples: " << rightTuples << std::endl;
 
-	std::cout <<"memCapacity: " << memCapacity << std::endl;
+	std::cout << "memCapacity: " << memCapacity << std::endl;
 
 	/*
 	if (leftTuples < rightTuples) {
@@ -252,24 +252,41 @@ void Join::mergeJoin(double memCapacity)
 
 		}
 
-		//cout << "Building " << endl;
+
+			std::cout << leftComp.whichAtts[0] << std::endl;
+
+
 		buildCheck = false;
 		Record recTemp;
 		//left side first cuz normal people go left to right, not right to left. Freaking amar
 		recTemp.SetOrderMaker(&leftComp);
-		KeyInt AMAREATSCOCK = KeyInt(1);
-		leftTemp.Insert(recTemp, AMAREATSCOCK);
+		KeyInt keyTemp = KeyInt(1);
+		leftTemp.Insert(recTemp, keyTemp);
+
+		double memUsed = 0.0;
+
+
 		// Build
 		while (left->GetNext(recTemp))
 		{
-			//if (memFull) // flush
-			//{
+			std::cout << "Test" << std::endl;
 
-			//}
-			//else
+			recTemp.SetOrderMaker(&leftComp);
+
+			if (memUsed > memCapacity) // flush
 			{
-				AMAREATSCOCK = KeyInt(1);
-				leftTemp.Insert(recTemp, AMAREATSCOCK);
+
+				memUsed = 0;
+				std::cout << "Flushing Left" << std::endl;
+
+			}
+
+			else
+			{
+				memUsed += recTemp.GetSize();
+
+				keyTemp = KeyInt(1);
+				leftTemp.Insert(recTemp, keyTemp);
 			}
 
 		}
@@ -277,14 +294,20 @@ void Join::mergeJoin(double memCapacity)
 		leftTemp.MoveToStart();
 		while (right->GetNext(recTemp))
 		{
-			//if (memFull) //flush
-			//{
-
-			//}
-			//else
+			if (memUsed > memCapacity) // flush
 			{
-				AMAREATSCOCK = KeyInt(1);
-				rightTemp.Insert(recTemp, AMAREATSCOCK);
+
+				memUsed = 0;
+				std::cout << "Flushing Right" << std::endl;
+
+			}
+
+			else
+			{
+				memUsed += recTemp.GetSize();
+
+				keyTemp = KeyInt(1);
+				rightTemp.Insert(recTemp, keyTemp);
 			}
 		}
 		rightTemp.MoveToStart();
