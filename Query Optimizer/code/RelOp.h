@@ -150,7 +150,9 @@ public:
 	virtual ostream& print(ostream& _os);
 };
 
-struct node {
+// Delete this Heap Node after Getting Yun's Heap
+
+struct HeapNode {
 	Record data;
 	int index;
 };
@@ -201,6 +203,13 @@ private:
 
 	OrderMaker rightComp;
 
+	// Hang's Variable for Merge
+	vector<DBFile*> leftFiles;
+	vector<DBFile*> rightFiles;
+	vector<HeapNode*> leftBucket;
+	vector<HeapNode*> rightBucket;
+
+
 	string startLoc;
 
 public:
@@ -222,7 +231,7 @@ public:
 
 	void HangMerge();
 
-	void InsertionSort(vector<node*>& toSort, OrderMaker& toOrder);
+	void InsertionSort(vector<HeapNode*>& toSort, OrderMaker& toOrder);
 };
 
 class DuplicateRemoval : public RelationalOp {

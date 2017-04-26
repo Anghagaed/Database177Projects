@@ -241,8 +241,26 @@ bool Join::GetNext(Record& _record) {
 		}
 	}
 	*/
-	mergeJoin(memCapacity);
+	mergeJoin(memCapacity);					// Hang: I set buildCheck to false inside my Merge function
 	//HangMerge();
+	
+	char * fileNameC;
+	string path = "../Disk/left0.bin";
+	fileNameC = new char[path.length() + 1];
+	strcpy(fileNameC, path.c_str());
+	Record t;
+	DBFile testDB;
+	cout << fileNameC << endl;
+	cout << path << endl;
+	testDB.Open(fileNameC);
+	cout << testDB.GetNext(t) << endl;
+	cout << "About to print" << endl;
+	t.print(std::cout, schemaLeft);
+	testDB.Close();
+	cout << endl;
+	cout << "After prints" << endl;
+	
+	exit(0);
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
@@ -271,7 +289,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 		recTemp.SetOrderMaker(&side);
 
 		memUsed += recTemp.GetSize();
-		std::cout << "memUsed: " << memUsed << std::endl;
+		//std::cout << "memUsed: " << memUsed << std::endl;
 		keyTemp = KeyInt(1);
 		//std::cout << "created keyint" << std::endl;
 		tempMap.Insert(recTemp, keyTemp);
@@ -438,7 +456,7 @@ void Join::mergeJoin(double memCapacity)
 		//std::cout << leftComp.whichAtts[0] << std::endl;
 
 
-		buildCheck = false;
+		//buildCheck = false;
 		
 		/*
 		std::cout << "jacob said to do this" << std::endl;
@@ -531,13 +549,13 @@ bool Join::InMem(Record& _record)
 	}
 }
 
-void Join::InsertionSort(vector<node*>& toSort, OrderMaker& toOrder) {
+void Join::InsertionSort(vector<HeapNode*>& toSort, OrderMaker& toOrder) {
 	int size = toSort.size();
 	for (int i = 0; i < size; ++i) {
 		int j = i;
 
 		while (j > 0 && (toOrder.Run(toSort[j - 1]->data, toSort[j]->data) == 1)) {
-			node * temp = toSort[j];
+			HeapNode * temp = toSort[j];
 			toSort[j] = toSort[j - 1];
 			toSort[j - 1] = temp;
 			--j;
@@ -545,26 +563,109 @@ void Join::InsertionSort(vector<node*>& toSort, OrderMaker& toOrder) {
 	}
 }
 
+/*DBFile testOutput;
+
+testOutput.Open(myOutputFileC);
+
+Record testtt;
+
+while (testOutput.GetNext(testtt) == 1) {
+
+testtt.print(std::cout, schemaLeft);
+std::cout << std::endl;
+
+}
+
+testOutput.Close();*/
+
 void Join::HangMerge() {
 	// Number of runs for each side
 	// Left File Num 
 	// Right File Num
 	
-	// vector of dbFiles for each side
-	vector<DBFile> leftFiles;
-	vector<DBFile> rightFiles;
-	
-	for (int i = 0; i < leftNumRuns; ++i) {
-		// Open files for Left Join
-	
-	}
+	// DEBUGING ONLY
+	leftFileNum = 11;
+	rightFileNum = 1;
+	startLoc = "../Disk/";
 
-	for (int i = 0; i < rightNumRuns; ++i) {
-		// Open files for Right Join
-	
+	// vector of dbFiles for each side
+	/*
+	string left = "left";
+	string right = "right";
+	string bin = ".bin";
+	// Temporary temp file for DBFile
+	DBFile* tempDB;										
+	char * fileNameC;
+	HeapNode * temp;
+	int minLeftIndex, minRightIndex;									// Index of where the minimum came from for Left/RightBucket to choose which GetNext
+	tempDB = new DBFile();
+	*/
+
+	char * fileNameC;
+	string path = "../Disk/left1.bin";
+	fileNameC = new char[path.length() + 1];
+	strcpy(fileNameC, path.c_str());
+	Record t;
+	DBFile testinggggg;
+	cout << fileNameC << endl;
+	cout << path << endl;
+	testinggggg.Open(fileNameC);
+	cout << testinggggg.GetNext(t) << endl;
+	cout << "About to print" << endl;
+	t.print(cout, schemaLeft);
+	testinggggg.Close();
+	cout << endl;
+	cout << "After prints" << endl;
+	/*
+	if (buildCheck) {
+		for (int i = 0; i < leftFileNum; ++i) {
+			ostringstream oss;
+			string result;
+			oss << startLoc << left << i << bin;
+			result = oss.str();
+			cout << result << endl;
+			fileNameC = new char[result.length() + 1];
+			strcpy(fileNameC, result.c_str());
+			tempDB = new DBFile();
+			tempDB->Open(fileNameC);
+			leftFiles.push_back(tempDB);
+		}
+
+		for (int i = 0; i < rightFileNum; ++i) {
+			ostringstream oss;
+			string result;
+			oss << startLoc << right << i << bin;
+			result = oss.str();
+			cout << result << endl;
+			fileNameC = new char[result.length() + 1];
+			strcpy(fileNameC, result.c_str());
+			tempDB = new DBFile();
+			tempDB->Open(fileNameC);
+			leftFiles.push_back(tempDB);
+		}
+
+		// Extracting the first element from each runs into Left/Right Bucket for the first time
+		cout << "About to Extract First Left Element" << endl;
+		for (int i = 0; i < leftFileNum; ++i) {
+			cout << "Left i " << i << endl;
+			temp = new HeapNode();
+			cout << "GetNext() = " << leftFiles[i]->GetNext(temp->data) << endl;
+			temp->data.print(cout, schemaLeft);
+			cout << endl;
+			temp->index = i;
+			leftBucket.push_back(temp);
+		}
+		buildCheck = false;
 	}
-	
-	
+	cout << "About to print Left" << endl;
+	for (int i = 0; i < leftFileNum; ++i) {
+		cout << "Print Left i " << i << endl;
+		leftBucket[i]->data.print(cout, schemaLeft);
+		cout << endl;
+	}
+	*/
+	cout << "it works" << endl;
+	exit(0);
 }
 
 Schema & Join::getSchema(){
