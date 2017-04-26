@@ -10,6 +10,7 @@
 #include "Keyify.h"
 #include "Config.h"
 #include "RecordMinHeap.h"
+#include "RecordMinHeap.cc"
 using namespace std;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
@@ -274,24 +275,43 @@ bool Join::GetNext(Record& _record) {
 
 	//mergeJoin(memCapacity);
 	//HangMerge();
+
+	cout << "Try right\n";
 	/*
 	predicate.GetSortOrders(leftComp, rightComp);
 	MinHeap toTest(rightComp);
 	Record temp;
-	for (int i = 0; i < 20; ++i) {
+	for (int i = 0; i < 5; ++i) {
 		bool x = right->GetNext(temp);
 		int index = i;
 		temp.print(cout, schemaRight);
 		cout << endl;
-		cout << "Amar <3 $"<<x<<"\n";
 		toTest.insert(temp, index);
-		cout << "Amar <3 Boba!\n";
 	}
 	cout << "Min:\n";
 	HeapNode* min = toTest.extractMin();
 	min->data.print(cout, schemaRight);
 	cout << endl;
 	delete min;
+
+	cout << "Try left\n";
+
+	//predicate.GetSortOrders(leftComp, rightComp);
+	MinHeap toTest2(leftComp);
+	Record temp2;
+	for (int i = 0; i < 5; ++i) {
+		bool x = left->GetNext(temp2);
+		int index = i;
+		temp2.print(cout, schemaLeft);
+		cout << endl;
+		toTest2.insert(temp2, index);
+	}
+	cout << "Min:\n";
+	HeapNode* min2 = toTest2.extractMin();
+	min2->data.print(cout, schemaLeft);
+	cout << endl;
+	delete min2;
+
 	exit(0);
 	*/
 
