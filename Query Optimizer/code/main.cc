@@ -155,7 +155,7 @@ int main()
 		myRec.print(cout, schema);
 */
 
-		int numPages = 1;
+		int numPages = 100;
 
 		//cout << "Enter number of pages:\n";
 		//cin >> numPages;

@@ -270,8 +270,6 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 		recTemp.SetOrderMaker(&side);
 
-
-
 		memUsed += recTemp.GetSize();
 		std::cout << "memUsed: " << memUsed << std::endl;
 		keyTemp = KeyInt(1);
@@ -452,6 +450,7 @@ void Join::mergeJoin(double memCapacity)
 
 		}
 
+		leftFileNum = fileNum;
 		fileNum = 0;
 
 		while (writeDisk(right, rightComp, 1)) {
@@ -459,6 +458,10 @@ void Join::mergeJoin(double memCapacity)
 			cout << fileNum << " Files" << endl;
 
 		}
+
+		rightFileNum = fileNum;
+		fileNum = 0;
+
 
 	}
 }

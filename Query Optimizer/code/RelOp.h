@@ -173,6 +173,9 @@ private:
 
 	int fileNum;
 
+	int leftFileNum;
+	int rightFileNum;
+
 	// selection predicate in conjunctive normal form
 	CNF predicate;
 
