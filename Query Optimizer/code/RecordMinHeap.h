@@ -1,18 +1,21 @@
+#ifndef _RecordMinHeap_H
+#define _RecordMinHeap_H
+
 #include "Record.h"
 #include "Comparison.h"
 #include <vector>
 
 using namespace std;
 
-struct Node {
+struct HeapNode {
 	Record data;
 	int index;
 };
-class Heap
+class MinHeap
 {
 private:
 	OrderMaker x;
-	vector<Node*> y;
+	vector<HeapNode*> y;
 
 private:
 
@@ -32,7 +35,7 @@ private:
 		if (minimum != i)
 		{
 			std::swap(y[i], y[minimum]);
-			MinHeapify(minimum);
+			minHeapify(minimum);
 		}
 	}
 
@@ -43,22 +46,23 @@ private:
 	}
 
 public:
-	Heap(OrderMaker order)
+	MinHeap(OrderMaker order)
 	{
 		x.Swap(order);
 	}
-	void insert(Record rec, int ind)
+	void insert(Record& rec, int ind)
 	{
-		Node* n;
+		HeapNode* n = new HeapNode;
 		n->data = rec;
 		n->index = ind;
 		y.push_back(n);
 	}
-	Node* extractMin()
+	HeapNode* extractMin()
 	{
 		buildHeap();
-		Node* temp = y[0];
+		HeapNode* temp = y[0];
 		y.erase(y.begin());
 		return temp;
 	}
-}
+};
+#endif

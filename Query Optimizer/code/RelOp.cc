@@ -9,6 +9,7 @@
 #include "EfficientMap.cc"
 #include "Keyify.h"
 #include "Config.h"
+#include "RecordMinHeap.h"
 using namespace std;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
@@ -241,8 +242,28 @@ bool Join::GetNext(Record& _record) {
 		}
 	}
 	*/
-	mergeJoin(memCapacity);
+	//mergeJoin(memCapacity);
 	//HangMerge();
+	/*
+	predicate.GetSortOrders(leftComp, rightComp);
+	MinHeap toTest(leftComp);
+	Record temp;
+	for (int i = 0; i < 20; ++i) {
+		bool x = left->GetNext(temp);
+		int index = i;
+		temp.print(cout, schemaLeft);
+		cout << endl;
+		cout << "Amar <3 $"<<x<<"\n";
+		//toTest.insert(temp, index);
+		cout << "Amar <3 Boba!\n";
+	}
+	cout << "Min:\n";
+	//HeapNode* min = toTest.extractMin();
+	//min->data.print(cout, schemaLeft);
+	//cout << endl;
+	//delete min;
+	exit(0);
+	*/
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
@@ -549,7 +570,7 @@ void Join::HangMerge() {
 	// Number of runs for each side
 	// Left File Num 
 	// Right File Num
-	
+	/*
 	// vector of dbFiles for each side
 	vector<DBFile> leftFiles;
 	vector<DBFile> rightFiles;
@@ -563,7 +584,7 @@ void Join::HangMerge() {
 		// Open files for Right Join
 	
 	}
-	
+	*/
 	
 }
 
