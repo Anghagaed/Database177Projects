@@ -201,6 +201,8 @@ private:
 
 	OrderMaker rightComp;
 
+	string startLoc;
+
 public:
 	Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double memCapacity);
