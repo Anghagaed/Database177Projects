@@ -10,7 +10,7 @@
 #include "Comparison.h"
 #include "EfficientMap.h"
 #include "Keyify.h"
-
+#include "RecordMinHeap.h"
 using namespace std;
 
 
@@ -199,6 +199,8 @@ private:
 	OrderMaker leftComp;
 
 	OrderMaker rightComp;
+
+	string startLoc;
 
 public:
 	Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,

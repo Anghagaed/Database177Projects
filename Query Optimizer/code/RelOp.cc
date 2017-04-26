@@ -9,6 +9,7 @@
 #include "EfficientMap.cc"
 #include "Keyify.h"
 #include "Config.h"
+#include "RecordMinHeap.h"
 using namespace std;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
@@ -265,11 +266,33 @@ bool Join::GetNext(Record& _record) {
 		//cout << "Returned: " << appendIndex << endl;
 		return true;
 	}
+
 	else
 	{
 		return false;
 	}
 
+	/*
+	predicate.GetSortOrders(leftComp, rightComp);
+	MinHeap toTest(rightComp);
+	Record temp;
+	for (int i = 0; i < 20; ++i) {
+		bool x = right->GetNext(temp);
+		int index = i;
+		temp.print(cout, schemaRight);
+		cout << endl;
+		cout << "Amar <3 $"<<x<<"\n";
+		toTest.insert(temp, index);
+		cout << "Amar <3 Boba!\n";
+	}
+	cout << "Min:\n";
+	HeapNode* min = toTest.extractMin();
+	min->data.print(cout, schemaRight);
+	cout << endl;
+	delete min;
+	exit(0);
+	*/
+>>>>>>> origin/master
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
@@ -284,7 +307,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 
 	std::cout << "Entering left while loop: " << std::endl;
-
+	startLoc = "../Disk/";
 	// Build
 	while (producer->GetNext(recTemp))
 	{
@@ -307,6 +330,8 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 		//std::cout << "derp" << std::endl;
 		//std::cout << "derp" << std::endl;
 
+		
+
 		if (memUsed > memCapacity) // flush
 		{
 
@@ -325,9 +350,9 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 			
 			string loc;
 			if (sideName < 1)
-				loc = "../Disk/left";
+				loc = startLoc + "left";
 			else
-				loc = "../Disk/right";
+				loc = startLoc + "right";
 			string bin = ".bin";
 
 			oss << loc << fileNum << bin;
@@ -395,9 +420,9 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 		string loc;
 		if (sideName < 1)
-			loc = "../Disk/left";
+			loc = startLoc + "left";
 		else
-			loc = "../Disk/right";
+			loc = startLoc + "right";
 		string bin = ".bin";
 
 		oss << loc << fileNum << bin;
@@ -604,9 +629,9 @@ void Join::InsertionSort(vector<node*>& toSort, OrderMaker& toOrder) {
 
 void Join::HangMerge() {
 	// Number of runs for each side
-	int leftNumRuns;
-	int rightNumRuns;
-	
+	// Left File Num 
+	// Right File Num
+	/*
 	// vector of dbFiles for each side
 	vector<DBFile> leftFiles;
 	vector<DBFile> rightFiles;
@@ -620,7 +645,7 @@ void Join::HangMerge() {
 		// Open files for Right Join
 	
 	}
-	
+	*/
 	
 }
 
