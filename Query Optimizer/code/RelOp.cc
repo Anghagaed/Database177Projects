@@ -237,7 +237,8 @@ bool Join::GetNext(Record& _record) {
 		}
 	}
 	*/
-	mergeJoin(memCapacity);
+	//mergeJoin(memCapacity);
+	HangMerge();
 }
 
 
@@ -379,6 +380,90 @@ bool Join::InMem(Record& _record)
 	{
 		return false;
 	}
+}
+
+// Hang's stuff. Remove when we include Yun's Heap 
+
+void insertion_sort(int arr[], int length) {
+	int j, temp;
+
+	for (int i = 0; i < length; i++) {
+		j = i;
+
+		while (j > 0 && arr[j] < arr[j - 1]) {
+			temp = arr[j];
+			arr[j] = arr[j - 1];
+			arr[j - 1] = temp;
+			j--;
+		}
+	}
+}
+
+
+void Join::InsertionSort(vector<node*>& toSort, OrderMaker& toOrder) {
+	int size = toSort.size();
+	for (int i = 0; i < size; ++i) {
+		int j = i;
+
+		while (j > 0 && (toOrder.Run(toSort[j - 1]->data, toSort[j]->data) == 1)) {
+			node * temp = toSort[j];
+			toSort[j] = toSort[j - 1];
+			toSort[j - 1] = temp;
+			--j;
+		}
+	}
+}
+
+void Join::HangMerge() {
+	// Number of runs for each side
+	int leftNumRuns;
+	int rightNumRuns;
+	
+	// vector of dbFiles for each side
+	vector<DBFile> leftFiles;
+	vector<DBFile> rightFiles;
+	
+	// Testing
+	vector<node*> stuff;
+	
+	// DEF REMOVE THIS
+	predicate.GetSortOrders(leftComp, rightComp);
+
+	int counter = 0;
+	int max = 10;
+	while (counter < max) {
+		node *temp;
+		temp = new node;
+		left->GetNext(temp->data);
+		temp->index = counter;
+		temp->data.print(cout, schemaLeft);
+		cout << endl;
+		stuff.push_back(temp);
+		InsertionSort(stuff, leftComp);
+		++counter;
+	}
+	cout << "Printing the vector" << endl;
+	for (int i = 0; i < counter; ++i) {
+		cout << "i is " << i << endl;
+		stuff[i]->data.print(cout, schemaLeft);
+		cout << endl;
+		cout << stuff[i]->index << endl;
+	}
+	exit(0);
+	
+	//  
+	/*
+	for (int i = 0; i < leftNumRuns; ++i) {
+		// Open files for Left Join
+	
+	}
+
+	for (int i = 0; i < rightNumRuns; ++i) {
+		// Open files for Right Join
+	
+	}
+	*/
+	
 }
 
 Schema & Join::getSchema(){

@@ -150,6 +150,11 @@ public:
 	virtual ostream& print(ostream& _os);
 };
 
+struct node {
+	Record data;
+	int index;
+};
+
 class Join : public RelationalOp {
 private:
 	// schema of records in left operand
@@ -206,6 +211,10 @@ public:
 	OrderMaker leftComp;
 
 	OrderMaker rightComp;
+
+	void HangMerge();
+
+	void InsertionSort(vector<node*>& toSort, OrderMaker& toOrder);
 };
 
 class DuplicateRemoval : public RelationalOp {
