@@ -172,6 +172,9 @@ int main()
 		cout << queryTree << endl;
 
 		queryTree.ExecuteQuery();
+
+		//cout << queryTree << endl;
+
 /*
 		OptimizationTree ptr;
 		

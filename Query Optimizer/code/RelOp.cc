@@ -85,7 +85,7 @@ void Scan::CopyFrom(Scan& withMe)
 }
 
 ostream& Scan::print(ostream& _os) {
-	return _os << "SCAN\nSchema:" << schema << "\nFile\nSum: " << sum << std::endl;
+	return _os << "SCAN\nSchema:" << schema << "\nFile";
 }
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
@@ -214,7 +214,7 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 
 	fileNum = 0;
 
-	std::cout << "left sizeeeee: " << _leftMem << "right sizeeeee: " << _rightMem << std::endl;
+	//std::cout << "left sizeeeee: " << _leftMem << "right sizeeeee: " << _rightMem << std::endl;
 	//joinComp.Swap(_joinComp);
 }
 
@@ -261,7 +261,7 @@ bool Join::GetNext(Record& _record) {
 
 	if (appendIndex < appendRecords.size())
 	{
-		_record = *appendRecords[appendIndex];
+		_record = *appendRecords[appendIndex];	//return record
 		appendIndex++;
 		//cout << "Returned: " << appendIndex << endl;
 		return true;
@@ -308,9 +308,10 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 	bool lastCheck = false;
 
 
-	std::cout << "Entering left while loop: " << std::endl;
+	std::cout << "Entering while loop: " << std::endl;
 	startLoc = "../Disk/";
 	// Build
+	std::cout << "left schemaaa: " << schemaLeft << std::endl;
 	while (producer->GetNext(recTemp))
 	{
 
@@ -341,7 +342,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 			memUsed = 0;
 
-			std::cout << "Flushing Left" << std::endl;
+			std::cout << "Flushing" << std::endl;
 
 			DBFile myOutput;
 
@@ -351,7 +352,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 			ostringstream oss;
 			
 			string loc;
-			if (sideName < 1)
+			if (sideName < 1)	//0 for left
 				loc = startLoc + "left";
 			else
 				loc = startLoc + "right";
@@ -472,12 +473,13 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 	}
 
 	if (fitsInMemory) {
+		std::cout << "it fits" << std::endl;
 
 		vector<Record*> memRecords;
 
 		tempMap.MoveToStart();
 
-		while (!tempMap.AtEnd()) {
+		while (!tempMap.AtEnd()) {	//stuff our records into a vector for in-memory function to use
 
 
 			Record* temp = new Record();
@@ -494,7 +496,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 			inMem(memRecords, right);
 		}
 
-		else if (sideName == 1) {
+		else if (sideName == 1) {	//1 is left
 			inMem(memRecords, left);
 		}
 
@@ -517,7 +519,7 @@ bool Join::mergeJoin(double memCapacity, int smallerSide)
 
 		// Do Left First
 
-		if (smallerSide == 1) {
+		if (smallerSide == 1) {	//1 for left
 
 			while (writeDisk(left, leftComp, 0)) {	//0 for left string
 
@@ -561,7 +563,10 @@ bool Join::mergeJoin(double memCapacity, int smallerSide)
 			fileNum = 0;
 
 			if (!fitsInMemory) {
-
+				std::cout << "***************************************don't fit in memory*********************************" << std::endl;
+				std::cout << "left schema: " << schemaLeft << std::endl;
+				std::cout << "left tuples: " << leftMem << std::endl;
+				
 				while (writeDisk(left, leftComp, 0)) {	//0 for left
 
 					cout << fileNum << " Files" << endl;
@@ -585,6 +590,10 @@ bool Join::mergeJoin(double memCapacity, int smallerSide)
 void Join::inMem(vector<Record*> memRecords, RelationalOp* producer)
 {
 
+
+		std::cout << "******************************************************Doing in-memory join****************************************" << std::endl;
+
+
 		Record temp;
 
 
@@ -592,7 +601,7 @@ void Join::inMem(vector<Record*> memRecords, RelationalOp* producer)
 
 		while (producer->GetNext(temp))
 		{
-			//sum += temp.GetSize();	//summing left size
+			//sum += temp.GetSize();	//summing size
 			_sum += temp.GetSize();
 
 

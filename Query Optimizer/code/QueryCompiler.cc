@@ -112,7 +112,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		//std::cout << "left schema " << left_schema << std::endl;
 		//std::cout << "right schema: " << right_schema << std::endl;
 
-		/*
+		
 		std::cout << "left tuples: \n";// << node->leftChild->noTuples << " right tuples: " << node->rightChild->noTuples << "\n";
 		for (int i = 0; i < node->leftChild->tuples.size(); i++) {
 			std::cout << node->leftChild->tuples[i] << std::endl;
@@ -124,18 +124,18 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 			std::cout << node->rightChild->tuples[i] << std::endl;
 			rightTuples += node->rightChild->tuples[i];
 		}
-		*/
+		
 
-		std::cout << "left size: " << left->getSum() << std::endl;
-		std::cout << "right size: " << right->getSum() << std::endl;
+		//std::cout << "left size: " << left->getSum() << std::endl;
+		//std::cout << "right size: " << right->getSum() << std::endl;
 
-		std::cout << "left rel op: " << *left << std::endl;
-		std::cout << "}}}}}}}}}}}}" << std::endl;
+		//std::cout << "left rel op: " << *left << std::endl;
+		//std::cout << "}}}}}}}}}}}}" << std::endl;
 
 		//get resulting schema
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 		
-		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, left->getSum() , right->getSum(), _memCapacity);
+		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, leftTuples , rightTuples, _memCapacity);
 
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op
