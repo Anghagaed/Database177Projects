@@ -19,6 +19,7 @@ private:
 	Page temp;
 	int count;
 	ifstream inFile;
+	Page p;
 
 public:
 	DBFile ();

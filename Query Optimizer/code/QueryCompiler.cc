@@ -102,6 +102,8 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		//get the predicate
 		CNF predicate;
 		predicate.ExtractCNF(*_predicate, left_schema, right_schema);
+		
+		std::cout << "predicate: " << predicate << std::endl;
 
 		//get sum of tuples in children
 		double leftTuples = 0.0;
