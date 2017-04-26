@@ -39,6 +39,8 @@ bool Scan::GetNext(Record& _record) {
 	if(file.GetNext(_record)) {
 		sum += _record.GetSize();
 		_sum += _record.GetSize();
+		//std::cout << "rel op running sum: " << RelationalOp::getSum() << std::endl;
+		//std::cout << "scan running sum " << sum << std::endl;
 		return true;
 	}
 	return false;
@@ -82,7 +84,7 @@ void Scan::CopyFrom(Scan& withMe)
 }
 
 ostream& Scan::print(ostream& _os) {
-	return _os << "SCAN\nSchema:"<<schema<<"\nFile";
+	return _os << "SCAN\nSchema:" << schema << "\nFile\nSum: " << sum << std::endl;
 }
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
@@ -150,6 +152,7 @@ bool Select::GetNext(Record& _record) {
 			//_record = record;
 			sum += _record.GetSize();
 			_sum += _record.GetSize();
+			//std::cout << "running sum: " << _sum << std::endl;
 			return true;
 		}
 	}
@@ -158,14 +161,14 @@ bool Select::GetNext(Record& _record) {
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	int _numAttsOutput, int* _keepMe, RelationalOp* _producer) {
-	s = _schemaOut;
-	schemaIn = _schemaIn;
-	schemaOut = _schemaOut;
-	numAttsInput = _numAttsInput;
-	numAttsOutput = _numAttsOutput;
-	keepMe = _keepMe;
-	producer = _producer;
-	counter = 0;
+s = _schemaOut;
+schemaIn = _schemaIn;
+schemaOut = _schemaOut;
+numAttsInput = _numAttsInput;
+numAttsOutput = _numAttsOutput;
+keepMe = _keepMe;
+producer = _producer;
+counter = 0;
 }
 
 Project::~Project() {
@@ -191,7 +194,7 @@ bool Project::GetNext(Record& _record) {
 }
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double _memCapacity) {
+	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftMem, double _rightMem, double _memCapacity) {
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
@@ -200,14 +203,17 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	left = _left;
 	right = _right;
 
-	leftTuples = _leftTuples;
-	rightTuples = _rightTuples;
+	leftMem = _leftMem;
+	rightMem = _rightMem;
 	appendIndex = 0;
 	buildCheck = true;
+	fitsInMemory = true;
 
 	memCapacity = _memCapacity;
 
 	fileNum = 0;
+
+	std::cout << "left sizeeeee: " << _leftMem << "right sizeeeee: " << _rightMem << std::endl;
 	//joinComp.Swap(_joinComp);
 }
 
@@ -221,28 +227,49 @@ bool Join::GetNext(Record& _record) {
 
 	std::cout << "memCapacity: " << memCapacity << std::endl;
 
-	/*
-	if (leftTuples < rightTuples) {
-		//std::cout << "mem needed: " << memory needed << std::endl;
-		if (leftTuples < 1) {
-			//do in-memory
+
+	if (buildCheck) {
+
+		buildCheck = false;
+
+		if (leftMem < rightMem) {
+
+			cout << "Left is Small\n";
+
+			if (mergeJoin(memCapacity, 1)) {
+
+				HangMerge();
+
+			}
+
 		}
+
 		else {
-			//do two-pass sort-merge
+
+			cout << "Right is Small\n";
+
+			if(mergeJoin(memCapacity, 2)) {
+
+				HangMerge();
+			
+			}
+
 		}
+
 	}
-	else {
-		//std::cout << "mem needed: " << memory needed << std::endl;
-		if (rightTuples < 1) {
-			//do in-mem
-		}
-		else {
-			//do two-pass
-		}
+
+	if (appendIndex < appendRecords.size())
+	{
+		_record = *appendRecords[appendIndex];
+		appendIndex++;
+		//cout << "Returned: " << appendIndex << endl;
+		return true;
 	}
-	*/
-	mergeJoin(memCapacity);
-	HangMerge();
+	else
+	{
+		return false;
+	}
+
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
@@ -282,6 +309,8 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 		if (memUsed > memCapacity) // flush
 		{
+
+			fitsInMemory = false;
 
 			memUsed = 0;
 
@@ -348,9 +377,10 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 	}
 
+
 	// Last page, write out
 
-	if (lastCheck) {
+	if (lastCheck && !fitsInMemory) {
 
 		memUsed = 0;
 
@@ -414,13 +444,41 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 	}
 
+	if (fitsInMemory) {
+
+		vector<Record*> memRecords;
+
+		tempMap.MoveToStart();
+
+		while (!tempMap.AtEnd()) {
+
+
+			Record* temp = new Record();
+
+			*temp = tempMap.CurrentKey();
+
+			memRecords.push_back(temp);
+
+			tempMap.Advance();
+
+		}
+
+		if (sideName == 0) {
+			inMem(memRecords, right);
+		}
+
+		else if (sideName == 1) {
+			inMem(memRecords, left);
+		}
+
+		return false;
+
+	}
+
 }
 
-void Join::mergeJoin(double memCapacity)
+bool Join::mergeJoin(double memCapacity, int smallerSide)
 {
-
-	if (buildCheck)
-	{
 
 
 		if (predicate.GetSortOrders(leftComp, rightComp) == 0) {
@@ -429,83 +487,96 @@ void Join::mergeJoin(double memCapacity)
 
 		}
 
-		//std::cout << "original:\n";
-		//std::cout << "left " << leftComp << std::endl;
-		//std::cout << "right: " << rightComp << std::endl;
 
-		//std::cout << leftComp.whichAtts[0] << std::endl;
+		// Do Left First
 
+		if (smallerSide == 1) {
 
-		buildCheck = false;
-		
-		/*
-		std::cout << "jacob said to do this" << std::endl;
-		recTemp.print(cout, schemaLeft);
-		leftTemp.Insert(recTemp, keyTemp);
-		*/
+			while (writeDisk(left, leftComp, 0)) {	//0 for left string
 
-		while (writeDisk(left, leftComp, 0)) {	//0 for left
+				cout << fileNum << " Files" << endl;
 
-			cout << fileNum << " Files" << endl;
+			}
+
+			leftFileNum = fileNum;
+			fileNum = 0;
+
+			if (!fitsInMemory) {
+
+				while (writeDisk(right, rightComp, 1)) {
+
+					cout << fileNum << " Files" << endl;
+
+				}
+
+				rightFileNum = fileNum;
+				fileNum = 0;
+
+				return true;
+
+			}
+
+			return false;
 
 		}
 
-		leftFileNum = fileNum;
-		fileNum = 0;
+		// Do Right First
 
-		while (writeDisk(right, rightComp, 1)) {
+		else if (smallerSide == 2) {
 
-			cout << fileNum << " Files" << endl;
+			while (writeDisk(right, rightComp, 1)) {
+
+				cout << fileNum << " Files" << endl;
+
+			}
+
+			rightFileNum = fileNum;
+			fileNum = 0;
+
+			if (!fitsInMemory) {
+
+				while (writeDisk(left, leftComp, 0)) {	//0 for left
+
+					cout << fileNum << " Files" << endl;
+
+				}
+
+				leftFileNum = fileNum;
+				fileNum = 0;
+
+				return true;
+
+			}
+
+			return false;
 
 		}
 
-		rightFileNum = fileNum;
-		fileNum = 0;
 
-
-	}
 }
 
-bool Join::InMem(Record& _record)
+void Join::inMem(vector<Record*> memRecords, RelationalOp* producer)
 {
-	if (buildCheck) 
-	{
-		//cout << "Building " << endl;
-		buildCheck = false;
+
 		Record temp;
-		// Build
 
 
-		while (right->GetNext(temp))
-		{
-			//cout << "Building a record" << endl;
-			//cout << temp.GetSize() << endl;
-
-			sum += temp.GetSize();	//summing right size
-			_sum += temp.GetSize();
-
-			Record* temp2 = new Record();
-			*temp2 = temp;
-			myDS.push_back(temp2);		
-			//cout << "Pushed" << endl;
-		}
-		//cout << "Done building DS" << endl;
 		// Probe
 
-		while (left->GetNext(temp))
+		while (producer->GetNext(temp))
 		{
-			sum += temp.GetSize();	//summing left size
+			//sum += temp.GetSize();	//summing left size
 			_sum += temp.GetSize();
 
 
 			//cout << "Fetching tuple" << endl;
-			for (int i = 0; i < myDS.size(); i++)
+			for (int i = 0; i < memRecords.size(); i++)
 			{
-				if (predicate.Run(temp, *myDS[i]))
+				if (predicate.Run(temp, *memRecords[i]))
 				{
 					//cout << "Found match at " << i << endl;
 					Record merge;
-					merge.AppendRecords(temp, *myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+					merge.AppendRecords(temp, *memRecords[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
 					//cout << "Appended" << endl;
 					Record* merge2 = new Record();
 					*merge2 = merge;
@@ -514,21 +585,7 @@ bool Join::InMem(Record& _record)
 				}
 			}
 		}
-	}
-	//cout << "Built" << endl;
-	// Returns
-	//cout << appendIndex << " " << appendRecords.size() << endl;
-	if (appendIndex < appendRecords.size())
-	{
-		_record = *appendRecords[appendIndex];
-		appendIndex++;
-		//cout << "Returned: " << appendIndex << endl;
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+
 }
 
 void Join::InsertionSort(vector<node*>& toSort, OrderMaker& toOrder) {

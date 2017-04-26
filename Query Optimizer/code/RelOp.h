@@ -21,9 +21,7 @@ protected:
 	int counter;	// Delete Me
 	Schema s;	//defined as the schema out
 
-
-
-	double _sum;
+	double _sum;	//sum of memory used
 
 public:
 	// empty constructor & destructor
@@ -183,13 +181,14 @@ private:
 	RelationalOp* left;
 	RelationalOp* right;
 
-	//# of tuples in children, from query optimizer vector<double> tuples
-	double leftTuples;
-	double rightTuples;
+	//memory used from each side
+	double leftMem;
+	double rightMem;
 
 
 	double memCapacity;
 
+	bool fitsInMemory;
 
 	double sum;
 
@@ -214,9 +213,9 @@ public:
 
 	bool writeDisk(RelationalOp* producer, OrderMaker side, int sideName);
 
-	void mergeJoin(double memCapacity);
+	bool mergeJoin(double memCapacity, int smallerSide);
 
-	bool InMem(Record& _record);
+	void inMem(vector<Record*> memRecords, RelationalOp* producer);
 
 	void HangMerge();
 

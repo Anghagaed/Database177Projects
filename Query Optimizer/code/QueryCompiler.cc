@@ -103,7 +103,7 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		CNF predicate;
 		predicate.ExtractCNF(*_predicate, left_schema, right_schema);
 		
-		std::cout << "predicate: " << predicate << std::endl;
+		//std::cout << "predicate: " << predicate << std::endl;
 
 		//get sum of tuples in children
 		double leftTuples = 0.0;
@@ -111,6 +111,8 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 
 		//std::cout << "left schema " << left_schema << std::endl;
 		//std::cout << "right schema: " << right_schema << std::endl;
+
+		/*
 		std::cout << "left tuples: \n";// << node->leftChild->noTuples << " right tuples: " << node->rightChild->noTuples << "\n";
 		for (int i = 0; i < node->leftChild->tuples.size(); i++) {
 			std::cout << node->leftChild->tuples[i] << std::endl;
@@ -122,6 +124,13 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 			std::cout << node->rightChild->tuples[i] << std::endl;
 			rightTuples += node->rightChild->tuples[i];
 		}
+		*/
+
+		std::cout << "left size: " << left->getSum() << std::endl;
+		std::cout << "right size: " << right->getSum() << std::endl;
+
+		std::cout << "left rel op: " << *left << std::endl;
+		std::cout << "}}}}}}}}}}}}" << std::endl;
 
 		//get resulting schema
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
