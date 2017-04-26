@@ -224,8 +224,9 @@ EfficientMap <Key, Data> :: IsThere (Key &key) {
 
 template <class Key, class Data> void
 EfficientMap <Key, Data> :: Insert (Key &key, Data &data) {
+	//std::cout << "Hello, we are in the Insert function now!" << std::endl;
 	MoveToStart ();
-
+	//std::cout << "	movetostart\n";
 	// first, we figure out how many levels are in the new node
 	int numLevels = 1;
 	while (drand48 () > 0.5) {
@@ -235,35 +236,42 @@ EfficientMap <Key, Data> :: Insert (Key &key, Data &data) {
 			break;
 		}
 	}
-
+	//std::cout << "	figured our how many levels" << std::endl;
 	// now create the node
 	Node *temp = new Node (numLevels);
 	temp->key.Swap (key);
 	temp->data.Swap (data);
-
+	//std::cout << "	created the node" << std::endl;
 	// now, see how many levels we must work thru
 	MoveToStart ();
 	if (list->curDepth < numLevels)
 		list->curDepth = numLevels;
-
+	//std::cout << "	checked out how many levels we must work through" << std::endl;
 	// actually do the insertion
+	//std::cout << "	now entering the for loop" << std::endl;
 	for (int i = list->curDepth - 1; i >= 0; i--) {
-
+		//std::cout << "		i: " << i << std::endl;
 		// find the location to insert at this level
 		while (1) {
-
+			//std::cout << "		ok we are in the while loop now" << std::endl;
 			// keep looping until either we reach the end
+			//std::cout << "			ok im going to check if we hit the end now" << std::endl;
 			if (AtEnd (i)) {
+				//std::cout << "				we hit the end!" << std::endl;
 				break;
 			}
 
-
+			//std::cout << "			ok im going to check if we have found a larger item now" << std::endl;
 			// or we find a larger item
-			if (!CurrentKey(i).LessThan (temp->key))
+			if (!CurrentKey(i).LessThan(temp->key)) {
+				//std::cout << "				we found a larger item!" << std::endl;
 				break;
+			}
 
 			// if we made it here, we have more data
+			//std::cout << "			we are going to advance" << std::endl;
 			Advance (i);
+			//std::cout << "			advanced" << std::endl;
 		}
 
 		// do the insertion, if we are far enough down
@@ -271,6 +279,7 @@ EfficientMap <Key, Data> :: Insert (Key &key, Data &data) {
 			Insert (temp, i);
 		}
 	}
+	//std::cout << "	did the actual insertion" << std::endl;
 }
 
 template <class Key, class Data> void

@@ -171,6 +171,7 @@ private:
 	int appendIndex;
 	bool buildCheck;
 
+	int fileNum;
 
 	// selection predicate in conjunctive normal form
 	CNF predicate;
@@ -189,6 +190,14 @@ private:
 
 	double sum;
 
+	EfficientMap <Record, KeyInt> leftMap;
+
+	EfficientMap <Record, KeyInt> rightMap;
+
+	OrderMaker leftComp;
+
+	OrderMaker rightComp;
+
 public:
 	Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double memCapacity);
@@ -200,17 +209,11 @@ public:
 
 	virtual ostream& print(ostream& _os);
 
+	bool writeDisk(RelationalOp* producer, OrderMaker side, int sideName);
+
 	void mergeJoin(double memCapacity);
 
 	bool InMem(Record& _record);
-
-	EfficientMap <Record, KeyInt> leftTemp;
-
-	EfficientMap <Record, KeyInt> rightTemp;
-
-	OrderMaker leftComp;
-
-	OrderMaker rightComp;
 
 	void HangMerge();
 

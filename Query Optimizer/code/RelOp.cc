@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>			// used for var to str conversion
 #include <string.h>			// used for memcpy and memmove
+#include <stdio.h>
+#include <stdlib.h>
 #include "RelOp.h"
 #include "EfficientMap.h"
 #include "EfficientMap.cc"
@@ -204,6 +206,8 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	buildCheck = true;
 
 	memCapacity = _memCapacity;
+
+	fileNum = 0;
 	//joinComp.Swap(_joinComp);
 }
 
@@ -241,11 +245,185 @@ bool Join::GetNext(Record& _record) {
 	HangMerge();
 }
 
+bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
+
+	Record recTemp;
+	//left side first cuz normal people go left to right, not right to left. Freaking amar
+	KeyInt keyTemp = KeyInt(1);
+
+	double memUsed = 0.0;
+	EfficientMap <Record, KeyInt> tempMap;
+	bool lastCheck = false;
+
+
+	std::cout << "Entering left while loop: " << std::endl;
+
+	// Build
+	while (producer->GetNext(recTemp))
+	{
+
+		lastCheck = true;
+
+		//std::cout << "attempting to insert record: " << std::endl;
+		//recTemp.print(cout, schemaLeft);
+		//std::cout << "." << std::endl;
+
+		recTemp.SetOrderMaker(&side);
+
+
+
+		memUsed += recTemp.GetSize();
+		std::cout << "memUsed: " << memUsed << std::endl;
+		keyTemp = KeyInt(1);
+		//std::cout << "created keyint" << std::endl;
+		tempMap.Insert(recTemp, keyTemp);
+		//std::cout << "Successful insertion" << std::endl;
+
+		//std::cout << "derp" << std::endl;
+		//std::cout << "derp" << std::endl;
+
+		if (memUsed > memCapacity) // flush
+		{
+
+			memUsed = 0;
+
+			std::cout << "Flushing Left" << std::endl;
+
+			DBFile myOutput;
+
+			FileType file_type;
+			file_type = Heap;
+
+			ostringstream oss;
+			
+			string loc;
+			if (sideName < 1)
+				loc = "../Disk/left";
+			else
+				loc = "../Disk/right";
+			string bin = ".bin";
+
+			oss << loc << fileNum << bin;
+
+
+			fileNum++;
+
+			string myOutputFile = oss.str();
+
+			char* myOutputFileC = new char[myOutputFile.length() + 1];
+			strcpy(myOutputFileC, myOutputFile.c_str());
+
+			myOutput.Create(myOutputFileC, file_type);
+
+			tempMap.MoveToStart();
+
+			while (!tempMap.AtEnd()) {
+
+				myOutput.AppendRecord(tempMap.CurrentKey());
+
+				tempMap.Advance();
+
+			}
+
+			myOutput.Close();
+
+
+
+			/*DBFile testOutput;
+
+			testOutput.Open(myOutputFileC);
+
+			Record testtt;
+
+			while (testOutput.GetNext(testtt) == 1) {
+
+				testtt.print(std::cout, schemaLeft);
+				std::cout << std::endl;
+
+			}
+
+			testOutput.Close();*/
+
+			return true;
+
+		}
+
+	}
+
+	// Last page, write out
+
+	if (lastCheck) {
+
+		memUsed = 0;
+
+		std::cout << "Flushing Left" << std::endl;
+
+		DBFile myOutput;
+
+		FileType file_type;
+		file_type = Heap;
+
+		ostringstream oss;
+
+		string loc;
+		if (sideName < 1)
+			loc = "../Disk/left";
+		else
+			loc = "../Disk/right";
+		string bin = ".bin";
+
+		oss << loc << fileNum << bin;
+
+
+		fileNum++;
+
+		string myOutputFile = oss.str();
+
+		char* myOutputFileC = new char[myOutputFile.length() + 1];
+		strcpy(myOutputFileC, myOutputFile.c_str());
+
+		myOutput.Create(myOutputFileC, file_type);
+
+		tempMap.MoveToStart();
+
+		while (!tempMap.AtEnd()) {
+
+			myOutput.AppendRecord(tempMap.CurrentKey());
+
+			tempMap.Advance();
+
+		}
+
+		myOutput.Close();
+
+
+		/*DBFile testOutput;
+
+		testOutput.Open(myOutputFileC);
+
+		Record testtt;
+
+		while (testOutput.GetNext(testtt) == 1) {
+
+			testtt.print(std::cout, schemaLeft);
+			std::cout << std::endl;
+
+		}
+
+		testOutput.Close();*/
+
+		return false;
+
+	}
+
+}
 
 void Join::mergeJoin(double memCapacity)
 {
+
 	if (buildCheck)
 	{
+
 
 		if (predicate.GetSortOrders(leftComp, rightComp) == 0) {
 
@@ -253,68 +431,36 @@ void Join::mergeJoin(double memCapacity)
 
 		}
 
+		//std::cout << "original:\n";
+		//std::cout << "left " << leftComp << std::endl;
+		//std::cout << "right: " << rightComp << std::endl;
 
-			std::cout << leftComp.whichAtts[0] << std::endl;
+		//std::cout << leftComp.whichAtts[0] << std::endl;
 
 
 		buildCheck = false;
-		Record recTemp;
-		//left side first cuz normal people go left to right, not right to left. Freaking amar
-		recTemp.SetOrderMaker(&leftComp);
-		KeyInt keyTemp = KeyInt(1);
-		leftTemp.Insert(recTemp, keyTemp);
-
-		double memUsed = 0.0;
-
-
-		// Build
-		while (left->GetNext(recTemp))
-		{
-			std::cout << "Test" << std::endl;
-
-			recTemp.SetOrderMaker(&leftComp);
-
-			if (memUsed > memCapacity) // flush
-			{
-
-				memUsed = 0;
-				std::cout << "Flushing Left" << std::endl;
-
-			}
-
-			else
-			{
-				memUsed += recTemp.GetSize();
-
-				keyTemp = KeyInt(1);
-				leftTemp.Insert(recTemp, keyTemp);
-			}
-
-		}
-
-		leftTemp.MoveToStart();
-		while (right->GetNext(recTemp))
-		{
-			if (memUsed > memCapacity) // flush
-			{
-
-				memUsed = 0;
-				std::cout << "Flushing Right" << std::endl;
-
-			}
-
-			else
-			{
-				memUsed += recTemp.GetSize();
-
-				keyTemp = KeyInt(1);
-				rightTemp.Insert(recTemp, keyTemp);
-			}
-		}
-		rightTemp.MoveToStart();
-	}
-
 		
+		/*
+		std::cout << "jacob said to do this" << std::endl;
+		recTemp.print(cout, schemaLeft);
+		leftTemp.Insert(recTemp, keyTemp);
+		*/
+
+		while (writeDisk(left, leftComp, 0)) {	//0 for left
+
+			cout << fileNum << " Files" << endl;
+
+		}
+
+		fileNum = 0;
+
+		while (writeDisk(right, rightComp, 1)) {
+
+			cout << fileNum << " Files" << endl;
+
+		}
+
+	}
 }
 
 bool Join::InMem(Record& _record)
