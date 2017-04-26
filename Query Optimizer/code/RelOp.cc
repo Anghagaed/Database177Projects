@@ -292,7 +292,28 @@ bool Join::GetNext(Record& _record) {
 	delete min;
 	exit(0);
 	*/
->>>>>>> origin/master
+	//mergeJoin(memCapacity);
+	//HangMerge();
+	/*
+	predicate.GetSortOrders(leftComp, rightComp);
+	MinHeap toTest(rightComp);
+	Record temp;
+	for (int i = 0; i < 20; ++i) {
+		bool x = right->GetNext(temp);
+		int index = i;
+		temp.print(cout, schemaRight);
+		cout << endl;
+		cout << "Amar <3 $"<<x<<"\n";
+		toTest.insert(temp, index);
+		cout << "Amar <3 Boba!\n";
+	}
+	cout << "Min:\n";
+	HeapNode* min = toTest.extractMin();
+	min->data.print(cout, schemaRight);
+	cout << endl;
+	delete min;
+	exit(0);
+	*/
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
