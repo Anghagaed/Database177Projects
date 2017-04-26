@@ -10,6 +10,7 @@
 #include "Keyify.h"
 #include "Config.h"
 #include "RecordMinHeap.h"
+#include "RecordMinHeap.cc"
 using namespace std;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
