@@ -246,22 +246,22 @@ bool Join::GetNext(Record& _record) {
 	//HangMerge();
 	/*
 	predicate.GetSortOrders(leftComp, rightComp);
-	MinHeap toTest(leftComp);
+	MinHeap toTest(rightComp);
 	Record temp;
 	for (int i = 0; i < 20; ++i) {
-		bool x = left->GetNext(temp);
+		bool x = right->GetNext(temp);
 		int index = i;
-		temp.print(cout, schemaLeft);
+		temp.print(cout, schemaRight);
 		cout << endl;
 		cout << "Amar <3 $"<<x<<"\n";
-		//toTest.insert(temp, index);
+		toTest.insert(temp, index);
 		cout << "Amar <3 Boba!\n";
 	}
 	cout << "Min:\n";
-	//HeapNode* min = toTest.extractMin();
-	//min->data.print(cout, schemaLeft);
-	//cout << endl;
-	//delete min;
+	HeapNode* min = toTest.extractMin();
+	min->data.print(cout, schemaRight);
+	cout << endl;
+	delete min;
 	exit(0);
 	*/
 }
