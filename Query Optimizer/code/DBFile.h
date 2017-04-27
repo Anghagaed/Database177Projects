@@ -35,6 +35,7 @@ public:
 
 	void MoveFirst ();
 	void AppendRecord (Record& _addMe);
+	void AppendLast();
 	int GetNext (Record& _fetchMe);
 };
 

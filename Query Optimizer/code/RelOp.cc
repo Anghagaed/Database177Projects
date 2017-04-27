@@ -9,6 +9,8 @@
 #include "EfficientMap.cc"
 #include "Keyify.h"
 #include "Config.h"
+#include "RecordMinHeap.h"
+#include "RecordMinHeap.cc"
 using namespace std;
 
 ostream& operator<<(ostream& _os, RelationalOp& _op) {
@@ -39,6 +41,8 @@ bool Scan::GetNext(Record& _record) {
 	if(file.GetNext(_record)) {
 		sum += _record.GetSize();
 		_sum += _record.GetSize();
+		//std::cout << "rel op running sum: " << RelationalOp::getSum() << std::endl;
+		//std::cout << "scan running sum " << sum << std::endl;
 		return true;
 	}
 	return false;
@@ -82,7 +86,7 @@ void Scan::CopyFrom(Scan& withMe)
 }
 
 ostream& Scan::print(ostream& _os) {
-	return _os << "SCAN\nSchema:"<<schema<<"\nFile";
+	return _os << "SCAN\nSchema:" << schema << "\nFile\nSum: " << sum << std::endl;
 }
 
 Select::Select(Schema& _schema, CNF& _predicate, Record& _constants,
@@ -150,6 +154,7 @@ bool Select::GetNext(Record& _record) {
 			//_record = record;
 			sum += _record.GetSize();
 			_sum += _record.GetSize();
+			//std::cout << "running sum: " << _sum << std::endl;
 			return true;
 		}
 	}
@@ -158,14 +163,14 @@ bool Select::GetNext(Record& _record) {
 
 Project::Project(Schema& _schemaIn, Schema& _schemaOut, int _numAttsInput,
 	int _numAttsOutput, int* _keepMe, RelationalOp* _producer) {
-	s = _schemaOut;
-	schemaIn = _schemaIn;
-	schemaOut = _schemaOut;
-	numAttsInput = _numAttsInput;
-	numAttsOutput = _numAttsOutput;
-	keepMe = _keepMe;
-	producer = _producer;
-	counter = 0;
+s = _schemaOut;
+schemaIn = _schemaIn;
+schemaOut = _schemaOut;
+numAttsInput = _numAttsInput;
+numAttsOutput = _numAttsOutput;
+keepMe = _keepMe;
+producer = _producer;
+counter = 0;
 }
 
 Project::~Project() {
@@ -191,7 +196,7 @@ bool Project::GetNext(Record& _record) {
 }
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double _memCapacity) {
+	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftMem, double _rightMem, double _memCapacity) {
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
@@ -200,67 +205,84 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	left = _left;
 	right = _right;
 
-	leftTuples = _leftTuples;
-	rightTuples = _rightTuples;
+	leftMem = _leftMem;
+	rightMem = _rightMem;
 	appendIndex = 0;
 	buildCheck = true;
-
+	fitsInMemory = true;
+	firstTimeBuild = true;
 	memCapacity = _memCapacity;
+	finishMerge = true;
 
 	fileNum = 0;
+
+	std::cout << "left sizeeeee: " << _leftMem << "right sizeeeee: " << _rightMem << std::endl;
 	//joinComp.Swap(_joinComp);
 }
 
 Join::~Join() {
+	if (leftHeap) {
+		delete leftHeap;
+	}
 
+	if (rightHeap) {
+		delete rightHeap;
+	}
 }
 
 bool Join::GetNext(Record& _record) {
 	//std::cout << "lefttuples: "  << leftTuples << std::endl;
 	//std::cout << "righttuples: " << rightTuples << std::endl;
 
-	std::cout << "memCapacity: " << memCapacity << std::endl;
+	//std::cout << "memCapacity: " << memCapacity << std::endl;
 
-	/*
-	if (leftTuples < rightTuples) {
-		//std::cout << "mem needed: " << memory needed << std::endl;
-		if (leftTuples < 1) {
-			//do in-memory
+
+	if (buildCheck) {
+
+		buildCheck = false;
+
+		/*if (leftMem < rightMem) {
+
+			cout << "Left is Small\n";
+
+			if (mergeJoin(memCapacity, 1)) {
+
+				HangMerge();
+
+			}
+
 		}
+
 		else {
-			//do two-pass sort-merge
-		}
+
+			cout << "Right is Small\n";
+
+			if(mergeJoin(memCapacity, 2)) {
+
+				HangMerge();
+			
+			}
+
+		}*/
+
+		mergeJoin(memCapacity, 0);
+		HangMerge();
+
 	}
-	else {
-		//std::cout << "mem needed: " << memory needed << std::endl;
-		if (rightTuples < 1) {
-			//do in-mem
-		}
-		else {
-			//do two-pass
-		}
+
+	if (appendIndex < appendRecords.size())
+	{
+		_record = *appendRecords[appendIndex];
+		appendIndex++;
+		//cout << "Returned: " << appendIndex << endl;
+		return true;
 	}
-	*/
-	mergeJoin(memCapacity);					// Hang: I set buildCheck to false inside my Merge function
-	//HangMerge();
-	
-	char * fileNameC;
-	string path = "../Disk/left0.bin";
-	fileNameC = new char[path.length() + 1];
-	strcpy(fileNameC, path.c_str());
-	Record t;
-	DBFile testDB;
-	cout << fileNameC << endl;
-	cout << path << endl;
-	testDB.Open(fileNameC);
-	cout << testDB.GetNext(t) << endl;
-	cout << "About to print" << endl;
-	t.print(std::cout, schemaLeft);
-	testDB.Close();
-	cout << endl;
-	cout << "After prints" << endl;
-	
-	exit(0);
+
+	else
+	{
+		return false;
+	}
+
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
@@ -277,6 +299,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 	std::cout << "Entering left while loop: " << std::endl;
 	startLoc = "../Disk/";
 	// Build
+
 	while (producer->GetNext(recTemp))
 	{
 
@@ -297,7 +320,6 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 		//std::cout << "derp" << std::endl;
 		//std::cout << "derp" << std::endl;
-
 		
 
 		if (memUsed > memCapacity) // flush
@@ -305,7 +327,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 			memUsed = 0;
 
-			std::cout << "Flushing Left" << std::endl;
+			std::cout << "Flushing Left While" << std::endl;
 
 			DBFile myOutput;
 
@@ -368,13 +390,14 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 	}
 
+
 	// Last page, write out
 
 	if (lastCheck) {
 
 		memUsed = 0;
 
-		std::cout << "Flushing Left" << std::endl;
+		std::cout << "Flushing Left Last Check" << std::endl;
 
 		DBFile myOutput;
 
@@ -407,14 +430,16 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 		while (!tempMap.AtEnd()) {
 
 			myOutput.AppendRecord(tempMap.CurrentKey());
-
+			
 			tempMap.Advance();
 
 		}
 
+		myOutput.AppendLast();
+
 		myOutput.Close();
 
-
+		
 		/*DBFile testOutput;
 
 		testOutput.Open(myOutputFileC);
@@ -423,24 +448,58 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 		while (testOutput.GetNext(testtt) == 1) {
 
-			testtt.print(std::cout, schemaLeft);
-			std::cout << std::endl;
+
+			if (sideName == 1) {
+
+				testtt.print(std::cout, schemaRight);
+				std::cout << std::endl;
+
+			}
 
 		}
 
-		testOutput.Close();*/
-
+		testOutput.Close();
+		*/
+		
 		return false;
 
 	}
 
+	/*if (fitsInMemory) {
+
+		vector<Record*> memRecords;
+
+		tempMap.MoveToStart();
+
+		while (!tempMap.AtEnd()) {
+
+
+			Record* temp = new Record();
+
+			*temp = tempMap.CurrentKey();
+
+			memRecords.push_back(temp);
+
+			tempMap.Advance();
+
+		}
+
+		if (sideName == 0) {
+			inMem(memRecords, right);
+		}
+
+		else if (sideName == 1) {
+			inMem(memRecords, left);
+		}
+
+		return false;
+
+	}*/
+
 }
 
-void Join::mergeJoin(double memCapacity)
+bool Join::mergeJoin(double memCapacity, int smallerSide)
 {
-
-	if (buildCheck)
-	{
 
 
 		if (predicate.GetSortOrders(leftComp, rightComp) == 0) {
@@ -449,81 +508,97 @@ void Join::mergeJoin(double memCapacity)
 
 		}
 
-		//std::cout << "original:\n";
-		//std::cout << "left " << leftComp << std::endl;
-		//std::cout << "right: " << rightComp << std::endl;
 
-		//std::cout << leftComp.whichAtts[0] << std::endl;
+		// Do Left First
+
+		if (smallerSide == 0) {
+
+			while (writeDisk(left, leftComp, 0)) {	//0 for left string
+
+				cout << fileNum << " Left Files" << endl;
+
+			}
+
+			cout << fileNum << " Left Files" << endl;
+
+			leftFileNum = fileNum;
+			fileNum = 0;
 
 
-		//buildCheck = false;
-		
-		/*
-		std::cout << "jacob said to do this" << std::endl;
-		recTemp.print(cout, schemaLeft);
-		leftTemp.Insert(recTemp, keyTemp);
-		*/
+			
 
-		while (writeDisk(left, leftComp, 0)) {	//0 for left
+			while (writeDisk(right, rightComp, 1)) {
 
-			cout << fileNum << " Files" << endl;
+				cout << fileNum << " Right Files" << endl;
+
+			}
+
+			cout << fileNum << " Right Files" << endl;
+
+			rightFileNum = fileNum;
+			fileNum = 0;
 
 		}
 
-		leftFileNum = fileNum;
-		fileNum = 0;
+		return true;
 
-		while (writeDisk(right, rightComp, 1)) {
+		// Do Right First
 
-			cout << fileNum << " Files" << endl;
+		/*else if (smallerSide == 1) {
 
-		}
+			while (writeDisk(right, rightComp, 1)) {
 
-		rightFileNum = fileNum;
-		fileNum = 0;
-	}
+				cout << fileNum << " Files" << endl;
+
+			}
+
+			rightFileNum = fileNum;
+			fileNum = 0;
+
+			if (!fitsInMemory) {
+
+				while (writeDisk(left, leftComp, 0)) {	//0 for left
+
+					cout << fileNum << " Files" << endl;
+
+				}
+
+				leftFileNum = fileNum;
+				fileNum = 0;
+
+				return true;
+
+			}
+
+			return false;
+
+		}*/
+
+
 }
 
-bool Join::InMem(Record& _record)
+void Join::inMem(vector<Record*> memRecords, RelationalOp* producer)
 {
-	if (buildCheck) 
-	{
-		//cout << "Building " << endl;
-		buildCheck = false;
+
 		Record temp;
-		// Build
 
 
-		while (right->GetNext(temp))
-		{
-			//cout << "Building a record" << endl;
-			//cout << temp.GetSize() << endl;
-
-			sum += temp.GetSize();	//summing right size
-			_sum += temp.GetSize();
-
-			Record* temp2 = new Record();
-			*temp2 = temp;
-			myDS.push_back(temp2);		
-			//cout << "Pushed" << endl;
-		}
-		//cout << "Done building DS" << endl;
 		// Probe
 
-		while (left->GetNext(temp))
+		while (producer->GetNext(temp))
 		{
-			sum += temp.GetSize();	//summing left size
+			//sum += temp.GetSize();	//summing left size
 			_sum += temp.GetSize();
 
 
 			//cout << "Fetching tuple" << endl;
-			for (int i = 0; i < myDS.size(); i++)
+			for (int i = 0; i < memRecords.size(); i++)
 			{
-				if (predicate.Run(temp, *myDS[i]))
+				if (predicate.Run(temp, *memRecords[i]))
 				{
 					//cout << "Found match at " << i << endl;
 					Record merge;
-					merge.AppendRecords(temp, *myDS[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+					merge.AppendRecords(temp, *memRecords[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
 					//cout << "Appended" << endl;
 					Record* merge2 = new Record();
 					*merge2 = merge;
@@ -532,21 +607,7 @@ bool Join::InMem(Record& _record)
 				}
 			}
 		}
-	}
-	//cout << "Built" << endl;
-	// Returns
-	//cout << appendIndex << " " << appendRecords.size() << endl;
-	if (appendIndex < appendRecords.size())
-	{
-		_record = *appendRecords[appendIndex];
-		appendIndex++;
-		//cout << "Returned: " << appendIndex << endl;
-		return true;
-	}
-	else
-	{
-		return false;
-	}
+
 }
 
 void Join::InsertionSort(vector<HeapNode*>& toSort, OrderMaker& toOrder) {
@@ -584,12 +645,9 @@ void Join::HangMerge() {
 	// Right File Num
 	
 	// DEBUGING ONLY
-	leftFileNum = 11;
-	rightFileNum = 1;
 	startLoc = "../Disk/";
 
-	// vector of dbFiles for each side
-	/*
+	// String for File Names
 	string left = "left";
 	string right = "right";
 	string bin = ".bin";
@@ -598,26 +656,13 @@ void Join::HangMerge() {
 	char * fileNameC;
 	HeapNode * temp;
 	int minLeftIndex, minRightIndex;									// Index of where the minimum came from for Left/RightBucket to choose which GetNext
-	tempDB = new DBFile();
-	*/
-
-	char * fileNameC;
-	string path = "../Disk/left1.bin";
-	fileNameC = new char[path.length() + 1];
-	strcpy(fileNameC, path.c_str());
-	Record t;
-	DBFile testinggggg;
-	cout << fileNameC << endl;
-	cout << path << endl;
-	testinggggg.Open(fileNameC);
-	cout << testinggggg.GetNext(t) << endl;
-	cout << "About to print" << endl;
-	t.print(cout, schemaLeft);
-	testinggggg.Close();
-	cout << endl;
-	cout << "After prints" << endl;
-	/*
-	if (buildCheck) {
+	int heapExtractLeft, heapExtractRight;								// Holds 0 if previous heap extract fails, 1 if extract works
+	
+	if (firstTimeBuild) {
+		// Setting up the Heap Tree to be used
+		leftHeap = new MinHeap(leftComp);
+		rightHeap = new MinHeap(rightComp);
+		// Setting up the DBFile
 		for (int i = 0; i < leftFileNum; ++i) {
 			ostringstream oss;
 			string result;
@@ -641,31 +686,276 @@ void Join::HangMerge() {
 			strcpy(fileNameC, result.c_str());
 			tempDB = new DBFile();
 			tempDB->Open(fileNameC);
-			leftFiles.push_back(tempDB);
+			rightFiles.push_back(tempDB);
 		}
 
 		// Extracting the first element from each runs into Left/Right Bucket for the first time
 		cout << "About to Extract First Left Element" << endl;
 		for (int i = 0; i < leftFileNum; ++i) {
-			cout << "Left i " << i << endl;
-			temp = new HeapNode();
-			cout << "GetNext() = " << leftFiles[i]->GetNext(temp->data) << endl;
-			temp->data.print(cout, schemaLeft);
+			cout << "Left i " << i << " ";
+			Record temp;
+			if (!leftFiles[i]->GetNext(temp)) {
+				cerr << "Error extracting first element from leftFiles number " << i << endl;
+				exit(0);
+			}
+			temp.print(cout, schemaLeft);
 			cout << endl;
-			temp->index = i;
-			leftBucket.push_back(temp);
+			leftHeap->insert(temp, i);
 		}
-		buildCheck = false;
+		cout << "About to Extract First Right Element" << endl;
+		for (int i = 0; i < rightFileNum; ++i) {
+			cout << "Right i " << i << " ";
+			Record temp;
+			if (!rightFiles[i]->GetNext(temp)) {
+				cerr << "Error extracting first element from rightFiles number " << i << endl;
+				exit(0);
+			}
+			temp.print(cout, schemaRight);
+			cout << endl;
+			rightHeap->insert(temp, i);
+		}
+		
+		// Set flag so any calls on this functions again will not go into this loop
+		firstTimeBuild = false;
 	}
-	cout << "About to print Left" << endl;
-	for (int i = 0; i < leftFileNum; ++i) {
-		cout << "Print Left i " << i << endl;
-		leftBucket[i]->data.print(cout, schemaLeft);
+
+	HeapNode *leftMin, *rightMin;
+	// Debuging only
+	unsigned int loopCounter = 0;
+	unsigned int mergeCounter = 0;
+	unsigned int LRcounter = 0;
+	unsigned int RLcounter = 0;
+	/*
+	// Testing logic
+	// prints correctly
+	cout << "Extracting Min from leftHeap: ";
+	leftMin = leftHeap->extractMin(heapExtractLeft);
+	cout << "heapExtractLeft is " << heapExtractLeft << endl;
+	leftMin->data.print(cout, schemaLeft);
+	cout << "\nIndex: " << leftMin->index << endl;
+	cout << "Extracting Min from rightHeap: ";
+	rightMin = rightHeap->extractMin(heapExtractRight);
+	cout << "heapExtractRight is " << heapExtractRight << endl;
+	rightMin->data.print(cout, schemaRight);
+	cout << "\nIndex: " << rightMin->index << endl;
+	
+	cout << "Check if Join arugment is the same: ";;
+	Record* merge;
+	int compResult = leftComp.Run(leftMin->data, rightMin->data, rightComp);
+	cout << compResult << endl;
+	if (compResult == 0) {
+		cout << "Left Equal Right" << endl;
+		merge = new Record();
+		merge->AppendRecords(leftMin->data, rightMin->data, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+		cout << "Merged Record is: ";
+		merge->print(cout, schemaOut);
 		cout << endl;
+		appendRecords.push_back(merge);
 	}
 	*/
+	leftMin = leftHeap->extractMin(heapExtractLeft);
+	minLeftIndex = leftMin->index;
+	rightMin = rightHeap->extractMin(heapExtractRight);
+	minRightIndex = rightMin->index;
+	// Make sure previous heap extraction was valid for both table
+	while (heapExtractLeft && heapExtractRight) {
+		//cout << "Start of while Loop" << endl;
+		//if (mergeCounter > 10 || appendRecords.size() > 10) {
+		//	break;
+		//}
+		//cout << "Loop " << loopCounter++ << endl;
+		Record* merge;
+		//cout << "Start First comparison" << endl;
+		int compResult = leftComp.Run(leftMin->data, rightMin->data, rightComp);
+		//cout << "End First Comparison" << endl;
+		// Case where Join Condition is the same
+		if (compResult == 0) {
+			//cout << "Left Equal Right" << " Merge counter " << mergeCounter++ << endl;
+			//leftMin->data.print(cout, schemaLeft);
+			//cout << endl;
+			//rightMin->data.print(cout, schemaRight);
+			//cout << endl;
+			// Vector to store case where next min tuple also has the same Joining value as current tuple 
+			// and thus requiring a join with all existing tuples
+			// example: leftMin.Joining = {1,1,1,2} and rightMin.joining = {1,1,1,3}
+			// Each tuple of leftMin with joining value = 1 has to join with ALL of rightMin tuples
+			// with joining value = 1
+			vector<HeapNode*> tempLeft, tempRight;
+			// Pushing first records into storage
+			tempLeft.push_back(leftMin);
+			tempRight.push_back(rightMin);
+			//merge->AppendRecords(leftMin->data, rightMin->data, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+			// Loop through left heap extracting until joining value is different from tempLeft[0].Joining
+			// Repeat for rightHeap
+			//minLeftIndex = leftMin->index;
+			//minRightIndex = rightMin->index;
+			int compResultTemp = 0;
+			int tempCounter = 0;
+			//cout << "Start Extracting Left " << endl;
+			while (heapExtractLeft && compResultTemp == 0) {
+				//cout << "Extracting Left " << tempCounter++ << endl;
+				// Pushing next tuple into left heap using minLeftIndex
+				// Only push IF there is a next tuple
+				Record temp;
+				//cout << 1 << endl;
+				//cout << "minLeftIndex " << minLeftIndex << endl;
+				if (leftFiles[minLeftIndex]->GetNext(temp)) {
+					//cout << "Inserting to Heap" << endl;
+					leftHeap->insert(temp, minLeftIndex);
+				}
+				//cout << 2 << endl;
+				// Extract new Min after possible insert, update index if extract works
+				leftMin = leftHeap->extractMin(heapExtractLeft);
+				//cout << 3 << endl;
+				if (heapExtractLeft) {
+					//cout << 4 << endl;
+					minLeftIndex = leftMin->index;
+					//cout << 5 << endl;
+					//leftMin->data.print(cout, schemaLeft);
+					//cout << endl;
+					//cout << 6 << endl;
+
+					// Compare current LeftMin with original LeftMin 
+					//cout << 7 << endl;
+					compResultTemp = leftComp.Run(tempLeft[0]->data, leftMin->data);
+					//cout << 8 << endl;
+					// If current LeftMin = original LeftMin
+					// Push current LeftMin into tempLeft
+					//cout << 9 << endl;
+					if (compResultTemp == 0) {
+						//cout << 10 << endl;
+						tempLeft.push_back(leftMin);
+					}
+				}
+				//cout << "Ending Loop" << endl;
+				// Repeat until heap Tree has no node OR comparison is false
+			}
+			//cout << "Start Extracting Right " << endl;
+			compResultTemp = 0;
+			while (heapExtractRight && compResultTemp == 0) {
+				//cout << "Extracting Right " << tempCounter++ << endl;
+				minRightIndex = rightMin->index;
+				// Pushing next tuple into right heap using minRightIndex
+				// Only push IF there is a next tuple
+				Record temp;
+				//cout << 1 << endl;
+				if (rightFiles[minRightIndex]->GetNext(temp)) {
+					//cout << 2 << endl;
+					rightHeap->insert(temp, minRightIndex);
+				}
+				//cout << 3 << endl;
+				// Extract new Min after possible insert, update index if extract works
+				rightMin = rightHeap->extractMin(heapExtractRight);
+				//cout << 4 << endl;
+				if (heapExtractRight) {
+					//cout << 5 << endl;
+					minRightIndex = rightMin->index;
+					//cout << 6 << endl;
+					//rightMin->data.print(cout, schemaRight);
+					//cout << endl;
+
+					// Compare current RightMin with original RightMin
+					//cout << 7 << endl;
+					compResultTemp = rightComp.Run(tempRight[0]->data, rightMin->data);
+					// If current RightMin = original RightMin
+					// Push current RightMin into tempRight
+					//cout << 8 << endl;
+					if (compResultTemp == 0) {
+						//cout << 9 << endl;
+						tempRight.push_back(rightMin);
+					}
+				}
+				//cout << "End of Loop" << endl;
+			}
+
+			//cout << "Merging " << tempLeft.size() << " Left with " << tempRight.size() << " Right" << endl;
+
+			// Printing everything in Left & Right
+			cout << "Temp Left" << endl;
+			for (int i = 0; i < tempLeft.size(); ++i) {
+				tempLeft[i]->data.print(cout, schemaLeft);
+				cout << endl;
+			}
+			cout << "Temp Right" << endl;
+			for (int i = 0; i < tempRight.size(); ++i) {
+				tempRight[i]->data.print(cout, schemaRight);
+				cout << endl;
+			}
+
+			// Create all merge combinations
+			for (int i = 0; i < tempLeft.size(); ++i) {
+				for (int j = 0; j < tempRight.size(); ++j) {
+					merge = new Record()	;
+					merge->AppendRecords(tempLeft[i]->data, tempRight[j]->data, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+					appendRecords.push_back(merge);
+				}
+			}
+			// Delete all HeapNode in tempLeft and tempRight
+			for (int i = 0; i < tempLeft.size(); ++i) {
+				delete tempLeft[i];
+			}
+			for (int j = 0; j < tempRight.size(); ++j) {
+				delete tempRight[j];
+			}
+
+		}
+		// Condition where leftMin > rightMin
+		else if (compResult == 1)
+		{
+			//cout << "Left Greater Right" << "LR counter " << LRcounter++ << endl;
+			//minRightIndex = rightMin->index;
+			delete rightMin;
+			// Pushing next tuple into right heap using minRightIndex
+			// Only push IF there is a next tuple
+			Record temp;
+			if (rightFiles[minRightIndex]->GetNext(temp)) {
+				//cout << "Found Get Next " << endl;
+				rightHeap->insert(temp, minRightIndex);
+			}
+			rightMin = rightHeap->extractMin(heapExtractRight);
+			if (heapExtractRight) minRightIndex = rightMin->index;
+		}
+		// Condition where leftMin < rightMin
+		else if (compResult == -1) {
+			//cout << "Left Smaller Right " << "RL counter " << RLcounter++ << endl;
+			//minLeftIndex = leftMin->index;
+			delete leftMin;
+			// Pushing next tuple into left heap using minLeftIndex
+			// Only push IF there is a next tuple
+			Record temp;
+			if (leftFiles[minLeftIndex]->GetNext(temp)) {
+				//cout << "Found Get Next " << endl;
+				leftHeap->insert(temp, minLeftIndex);
+			}
+			leftMin = leftHeap->extractMin(heapExtractLeft);
+			if (heapExtractLeft) minLeftIndex = leftMin->index;
+		}
+		//cout << "End of while Loop" << endl;
+		//cout << "extractLeft: " << heapExtractLeft << " extractRight: " << heapExtractRight << endl;
+	}
 	cout << "it works" << endl;
+	if (leftHeap->getHeapSize() == 0 || rightHeap->getHeapSize() == 0) {
+		finishMerge = true;
+		for (int i = 0; i < leftFiles.size(); ++i) {
+			leftFiles[i]->Close();
+			delete leftFiles[i];
+		}
+		leftFiles.clear();
+		for (int i = 0; i < rightFiles.size(); ++i) {
+			rightFiles[i]->Close();
+			delete rightFiles[i];
+		}
+		rightFiles.clear();
+	}
+	cout << "Printing Append Records" << endl;
+	cout << appendRecords.size() << endl;
+	for (int i = 0; i < appendRecords.size(); ++i) {
+		appendRecords[i]->print(cout, schemaOut);
+		cout << endl;
+	}
+
 	exit(0);
+
 }
 
 Schema & Join::getSchema(){

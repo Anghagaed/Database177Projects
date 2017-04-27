@@ -9,7 +9,6 @@ using namespace std;
 
 // page size in database file
 #define PAGE_SIZE 131072
-
 // pipe buffer size
 #define PIPE_BUFFERSIZE 10000
 

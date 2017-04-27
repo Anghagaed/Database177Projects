@@ -133,7 +133,7 @@ void DBFile::AppendRecord (Record& rec) {
 		//std::cout << "Appended Record\n";
 	}
 	else {	//if failed (page has not enough space) add a new page then append the record to the new page
-		std::cout << p.curSizeInBytes << std::endl;
+		//std::cout << p.curSizeInBytes << std::endl;
 		char* myFileName = new char[fileName.length() + 1];
 		strcpy(myFileName, fileName.c_str());
 		file.Open(1, myFileName);
@@ -141,8 +141,21 @@ void DBFile::AppendRecord (Record& rec) {
 		file.Close();
 		p.EmptyItOut();
 		p.Append(rec);
-		std::cout << "Added a new page and appended record\n";
+		//std::cout << "Added a new page and appended record\n";
 	}
+
+}
+
+
+void DBFile::AppendLast() {
+
+	char* myFileName = new char[fileName.length() + 1];
+	strcpy(myFileName, fileName.c_str());
+	file.Open(1, myFileName);
+	file.AddPage(p, file.GetLength());
+	file.Close();
+	p.EmptyItOut();
+
 }
 
 int DBFile::GetNext (Record& rec) {
