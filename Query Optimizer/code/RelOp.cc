@@ -257,6 +257,10 @@ bool Join::GetNext(Record& _record) {
 		else {
 
 			cout << "Right is Small\n";
+
+			cout << "Right Schema" << schemaRight << endl;
+			cout << "Left Schema" << schemaLeft << endl;
+
 			mergeJoin(memCapacity, 1);
 
 			if(!fitsInMemory) {
@@ -365,7 +369,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 			memUsed = 0;
 
-			std::cout << "Flushing Left While" << std::endl;
+			std::cout << "Flushing While" << std::endl;
 
 			DBFile myOutput;
 
@@ -439,7 +443,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 
 		memUsed = 0;
 
-		std::cout << "Flushing Left Last Check" << std::endl;
+		std::cout << "Flushing Last Check" << std::endl;
 
 		DBFile myOutput;
 
@@ -616,6 +620,10 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 
 		// Probe
 
+		int counter = 0;
+
+		cout << "Starting to probe" << endl;
+
 		while (producer->GetNext(temp))
 		{
 			//sum += temp.GetSize();	//summing left size
@@ -625,16 +633,45 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 
 			memRecords.MoveToStart();
 
+			//cout << "Fetching tuple #" << counter++ << endl;
+
 			while(!memRecords.AtEnd())
 			{
 
 				Record* recordPt = new Record();
 				*recordPt = memRecords.CurrentKey();
 
+
+				/*if (sideNum == 0) {
+
+					cout << "Left record: ";
+					recordPt->print(cout, schemaLeft);
+					cout << endl;
+
+					cout << "Right record: ";
+					temp.print(cout, schemaRight);
+					cout << endl;
+
+				}
+
+				else if (sideNum == 1) {
+
+					cout << "Left record: ";
+					temp.print(cout, schemaLeft);
+					cout << endl;
+
+					cout << "Right record: ";
+					recordPt->print(cout, schemaRight);
+					cout << endl;
+
+				}*/
+
 				if (predicate.Run(temp, *recordPt))
 				{
 					//cout << "Found match at " << i << endl;
 					Record merge;
+
+					//cout << "Matched" << endl;
 
 					if (sideNum == 0) {
 						merge.AppendRecords(*recordPt, temp, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
@@ -650,6 +687,8 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 					appendRecords.push_back(merge2);
 					//cout << "Pushed" << endl;
 				}
+
+				delete recordPt;
 
 				memRecords.Advance();
 
