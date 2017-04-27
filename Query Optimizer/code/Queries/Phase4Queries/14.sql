@@ -1,1 +1,0 @@
-SELECT SUM(l_quantity), l_linenumber FROM lineitem WHERE l_quantity > 30 GROUP BY l_linenumber
