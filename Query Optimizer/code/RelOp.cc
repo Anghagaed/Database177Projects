@@ -244,6 +244,10 @@ bool Join::GetNext(Record& _record) {
 		if (leftMem < rightMem) {
 
 			cout << "Left is Small\n";
+
+			cout << "Left Schema" << schemaLeft << endl;
+			cout << "Right Schema" << schemaRight << endl;
+
 			mergeJoin(memCapacity, 0);
 
 			if (!fitsInMemory) {
@@ -342,7 +346,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 	{
 
 		//cout << "help" << endl;
-
+		std::cout << "Entered while loop: " << std::endl;
 		lastCheck = true;
 
 		//std::cout << "attempting to insert record: " << std::endl;
@@ -621,6 +625,7 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 		// Probe
 
 		int counter = 0;
+		int matchedC = 0;
 
 		cout << "Starting to probe" << endl;
 
@@ -634,6 +639,9 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 			memRecords.MoveToStart();
 
 			//cout << "Fetching tuple #" << counter++ << endl;
+			//temp.print(cout, schemaRight);
+			//cout << endl;
+			
 
 			while(!memRecords.AtEnd())
 			{
@@ -641,6 +649,8 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 				Record* recordPt = new Record();
 				*recordPt = memRecords.CurrentKey();
 
+				//recordPt->print(cout, schemaLeft);
+				//cout << endl;
 
 				/*if (sideNum == 0) {
 
@@ -665,28 +675,46 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 					cout << endl;
 
 				}*/
+				if (sideNum == 0) {
 
-				if (predicate.Run(temp, *recordPt))
-				{
-					//cout << "Found match at " << i << endl;
-					Record merge;
+					if (predicate.Run(*recordPt, temp))
+					{
+						//cout << "Found match at " << i << endl;
+						Record merge;
 
-					//cout << "Matched" << endl;
+						//cout << "Matched " << matchedC++ << endl;
 
-					if (sideNum == 0) {
 						merge.AppendRecords(*recordPt, temp, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+
+						//cout << "Appended" << endl;
+						Record* merge2 = new Record();
+						*merge2 = merge;
+						appendRecords.push_back(merge2);
+						//cout << "Pushed" << endl;
 					}
 
-					else if (sideNum == 1) {
-						merge.AppendRecords(temp, *recordPt, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
-					}
-
-					//cout << "Appended" << endl;
-					Record* merge2 = new Record();
-					*merge2 = merge;
-					appendRecords.push_back(merge2);
-					//cout << "Pushed" << endl;
 				}
+
+				else if (sideNum == 1) {
+
+					if (predicate.Run(temp, *recordPt))
+					{
+						//cout << "Found match at " << i << endl;
+						Record merge;
+
+						cout << "Matched " << matchedC++ << endl;
+
+						merge.AppendRecords(temp, *recordPt, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
+
+						//cout << "Appended" << endl;
+						Record* merge2 = new Record();
+						*merge2 = merge;
+						appendRecords.push_back(merge2);
+						//cout << "Pushed" << endl;
+					}
+
+				}
+				
 
 				delete recordPt;
 
@@ -694,6 +722,8 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 
 			}
 		}
+
+		cout << "Done Probing" << endl;
 
 }
 
