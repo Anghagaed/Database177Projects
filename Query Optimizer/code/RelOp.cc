@@ -196,7 +196,7 @@ bool Project::GetNext(Record& _record) {
 }
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftMem, double _rightMem, double _memCapacity) {
+	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftMem, double _rightMem, double _memCapacity, int _joinCount) {
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
@@ -207,6 +207,8 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 
 	leftMem = _leftMem;
 	rightMem = _rightMem;
+	joinCount = _joinCount;
+
 	appendIndex = 0;
 	buildCheck = true;
 	fitsInMemory = true;
@@ -319,6 +321,15 @@ bool Join::GetNext(Record& _record) {
 		else {
 
 			appendedRecords.Close();
+
+			ostringstream oss;
+			string result;
+			string name = "appended";
+			string bin = ".bin";
+			oss << startLoc << name << joinCount << bin;
+			result = oss.str();
+			remove(result.c_str());
+
 			return false;
 
 		}
@@ -346,7 +357,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 	{
 
 		//cout << "help" << endl;
-		std::cout << "Entered while loop: " << std::endl;
+		//std::cout << "Entered while loop: " << std::endl;
 		lastCheck = true;
 
 		//std::cout << "attempting to insert record: " << std::endl;
@@ -389,7 +400,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 				loc = startLoc + "right";
 			string bin = ".bin";
 
-			oss << loc << fileNum << bin;
+			oss << loc << joinCount << fileNum << bin;
 
 
 			fileNum++;
@@ -463,7 +474,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 			loc = startLoc + "right";
 		string bin = ".bin";
 
-		oss << loc << fileNum << bin;
+		oss << loc << joinCount << fileNum << bin;
 
 
 		fileNum++;
@@ -766,14 +777,14 @@ void Join::HangMerge() {
 		for (int i = 0; i < leftFileNum; ++i) {
 			ostringstream oss;
 			string result;
-			oss << startLoc << left << i << bin;
+			oss << startLoc << left << joinCount << i << bin;
 			result = oss.str();
 			remove(result.c_str());
 		}
 		for (int i = 0; i < rightFileNum; ++i) {
 			ostringstream oss;
 			string result;
-			oss << startLoc << right << i << bin;
+			oss << startLoc << right << joinCount << i << bin;
 			result = oss.str();
 			remove(result.c_str());
 		}
@@ -799,7 +810,7 @@ void Join::HangMerge() {
 		for (int i = 0; i < leftFileNum; ++i) {
 			ostringstream oss;
 			string result;
-			oss << startLoc << left << i << bin;
+			oss << startLoc << left << joinCount << i << bin;
 			result = oss.str();
 			cout << result << endl;
 			fileNameC = new char[result.length() + 1];
@@ -812,7 +823,7 @@ void Join::HangMerge() {
 		for (int i = 0; i < rightFileNum; ++i) {
 			ostringstream oss;
 			string result;
-			oss << startLoc << right << i << bin;
+			oss << startLoc << right << joinCount << i << bin;
 			result = oss.str();
 			cout << result << endl;
 			fileNameC = new char[result.length() + 1];
@@ -863,9 +874,9 @@ void Join::HangMerge() {
 
 	ostringstream oss;
 
-	string name = "appended.bin";
+	string name = "appended";
 
-	oss << startLoc << name;
+	oss << startLoc << name << joinCount << bin;
 
 	string myOutputFile = oss.str();
 
@@ -1153,14 +1164,14 @@ void Join::HangMerge() {
 	for (int i = 0; i < leftFileNum; ++i) {
 		ostringstream oss;
 		string result;
-		oss << startLoc << left << i << bin;
+		oss << startLoc << left << joinCount << i << bin;
 		result = oss.str();
 		remove(result.c_str());
 	}
 	for (int i = 0; i < rightFileNum; ++i) {
 		ostringstream oss;
 		string result;
-		oss << startLoc << right << i << bin;
+		oss << startLoc << right << joinCount << i << bin;
 		result = oss.str();
 		remove(result.c_str());
 	}

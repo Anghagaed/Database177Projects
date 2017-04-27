@@ -28,6 +28,7 @@ private:
 	vector<Select*> SelectMap;
 	vector<RelationalOp*> DeleteThis;
 	int* _keepMe;
+	int joinCount;
 
 public:
 	QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer);

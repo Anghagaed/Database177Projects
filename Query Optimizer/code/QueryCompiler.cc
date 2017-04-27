@@ -20,6 +20,7 @@ QueryCompiler::QueryCompiler(Catalog& _catalog, QueryOptimizer& _optimizer) :
 	catalog = &_catalog;
 	optimizer = &_optimizer;
 	_keepMe = NULL;
+	joinCount = 0;
 }
 
 QueryCompiler::~QueryCompiler() {
@@ -135,7 +136,8 @@ RelationalOp * QueryCompiler::JoinTree(OptimizationTree * node, AndList * _predi
 		//get resulting schema
 		left_schema.Append(right_schema);	//leftschema now holds the resulting schema of join
 		
-		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, leftTuples , rightTuples, _memCapacity);
+		Join *j = new Join(left_temp, right_schema, left_schema, predicate, left, right, leftTuples , rightTuples, _memCapacity, joinCount);
+		joinCount++;
 
 		DeleteThis.push_back(j);	//add this to our stuff we need to delete later
 		return j;	//return our relational op

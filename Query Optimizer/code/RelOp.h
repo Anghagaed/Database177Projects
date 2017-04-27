@@ -169,6 +169,8 @@ private:
 	int leftFileNum;
 	int rightFileNum;
 
+	int joinCount;
+
 	// selection predicate in conjunctive normal form
 	CNF predicate;
 
@@ -209,7 +211,7 @@ private:
 
 public:
 	Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double memCapacity);
+		CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftTuples, double _rightTuples, double memCapacity, int _joinCount);
 	virtual ~Join();
 
 	virtual bool GetNext(Record& _record);
