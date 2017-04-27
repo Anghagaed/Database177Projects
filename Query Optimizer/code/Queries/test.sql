@@ -1,1 +1,0 @@
-SELECT ps_partkey FROM partsupp WHERE ps_partkey > 0
