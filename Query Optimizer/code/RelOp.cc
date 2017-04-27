@@ -39,10 +39,6 @@ bool Scan::GetNext(Record& _record) {
 	//if (counter > 100)
 	//	exit(0);
 	if(file.GetNext(_record)) {
-		sum += _record.GetSize();
-		_sum += _record.GetSize();
-		//std::cout << "rel op running sum: " << RelationalOp::getSum() << std::endl;
-		//std::cout << "scan running sum " << sum << std::endl;
 		return true;
 	}
 	return false;
@@ -152,9 +148,6 @@ bool Select::GetNext(Record& _record) {
 	while (producer->GetNext(_record)) {
 		if (predicate.Run(_record, constants)) {	// constants = literals?
 			//_record = record;
-			sum += _record.GetSize();
-			_sum += _record.GetSize();
-			//std::cout << "running sum: " << _sum << std::endl;
 			return true;
 		}
 	}
@@ -196,7 +189,7 @@ bool Project::GetNext(Record& _record) {
 }
 
 Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
-	CNF& _predicate, RelationalOp* _left, RelationalOp* _right, double _leftMem, double _rightMem, double _memCapacity) {
+	CNF& _predicate, RelationalOp* _left, RelationalOp* _right) {
 	schemaLeft = _schemaLeft;
 	schemaRight = _schemaRight;
 	schemaOut = _schemaOut;
@@ -204,9 +197,6 @@ Join::Join(Schema& _schemaLeft, Schema& _schemaRight, Schema& _schemaOut,
 	predicate = _predicate;
 	left = _left;
 	right = _right;
-
-	leftMem = _leftMem;
-	rightMem = _rightMem;
 	appendIndex = 0;
 	buildCheck = true;
 	fitsInMemory = true;
@@ -224,316 +214,18 @@ Join::~Join() {
 }
 
 bool Join::GetNext(Record& _record) {
-	//std::cout << "lefttuples: "  << leftTuples << std::endl;
-	//std::cout << "righttuples: " << rightTuples << std::endl;
-
-	std::cout << "Join getnext\n";
-	std::cout << "memCapacity: " << memCapacity << std::endl;
-
-
-	if (buildCheck) {
-
-		buildCheck = false;
-
-		if (leftMem < rightMem) {
-
-			cout << "Left is Small\n";
-
-			if (mergeJoin(memCapacity, 1)) {
-
-				HangMerge();
-
-			}
-
-		}
-
-		else {
-
-			cout << "Right is Small\n";
-
-			if(mergeJoin(memCapacity, 2)) {
-
-				HangMerge();
-			
-			}
-
-		}
-
-	}
-
-	//std::cout << "hey im gonna start handing back records\n";
-	//std::cout << "appendrecords size" << appendRecords.size() << std::endl;
-	if (appendIndex < appendRecords.size())
-	{
-		//std::cout << "hey im handing back a record" << std::endl;
-		_record = *appendRecords[appendIndex];	//return record
-		//std::cout << "this is the record: " << std::endl;
-		//_record.print(cout, schemaOut);
-		appendIndex++;
-		//cout << "Returned: " << appendIndex << endl;
-		return true;
-	}
-
-	else
-	{
-		return false;
-	}
-
-	//mergeJoin(memCapacity);
-	//HangMerge();
-
-	cout << "Try right\n";
-	/*
-	predicate.GetSortOrders(leftComp, rightComp);
-	MinHeap toTest(rightComp);
-	Record temp;
-	for (int i = 0; i < 5; ++i) {
-		bool x = right->GetNext(temp);
-		int index = i;
-		temp.print(cout, schemaRight);
-		cout << endl;
-		toTest.insert(temp, index);
-	}
-	cout << "Min:\n";
-	HeapNode* min = toTest.extractMin();
-	min->data.print(cout, schemaRight);
-	cout << endl;
-	delete min;
-
-	cout << "Try left\n";
-
-	//predicate.GetSortOrders(leftComp, rightComp);
-	MinHeap toTest2(leftComp);
-	Record temp2;
-	for (int i = 0; i < 5; ++i) {
-		bool x = left->GetNext(temp2);
-		int index = i;
-		temp2.print(cout, schemaLeft);
-		cout << endl;
-		toTest2.insert(temp2, index);
-	}
-	cout << "Min:\n";
-	HeapNode* min2 = toTest2.extractMin();
-	min2->data.print(cout, schemaLeft);
-	cout << endl;
-	delete min2;
-
-	exit(0);
-	*/
-
-}
-
-bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
-
-	Record recTemp;
-	//left side first cuz normal people go left to right, not right to left. Freaking amar
-	KeyInt keyTemp = KeyInt(1);
-
-	double memUsed = 0.0;
-	EfficientMap <Record, KeyInt> tempMap;
-	bool lastCheck = false;
-
-
-	std::cout << "Entering while loop: " << std::endl;
-	startLoc = "../Disk/";
-	// Build
-	std::cout << "left schemaaa: " << schemaLeft << std::endl;
-	while (producer->GetNext(recTemp))
-	{
-
-		lastCheck = true;
-
-		//std::cout << "attempting to insert record: " << std::endl;
-		//recTemp.print(cout, schemaLeft);
-		//std::cout << "." << std::endl;
-
-		recTemp.SetOrderMaker(&side);
-
-		memUsed += recTemp.GetSize();
-		//std::cout << "memUsed: " << memUsed << std::endl;
-		keyTemp = KeyInt(1);
-		//std::cout << "created keyint" << std::endl;
-		tempMap.Insert(recTemp, keyTemp);
-		//std::cout << "Successful insertion" << std::endl;
-
-		//std::cout << "derp" << std::endl;
-		//std::cout << "derp" << std::endl;
-
-		
-
-		if (memUsed > memCapacity) // flush
-		{
-
-			fitsInMemory = false;
-
-			memUsed = 0;
-
-			std::cout << "Flushing" << std::endl;
-
-			DBFile myOutput;
-
-			FileType file_type;
-			file_type = Heap;
-
-			ostringstream oss;
-			
-			string loc;
-			if (sideName < 1)	//0 for left
-				loc = startLoc + "left";
-			else
-				loc = startLoc + "right";
-			string bin = ".bin";
-
-			oss << loc << fileNum << bin;
-
-
-			fileNum++;
-
-			string myOutputFile = oss.str();
-
-			char* myOutputFileC = new char[myOutputFile.length() + 1];
-			strcpy(myOutputFileC, myOutputFile.c_str());
-
-			myOutput.Create(myOutputFileC, file_type);
-
-			tempMap.MoveToStart();
-
-			while (!tempMap.AtEnd()) {
-
-				myOutput.AppendRecord(tempMap.CurrentKey());
-
-				tempMap.Advance();
-
-			}
-
-			myOutput.Close();
-
-
-
-			/*DBFile testOutput;
-
-			testOutput.Open(myOutputFileC);
-
-			Record testtt;
-
-			while (testOutput.GetNext(testtt) == 1) {
-
-				testtt.print(std::cout, schemaLeft);
-				std::cout << std::endl;
-
-			}
-
-			testOutput.Close();*/
-
-			return true;
-
-		}
-
-	}
-
-
-	// Last page, write out
-
-	if (lastCheck && !fitsInMemory) {
-
-		memUsed = 0;
-
-		std::cout << "Flushing Left" << std::endl;
-
-		DBFile myOutput;
-
-		FileType file_type;
-		file_type = Heap;
-
-		ostringstream oss;
-
-		string loc;
-		if (sideName < 1)
-			loc = startLoc + "left";
-		else
-			loc = startLoc + "right";
-		string bin = ".bin";
-
-		oss << loc << fileNum << bin;
-
-
-		fileNum++;
-
-		string myOutputFile = oss.str();
-
-		char* myOutputFileC = new char[myOutputFile.length() + 1];
-		strcpy(myOutputFileC, myOutputFile.c_str());
-
-		myOutput.Create(myOutputFileC, file_type);
-
-		tempMap.MoveToStart();
-
-		while (!tempMap.AtEnd()) {
-
-			myOutput.AppendRecord(tempMap.CurrentKey());
-
-			tempMap.Advance();
-
-		}
-
-		myOutput.Close();
-
-
-		/*DBFile testOutput;
-
-		testOutput.Open(myOutputFileC);
-
-		Record testtt;
-
-		while (testOutput.GetNext(testtt) == 1) {
-
-			testtt.print(std::cout, schemaLeft);
-			std::cout << std::endl;
-
-		}
-
-		testOutput.Close();*/
-
-		return false;
-
-	}
-
-	if (fitsInMemory) {
-		std::cout << "it fits" << std::endl;
-
-		vector<Record*> memRecords;
 
 		tempMap.MoveToStart();
 
 		while (!tempMap.AtEnd()) {	//stuff our records into a vector for in-memory function to use
 
 
-			Record* temp = new Record();
+		// Build
 
-			*temp = tempMap.CurrentKey();
+		while (right->GetNext(temp)) {
+			//cout << "Building a record" << endl;
+			//cout << temp.GetSize() << endl;
 
-			memRecords.push_back(temp);
-
-			tempMap.Advance();
-
-		}
-
-		if (sideName == 0) {
-			inMem(memRecords, right);
-		}
-
-		else if (sideName == 1) {	//1 is left
-			inMem(memRecords, left);
-		}
-
-		return false;
-
-	}
-
-}
-
-bool Join::mergeJoin(double memCapacity, int smallerSide)
-{
 
 
 		if (predicate.GetSortOrders(leftComp, rightComp) == 0) {
@@ -545,9 +237,7 @@ bool Join::mergeJoin(double memCapacity, int smallerSide)
 
 		// Do Left First
 
-		if (smallerSide == 1) {	//1 for left
-
-			while (writeDisk(left, leftComp, 0)) {	//0 for left string
+		while (left->GetNext(temp)) {
 
 				cout << fileNum << " Files" << endl;
 
