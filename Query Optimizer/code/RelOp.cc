@@ -227,6 +227,7 @@ bool Join::GetNext(Record& _record) {
 	//std::cout << "lefttuples: "  << leftTuples << std::endl;
 	//std::cout << "righttuples: " << rightTuples << std::endl;
 
+	std::cout << "Join getnext\n";
 	std::cout << "memCapacity: " << memCapacity << std::endl;
 
 
@@ -260,9 +261,14 @@ bool Join::GetNext(Record& _record) {
 
 	}
 
+	//std::cout << "hey im gonna start handing back records\n";
+	//std::cout << "appendrecords size" << appendRecords.size() << std::endl;
 	if (appendIndex < appendRecords.size())
 	{
+		//std::cout << "hey im handing back a record" << std::endl;
 		_record = *appendRecords[appendIndex];	//return record
+		//std::cout << "this is the record: " << std::endl;
+		//_record.print(cout, schemaOut);
 		appendIndex++;
 		//cout << "Returned: " << appendIndex << endl;
 		return true;
@@ -344,7 +350,7 @@ bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
 		recTemp.SetOrderMaker(&side);
 
 		memUsed += recTemp.GetSize();
-		std::cout << "memUsed: " << memUsed << std::endl;
+		//std::cout << "memUsed: " << memUsed << std::endl;
 		keyTemp = KeyInt(1);
 		//std::cout << "created keyint" << std::endl;
 		tempMap.Insert(recTemp, keyTemp);
@@ -552,6 +558,8 @@ bool Join::mergeJoin(double memCapacity, int smallerSide)
 
 			if (!fitsInMemory) {
 
+				std::cout << "***************************************don't fit in memory*********************************" << std::endl;
+
 				while (writeDisk(right, rightComp, 1)) {
 
 					cout << fileNum << " Files" << endl;
@@ -607,12 +615,27 @@ bool Join::mergeJoin(double memCapacity, int smallerSide)
 
 }
 
-void Join::inMem(vector<Record*> memRecords, RelationalOp* producer)
+void Join::inMem(vector<Record*>& memRecords, RelationalOp* producer)
 {
 
 
 		std::cout << "******************************************************Doing in-memory join****************************************" << std::endl;
+		
+		/*
+		std::cout << "Here's our vector: " << std::endl;
+		std::cout << "schemaleft attempt" << std::endl;
+		for (int i = 0; i < memRecords.size(); i++) {
+			memRecords[i]->print(cout, schemaLeft);
+			std::cout << std::endl;
+		}
 
+		std::cout << "schemaright attempt" << std::endl;
+		for (int i = 0; i < memRecords.size(); i++) {
+			std::cout << 
+			memRecords[i]->print(cout, schemaRight);
+			std::cout << std::endl;
+		}
+		*/
 
 		Record temp;
 
@@ -621,19 +644,27 @@ void Join::inMem(vector<Record*> memRecords, RelationalOp* producer)
 
 		while (producer->GetNext(temp))
 		{
+			//std::cout << "getting next record" << std::endl;
+			//temp.print(cout, schemaLeft);
 			//sum += temp.GetSize();	//summing size
 			_sum += temp.GetSize();
 
+			std::cout << "going to find a match for this record" << std::endl;
+			temp.print(cout, schemaRight);
+			std::cout << std::endl;
 
 			//cout << "Fetching tuple" << endl;
 			for (int i = 0; i < memRecords.size(); i++)
 			{
-				if (predicate.Run(temp, *memRecords[i]))
+				std::cout << "this is our other tuple" << std::endl;
+				(*memRecords[i]).print(cout, schemaLeft);
+				std::cout << std::endl;
+				if (predicate.Run(temp, (*memRecords[i]) ) )
 				{
-					//cout << "Found match at " << i << endl;
+					cout << "Found match at " << i << endl;
 					Record merge;
 					merge.AppendRecords(temp, *memRecords[i], schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
-					//cout << "Appended" << endl;
+					cout << "Appended" << endl;
 					Record* merge2 = new Record();
 					*merge2 = merge;
 					appendRecords.push_back(merge2);

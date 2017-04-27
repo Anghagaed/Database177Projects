@@ -155,12 +155,13 @@ int main()
 		myRec.print(cout, schema);
 */
 
-		int numPages = 100;
+		int numPages = 1000;
 
 		//cout << "Enter number of pages:\n";
 		//cin >> numPages;
 
 		double memCapacity = numPages * PAGE_SIZE;
+		std::cout << "memcap" << memCapacity << std::endl;
 
 		// at this point we have the parse tree in the ParseTree data structures
 		// we are ready to invoke the query compiler with the given query

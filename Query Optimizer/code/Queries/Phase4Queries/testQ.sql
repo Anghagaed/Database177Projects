@@ -1,3 +1,3 @@
-SELECT n_name
+SELECT n_regionkey, r_regionkey
 FROM nation, region
-WHERE n_regionkey = r_regionkey AND r_regionkey = 1;
+WHERE n_regionkey = r_regionkey

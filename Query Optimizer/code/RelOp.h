@@ -217,7 +217,7 @@ public:
 
 	bool mergeJoin(double memCapacity, int smallerSide);
 
-	void inMem(vector<Record*> memRecords, RelationalOp* producer);
+	void inMem(vector<Record*>& memRecords, RelationalOp* producer);
 
 	void HangMerge();
 
