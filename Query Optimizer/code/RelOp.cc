@@ -713,7 +713,7 @@ void Join::inMem(EfficientMap<Record, KeyInt>& memRecords, RelationalOp* produce
 						//cout << "Found match at " << i << endl;
 						Record merge;
 
-						cout << "Matched " << matchedC++ << endl;
+						//cout << "Matched " << matchedC++ << endl;
 
 						merge.AppendRecords(temp, *recordPt, schemaLeft.GetNumAtts(), schemaRight.GetNumAtts());
 
