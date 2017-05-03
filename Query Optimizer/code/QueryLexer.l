@@ -49,11 +49,15 @@ void yyerror(char* s);
 
 "DISTINCT"		return(DISTINCT);
 
-"CREATE INDEX"  return(CREATEINDEX);
+"CREATE"		return(CREATE);
 
-"CREATE TABLE"	return(CREATETABLE);
+"INDEX"			return(INDEX);
 
-"LOAD DATA"		return(LOADDATA);
+"TABLE"			return(TABLE);
+
+"LOAD"			return(LOAD);
+
+"DATA"			return(DATA);
 
 "ON"			return(ON);
 
@@ -78,6 +82,8 @@ void yyerror(char* s);
 "*"				return('*');
 
 ","				return(',');
+
+"."				return('.');
 
 -?[0-9]+ {
 	yylval.actualChars = strdup(yytext);

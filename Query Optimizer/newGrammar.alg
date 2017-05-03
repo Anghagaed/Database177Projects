@@ -1,6 +1,5 @@
  # Appending onto what SQL has
- SQL ::= SELECT SelectAtts FROM Tables WHERE AndList |  
- SELECT SelectAtts FROM Tables WHERE AndList GROUP BY Atts |
+ SQL ::=
  CREATE TABLE TableName ( AttsExpression ) |
  LOAD DATA TableName FROM TextFile |
  CREATE INDEX IndexName FROM TableName ON AttributeName

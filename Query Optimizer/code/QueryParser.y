@@ -17,6 +17,8 @@
 	struct NameList* attsToSelect; // the attributes in SELECT
 	int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query 
 	int isQuery;	  // 1 if input is a query. 
+	struct GenericName* genName;	// Name for non-query scenerio
+	struct AttsList*	attsExpression;		// Atts Expression
 %}
 
 
@@ -30,6 +32,7 @@
 	struct AndList* myAndList;
 	struct NameList* myNames;
 	struct GenericName* myGenericName;
+	struct AttsList*	myAttsExpression;
 	char* actualChars;
 	char whichOne;
 }
@@ -48,9 +51,11 @@
 %token WHERE
 %token SUM
 %token AND
-%token CREATEINDEX
-%token CREATETABLE
-%token LOADDATA
+%token CREATE
+%token INDEX
+%token TABLE
+%token LOAD
+%token DATA
 %token ON
 
 %type <myAndList> AndList
@@ -62,6 +67,8 @@
 %type <myTables> Tables
 %type <myBoolOperand> Literal
 %type <myNames> Atts
+%type <myGenericName> NameGeneric
+%type <myAttsExpression> AttsExp
 
 %start SQL
 
@@ -87,23 +94,60 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = $9;
-	IsQuery = 1;
+	isQuery = 1;
 }
-| CREATE TABLE TableName ( AttsExpression )
+| CREATE TABLE NameGeneric '(' AttsExp ')'
 {
+	$3->code = 0;
+	genName = $3;
+	attsExpression = $5;
 	isQuery = 0;
 }
-| LOAD DATA TableName FROM TextFile
+| LOAD DATA NameGeneric FROM NameGeneric
 {
+	$3->code = 0;
+	$5->code = 2;
+	$3->next = $5;
+	genName = $3;
 	isQuery = 0;
 }
-|  CREATE INDEX IndexName FROM TableName ON AttributeName 
-
+|  CREATE INDEX NameGeneric FROM NameGeneric ON NameGeneric 
 {
-
+	$3->code = 1;
+	$5->code = 0;
+	$7->code = 3;
+	$3->next = $5;
+	$5->next = $7;
+	genName = $3;
+	isQuery = 0;
 }
 ;
 
+NameGeneric : YY_NAME
+{
+	$$ = (struct GenericName*) malloc(sizeof (struct GenericName));
+	$$->name = $1;
+	$$->code = -1;
+	$$->next = NULL;
+}
+;
+
+AttsExp : YY_NAME YY_NAME 
+{
+	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
+	$$->name = $1;
+	$$->type = $2;
+	$$->next = NULL;
+}
+
+| AttsExp ',' YY_NAME YY_NAME
+{
+	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
+	$$->name = $3;
+	$$->type = $4;
+	$$->next = $1;
+}
+;
 
 SelectAtts: Function ',' Atts 
 {
@@ -341,5 +385,7 @@ SimpleExp: YY_FLOAT
         $$->code = NAME;
         $$->value = $1;
 };
+
+
 
 %%

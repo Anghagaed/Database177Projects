@@ -68,11 +68,10 @@ struct AndList {
 
 /* Data Structure to hold a name string for the new grammar outlined in newGrammar.alg
  * Code let us know what category the name belongs to
- * 0	Attribute Name
- * 1	Attribute Type
- * 2	Table
- * 3	Index
- * 4	File Name	
+ * 0	Table Name	
+ * 1	Index Name
+ * 2	File Name	
+ * 3	Attribute Name
  */
 struct GenericName {
 	// category that the name belongs to
@@ -80,13 +79,12 @@ struct GenericName {
 	// name
 	char* name;
 	// Not sure if needed? May need it for Parser?
-	GenericName* next;
+	struct GenericName* next;
 };
 
-// Not sure if needed if GenericName has a Next pointer
 struct AttsList {
-	struct GenericName* name;
-	struct GenericName* type;
+	char * name;
+	char * type;
 	struct AttsList* next;
 };
 
