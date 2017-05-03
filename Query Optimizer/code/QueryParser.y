@@ -30,8 +30,15 @@
 	struct NameList* myNames;
 	char* actualChars;
 	char whichOne;
+	struct AttributeName* myAttributeName;
+	struct TypeName* myTypeName;
+	struct TableName* myTableName;
+	struct TextFile* myTextFile;
+	struct IndexName* myIndexName;
+	struct AttsExpression* myAttsExpression;
 }
-
+// Just adding all the data Structure in for now
+// Adding all the capital keyword added into QueryLexer.l
 
 %token <actualChars> YY_NAME
 %token <actualChars> YY_FLOAT
@@ -45,6 +52,11 @@
 %token WHERE
 %token SUM
 %token AND
+%token DISTINCT
+%token CREATEINDEX
+%token CREATETABLE
+%token LOADDATA
+%token ON
 
 %type <myAndList> AndList
 %type <myOperand> SimpleExp

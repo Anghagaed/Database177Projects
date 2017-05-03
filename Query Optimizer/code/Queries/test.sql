@@ -1,1 +1,1 @@
-SELECT ps_partkey FROM partsupp WHERE ps_partkey > 0
+SELECT n_nationkey FROM nation WHERE n_nationkey=1

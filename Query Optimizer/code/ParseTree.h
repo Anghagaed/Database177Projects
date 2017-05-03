@@ -66,4 +66,28 @@ struct AndList {
 	struct AndList* rightAnd;
 };
 
+struct AttributeName {
+	char* attName;
+};
+
+struct TypeName {
+	char* typeName;
+};
+
+struct TableName {
+	char* tableName;
+};
+
+struct TextFile {
+	char* textFile;
+};
+
+struct IndexName {
+	char* indexName;
+};
+
+struct AttsExpression {
+	struct AttributeName;
+	struct AttsExpression* next;
+};
 #endif

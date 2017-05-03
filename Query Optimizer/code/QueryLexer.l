@@ -49,6 +49,14 @@ void yyerror(char* s);
 
 "DISTINCT"		return(DISTINCT);
 
+"CREATE INDEX"  return(CREATEINDEX);
+
+"CREATE TABLE"	return(CREATETABLE);
+
+"LOAD DATA"		return(LOADDATA);
+
+"ON"			return(ON);
+
 "BY"			return(BY);
 
 "("				return('(');
