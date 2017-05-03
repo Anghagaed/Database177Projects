@@ -1,4 +1,4 @@
- # Updating what a SQL is
+ # Appending onto what SQL has
  SQL ::= SELECT SelectAtts FROM Tables WHERE AndList |  
  SELECT SelectAtts FROM Tables WHERE AndList GROUP BY Atts |
  CREATE TABLE TableName ( AttsExpression ) |

@@ -16,6 +16,7 @@
 	struct NameList* groupingAtts; // grouping attributes
 	struct NameList* attsToSelect; // the attributes in SELECT
 	int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query 
+	int isQuery;	  // 1 if input is a query. 
 %}
 
 
@@ -28,14 +29,9 @@
 	struct Operand* myBoolOperand;
 	struct AndList* myAndList;
 	struct NameList* myNames;
+	struct GenericName* myGenericName;
 	char* actualChars;
 	char whichOne;
-	struct AttributeName* myAttributeName;
-	struct TypeName* myTypeName;
-	struct TableName* myTableName;
-	struct TextFile* myTextFile;
-	struct IndexName* myIndexName;
-	struct AttsExpression* myAttsExpression;
 }
 // Just adding all the data Structure in for now
 // Adding all the capital keyword added into QueryLexer.l
@@ -52,7 +48,6 @@
 %token WHERE
 %token SUM
 %token AND
-%token DISTINCT
 %token CREATEINDEX
 %token CREATETABLE
 %token LOADDATA
@@ -84,6 +79,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = NULL;
+	isQuery = 1;
 }
 
 | SELECT SelectAtts FROM Tables WHERE AndList GROUP BY Atts
@@ -91,7 +87,22 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = $9;
-};
+	IsQuery = 1;
+}
+| CREATE TABLE TableName ( AttsExpression )
+{
+	isQuery = 0;
+}
+| LOAD DATA TableName FROM TextFile
+{
+	isQuery = 0;
+}
+|  CREATE INDEX IndexName FROM TableName ON AttributeName 
+
+{
+
+}
+;
 
 
 SelectAtts: Function ',' Atts 

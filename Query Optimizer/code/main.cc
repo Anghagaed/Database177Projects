@@ -21,12 +21,7 @@ extern struct AndList* predicate; // the predicate in WHERE
 extern struct NameList* groupingAtts; // grouping attributes
 extern struct NameList* attsToSelect; // the attributes in SELECT
 extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
-extern struct AttributeName* myAttributeName;
-extern struct TypeName* myTypeName;
-extern struct TableName* myTableName;
-extern struct TextFile* myTextFile;
-extern struct IndexName* myIndexName;
-extern struct AttsExpression* myAttsExpression;
+extern int isQuery;
 
 extern "C" int yyparse();
 extern "C" int yylex_destroy();

@@ -66,6 +66,31 @@ struct AndList {
 	struct AndList* rightAnd;
 };
 
+/* Data Structure to hold a name string for the new grammar outlined in newGrammar.alg
+ * Code let us know what category the name belongs to
+ * 0	Attribute Name
+ * 1	Attribute Type
+ * 2	Table
+ * 3	Index
+ * 4	File Name	
+ */
+struct GenericName {
+	// category that the name belongs to
+	int code;
+	// name
+	char* name;
+	// Not sure if needed? May need it for Parser?
+	GenericName* next;
+};
+
+// Not sure if needed if GenericName has a Next pointer
+struct AttsList {
+	struct GenericName* name;
+	struct GenericName* type;
+	struct AttsList* next;
+};
+
+/*
 struct AttributeName {
 	char* attName;
 };
@@ -85,9 +110,5 @@ struct TextFile {
 struct IndexName {
 	char* indexName;
 };
-
-struct AttsExpression {
-	struct AttributeName;
-	struct AttsExpression* next;
-};
+*/
 #endif
