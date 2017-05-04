@@ -1,6 +1,7 @@
 #include "BPlusTree.h"
 
 BPlusTree::BPlusTree(BKeyType type, int numKey) {
+	this->pageCount = 1;
 	this->numKey = numKey;
 	this->type = type;
 	// Initialize the parameter of the root node
@@ -14,7 +15,7 @@ BPlusTree::~BPlusTree() {
 
 }
 
-int BPlusTree::Insert((void*) key, int pageNum, int recordNum) {
+int BPlusTree::Insert(void* key, int pageNum, int recordNum) {
 	// Handle the beginning case where the root also acts as a leafNode
 	// We automatically insert a leafNode into the children and does maintenance from there
 	if (root.childrenCount == 0) {
@@ -33,13 +34,17 @@ int BPlusTree::Insert((void*) key, int pageNum, int recordNum) {
 
 		// Insert the new leaf Node into the root Node
 		root.children[root.childrenCount] = temp;
+		root.pageNum[root.childrenCount] = pageCount++;
 		root.childrenCount += 1;
-		
+		return 1;
+	}
+	else {
+
 	}
 
 }
 
-int BPlusTree::Find((void*)key, leafNode& _leaf) {
+int BPlusTree::Find(void* key, leafNode& _leaf) {
 
 }
 
@@ -47,7 +52,7 @@ leafNode* BPlusTree::createLeafNode() {
 	leafNode* temp = new leafNode();
 	// Values in leafNode
 	temp->type = LEAF;
-	temp->next = std::NULL;
+	temp->next = NULL;
 	temp->pageNum = new int[numKey];
 	temp->recordNum = new int[numKey];
 	// Values in BNode

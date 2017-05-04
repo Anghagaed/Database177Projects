@@ -9,10 +9,11 @@ enum nodeType {INTERNAL = 0, LEAF};
 
 /* Base B+ Tree Node
  * internalNode and leafNode inherits from this base Node
+ * How filled = keyCount / numKey (size of the array)
  */
 struct BNode {
 	// Generic Key array, size of the array is numKey
-	(void*)key;
+	void* key;
 	// count of how many keys are inserted into key array. Initialize to 0 at start
 	int keyCount;
 };
@@ -50,7 +51,8 @@ private:
 	BKeyType type;
 	// N for the B+ Tree
 	int numKey;
-
+	// Page Number Counter, Root always get 0 as its page number
+	int pageCount;
 private:
 	/* Create an Empty Leaf Node with start intialization*/
 	leafNode* createLeafNode();
@@ -62,8 +64,8 @@ public:
 
 	// Insert (Key, pageNum, recordNum) into the B+ tree as a single node
 	// Return 1 if successful and 0 if fails
-	int Insert((void*) key, int pageNum, int recordNum);
+	int Insert(void* key, int pageNum, int recordNum);
 	// Put the first leaf Node found that has matching into _leaf
 	// Return 1 if successful and 0 if fails
-	int Find((void*)key, leafNode& _leaf);
+	int Find(void*key, leafNode& _leaf);
 };

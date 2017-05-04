@@ -7,7 +7,7 @@ ifdef linux
 endif
 
 
-main.out:	EfficientMap.o Keyify.o QueryParser.o QueryLexer.o Schema.o Record.o File.o DBFile.o Comparison.o Function.o RelOp.o Catalog.o QueryOptimizer.o QueryCompiler.o main.o
+main.out:	EfficientMap.o Keyify.o QueryParser.o QueryLexer.o Schema.o Record.o File.o DBFile.o Comparison.o Function.o RelOp.o Catalog.o QueryOptimizer.o QueryCompiler.o BPlusTree.o  main.o
 	$(CC) -o main.out main.o EfficientMap.o Keyify.o QueryParser.o QueryLexer.o Schema.o Record.o File.o DBFile.o Comparison.o Function.o RelOp.o Catalog.o QueryOptimizer.o QueryCompiler.o -lfl -lsqlite3
 	
 main.o:	main.cc
@@ -45,6 +45,9 @@ QueryOptimizer.o: Schema.cc Record.cc Comparison.cc RelOp.cc EfficientMap.cc Key
 
 QueryCompiler.o: Schema.cc Record.cc Comparison.cc RelOp.cc QueryOptimizer.cc QueryCompiler.cc	
 	$(CC) -c QueryCompiler.cc
+
+BPlusTree.o: BPlusTree.h BPlusTree.cc
+	$(CC) -c BPlusTree.cc
 
 Catalog.o: Schema.cc Catalog.cc	
 	$(CC) -c Catalog.cc
