@@ -99,6 +99,8 @@ void loadData() {
 
 }
 
+
+
 int main()
 {
 		//cout << "Enter a query and hit ctrl+D when done: " << endl;

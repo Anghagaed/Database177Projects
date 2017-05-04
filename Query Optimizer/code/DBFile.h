@@ -37,6 +37,9 @@ public:
 	void AppendRecord (Record& _addMe);
 	void AppendLast();
 	int GetNext (Record& _fetchMe);
+
+	// Index Function
+	int GetNextIndex(Record& _fetchMe);
 };
 
 #endif //DBFILE_H

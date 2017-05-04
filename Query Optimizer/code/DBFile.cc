@@ -185,3 +185,7 @@ int DBFile::GetNext (Record& rec) {
 	return 1;
 
 }
+
+int DBFile::GetNextIndex(Record& _fetchMe) {
+
+}

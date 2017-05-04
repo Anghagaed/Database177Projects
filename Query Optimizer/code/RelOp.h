@@ -348,4 +348,24 @@ public:
     friend ostream& operator<<(ostream& _os, QueryExecutionTree& _op);
 };
 
+class ScanIndex : public RelationalOp {
+private:
+	// schema of records in operator
+	Schema schema;
+
+	// physical file where data to be scanned are stored
+	DBFile file;
+
+	string table;
+
+
+	//sum of size of tuples
+	double sum;
+
+	
+public:
+
+
+};
+
 #endif //_REL_OP_H
