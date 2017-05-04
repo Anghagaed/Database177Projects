@@ -95,6 +95,11 @@ void yyerror(char* s);
   	return(YY_FLOAT);
 }
 
+[A-Za-z][A-Za-z0-9_-]*['.'][A-Za-z0-9_-]+ {
+	yylval.actualChars = strdup(yytext);
+  	return(YY_FILE);
+}
+
 [A-Za-z][A-Za-z0-9_-]* {
 	yylval.actualChars = strdup(yytext);
   	return(YY_NAME);

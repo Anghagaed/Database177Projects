@@ -43,6 +43,7 @@
 %token <actualChars> YY_FLOAT
 %token <actualChars> YY_INTEGER
 %token <actualChars> YY_STRING
+%token <actualChars> YY_FILE
 %token SELECT
 %token GROUP 
 %token DISTINCT
@@ -68,6 +69,7 @@
 %type <myBoolOperand> Literal
 %type <myNames> Atts
 %type <myGenericName> NameGeneric
+%type <myGenericName> FileGeneric
 %type <myAttsExpression> AttsExp
 
 %start SQL
@@ -103,7 +105,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	attsExpression = $5;
 	isQuery = 0;
 }
-| LOAD DATA NameGeneric FROM NameGeneric
+| LOAD DATA NameGeneric FROM FileGeneric
 {
 	$3->code = 0;
 	$5->code = 2;
@@ -124,6 +126,15 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 ;
 
 NameGeneric : YY_NAME
+{
+	$$ = (struct GenericName*) malloc(sizeof (struct GenericName));
+	$$->name = $1;
+	$$->code = -1;
+	$$->next = NULL;
+}
+;
+
+FileGeneric : YY_FILE
 {
 	$$ = (struct GenericName*) malloc(sizeof (struct GenericName));
 	$$->name = $1;

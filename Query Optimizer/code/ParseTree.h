@@ -78,7 +78,7 @@ struct GenericName {
 	int code;
 	// name
 	char* name;
-	// Not sure if needed? May need it for Parser?
+	// Next Name
 	struct GenericName* next;
 };
 
@@ -88,25 +88,4 @@ struct AttsList {
 	struct AttsList* next;
 };
 
-/*
-struct AttributeName {
-	char* attName;
-};
-
-struct TypeName {
-	char* typeName;
-};
-
-struct TableName {
-	char* tableName;
-};
-
-struct TextFile {
-	char* textFile;
-};
-
-struct IndexName {
-	char* indexName;
-};
-*/
 #endif
