@@ -49,6 +49,18 @@ void yyerror(char* s);
 
 "DISTINCT"		return(DISTINCT);
 
+"CREATE"		return(CREATE);
+
+"INDEX"			return(INDEX);
+
+"TABLE"			return(TABLE);
+
+"LOAD"			return(LOAD);
+
+"DATA"			return(DATA);
+
+"ON"			return(ON);
+
 "BY"			return(BY);
 
 "("				return('(');
@@ -71,6 +83,8 @@ void yyerror(char* s);
 
 ","				return(',');
 
+"."				return('.');
+
 -?[0-9]+ {
 	yylval.actualChars = strdup(yytext);
   	return(YY_INTEGER); 
@@ -79,6 +93,11 @@ void yyerror(char* s);
 -?[0-9]+\.[0-9]* {
 	yylval.actualChars = strdup(yytext); 
   	return(YY_FLOAT);
+}
+
+[A-Za-z][A-Za-z0-9_-]*['.'][A-Za-z0-9_-]+ {
+	yylval.actualChars = strdup(yytext);
+  	return(YY_FILE);
 }
 
 [A-Za-z][A-Za-z0-9_-]* {

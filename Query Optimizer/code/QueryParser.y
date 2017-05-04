@@ -16,6 +16,9 @@
 	struct NameList* groupingAtts; // grouping attributes
 	struct NameList* attsToSelect; // the attributes in SELECT
 	int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query 
+	int isQuery;	  // 1 if input is a query. 
+	struct GenericName* genName;	// Name for non-query scenerio
+	struct AttsList*	attsExpression;		// Atts Expression
 %}
 
 
@@ -28,15 +31,19 @@
 	struct Operand* myBoolOperand;
 	struct AndList* myAndList;
 	struct NameList* myNames;
+	struct GenericName* myGenericName;
+	struct AttsList*	myAttsExpression;
 	char* actualChars;
 	char whichOne;
 }
-
+// Just adding all the data Structure in for now
+// Adding all the capital keyword added into QueryLexer.l
 
 %token <actualChars> YY_NAME
 %token <actualChars> YY_FLOAT
 %token <actualChars> YY_INTEGER
 %token <actualChars> YY_STRING
+%token <actualChars> YY_FILE
 %token SELECT
 %token GROUP 
 %token DISTINCT
@@ -45,6 +52,12 @@
 %token WHERE
 %token SUM
 %token AND
+%token CREATE
+%token INDEX
+%token TABLE
+%token LOAD
+%token DATA
+%token ON
 
 %type <myAndList> AndList
 %type <myOperand> SimpleExp
@@ -55,6 +68,9 @@
 %type <myTables> Tables
 %type <myBoolOperand> Literal
 %type <myNames> Atts
+%type <myGenericName> NameGeneric
+%type <myGenericName> FileGeneric
+%type <myAttsExpression> AttsExp
 
 %start SQL
 
@@ -72,6 +88,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = NULL;
+	isQuery = 1;
 }
 
 | SELECT SelectAtts FROM Tables WHERE AndList GROUP BY Atts
@@ -79,8 +96,69 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = $9;
-};
+	isQuery = 1;
+}
+| CREATE TABLE NameGeneric '(' AttsExp ')'
+{
+	$3->code = 0;
+	genName = $3;
+	attsExpression = $5;
+	isQuery = 0;
+}
+| LOAD DATA NameGeneric FROM FileGeneric
+{
+	$3->code = 0;
+	$5->code = 2;
+	$3->next = $5;
+	genName = $3;
+	isQuery = 0;
+}
+|  CREATE INDEX NameGeneric FROM NameGeneric ON NameGeneric 
+{
+	$3->code = 1;
+	$5->code = 0;
+	$7->code = 3;
+	$3->next = $5;
+	$5->next = $7;
+	genName = $3;
+	isQuery = 0;
+}
+;
 
+NameGeneric : YY_NAME
+{
+	$$ = (struct GenericName*) malloc(sizeof (struct GenericName));
+	$$->name = $1;
+	$$->code = -1;
+	$$->next = NULL;
+}
+;
+
+FileGeneric : YY_FILE
+{
+	$$ = (struct GenericName*) malloc(sizeof (struct GenericName));
+	$$->name = $1;
+	$$->code = -1;
+	$$->next = NULL;
+}
+;
+
+AttsExp : YY_NAME YY_NAME 
+{
+	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
+	$$->name = $1;
+	$$->type = $2;
+	$$->next = NULL;
+}
+
+| AttsExp ',' YY_NAME YY_NAME
+{
+	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
+	$$->name = $3;
+	$$->type = $4;
+	$$->next = $1;
+}
+;
 
 SelectAtts: Function ',' Atts 
 {
@@ -318,5 +396,7 @@ SimpleExp: YY_FLOAT
         $$->code = NAME;
         $$->value = $1;
 };
+
+
 
 %%

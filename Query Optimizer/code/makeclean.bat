@@ -1,5 +1,6 @@
-rm -f *.o
-rm -f *.out
-rm -f QueryLexer.c
-rm -f QueryParser.c
-rm -f QueryParser.h
+del *.o
+del *.out
+del QueryLexer.c
+del QueryParser.c
+del QueryParser.h
+

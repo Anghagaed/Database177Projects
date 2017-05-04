@@ -66,4 +66,26 @@ struct AndList {
 	struct AndList* rightAnd;
 };
 
+/* Data Structure to hold a name string for the new grammar outlined in newGrammar.alg
+ * Code let us know what category the name belongs to
+ * 0	Table Name	
+ * 1	Index Name
+ * 2	File Name	
+ * 3	Attribute Name
+ */
+struct GenericName {
+	// category that the name belongs to
+	int code;
+	// name
+	char* name;
+	// Next Name
+	struct GenericName* next;
+};
+
+struct AttsList {
+	char * name;
+	char * type;
+	struct AttsList* next;
+};
+
 #endif

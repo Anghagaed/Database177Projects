@@ -21,7 +21,10 @@ extern struct AndList* predicate; // the predicate in WHERE
 extern struct NameList* groupingAtts; // grouping attributes
 extern struct NameList* attsToSelect; // the attributes in SELECT
 extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
-
+// Hang's Stuff
+extern int isQuery;	  // 1 if input is a query. 
+extern struct GenericName* genName;	// Name for non-query scenerio
+extern struct AttsList*	attsExpression;		// Atts Expression
 extern "C" int yyparse();
 extern "C" int yylex_destroy();
 
@@ -98,7 +101,6 @@ void loadData() {
 
 int main()
 {
-
 		//cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
 		string dbFile = "catalog.sqlite";
@@ -127,6 +129,22 @@ int main()
 		yylex_destroy();
 
 		if (parse != 0) return -1;
+		
+		if (isQuery == 0) {
+			cout << "ITS NOT A QUERY" << endl;
+			if (genName) {
+				cout << genName->name << endl;
+				cout << genName->code << endl;
+				genName = genName->next;
+				cout << genName->name << endl;
+				cout << genName->code << endl;
+			}
+			return 1;
+		}
+		else if (isQuery == 1) {
+			cout << "ITS A QUERY AND ITS WORKS" << endl;
+			return 1;
+		}
 		/*
 		char result;
 
@@ -155,7 +173,7 @@ int main()
 		myRec.print(cout, schema);
 */
 
-		int numPages = 50;
+		int numPages = 100;
 
 		//cout << "Enter number of pages:\n";
 		//cin >> numPages;
