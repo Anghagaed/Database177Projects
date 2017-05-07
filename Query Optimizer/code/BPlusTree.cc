@@ -66,7 +66,7 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 	else if (root->type == INTERNAL) {
 
 	}
-
+	return 1;
 }
 
 
