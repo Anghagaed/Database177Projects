@@ -113,7 +113,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	genName = $3;
 	typeOfInput = 2;
 }
-|  CREATE INDEX NameGeneric FROM NameGeneric ON NameGeneric 
+|  CREATE INDEX NameGeneric TABLE NameGeneric ON NameGeneric 
 {
 	$3->code = 1;
 	$5->code = 0;
