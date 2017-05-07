@@ -10,6 +10,8 @@ extern "C" {
 #include "RelOp.h"
 #include <fstream>
 #include <vector>
+#include "BPlusTree.h"
+#include "BPlusTree.cc"
 
 using namespace std;
 
@@ -105,19 +107,29 @@ void loadData() {
 
 }
 
-int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp)
+int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &_tableName)
 {
-	Page pageTemp;
-	int i = 0;
-	int counter = 0;
-	//BPlusTree bTemp();
-	while (_bPlusFile.GetPage(pageTemp, 0)!=-1)
+	Page pageTemp; // temporary page value to not damage real page
+	int pageNumber = 0; // which page
+	BPlusTree bTemp(100); // needs to be modified later. value inserted will be page size
+	Schema schemaTemp; // building schema to correctly insert into b+ tree
+	catalog.GetSchema(_tableName, schemaTemp);
+	int index = schemaTemp.Index(_attTemp); //which attribute from schema
+	while (_bPlusFile.GetPage(pageTemp, pageNumber)!=-1)
 	{
-
-		if (FAIL)
+		int RecCounter = 0; // which record (index)
+		Record recTemp; // record temp to grab from page
+		char* valTemp; // value in record (convert to int)
+		while (pageTemp.GetFirst(recTemp))
 		{
-			return 0;
+			valTemp = recTemp.GetColumn(index);
+			int* intTemp = (int*)valTemp;
+			bTemp.Insert(*intTemp, pageNumber, RecCounter);
+			++RecCounter;
+			delete intTemp;
 		}
+		delete valTemp;
+		++pageNumber;
 	}
 	return 1;
 }
@@ -127,7 +139,7 @@ int main()
 		//cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
 		string dbFile = "catalog.sqlite";
-		Catalog catalog(dbFile);
+		static Catalog catalog(dbFile);
 
 		// this is the query optimizer
 		// it is not invoked directly but rather passed to the query compiler
@@ -180,7 +192,7 @@ int main()
 			char* yunPls = new char[yunPath.length() + 1];
 			strcpy(yunPls, yunPath.c_str());
 			bPlusFile.Open(4206969, yunPls);
-			createIndex(bPlusFile, attTemp, indexTemp);
+			createIndex(bPlusFile, attTemp, indexTemp, tableTemp);
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
 		}
 		/*
