@@ -124,11 +124,12 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 		{
 			valTemp = recTemp.GetColumn(index);
 			int* intTemp = (int*)valTemp;
-			bTemp.Insert(*intTemp, pageNumber, RecCounter);
+			//bTemp.Insert(*intTemp, pageNumber, RecCounter);
+			cout << "IntTemp: " << *intTemp << endl;
+			cout << "RecCounter: " << RecCounter << endl;
+			cout << "PageCounter: " << pageNumber << endl;
 			++RecCounter;
-			delete intTemp;
 		}
-		delete valTemp;
 		++pageNumber;
 	}
 	return 1;
@@ -139,7 +140,7 @@ int main()
 		//cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
 		string dbFile = "catalog.sqlite";
-		static Catalog catalog(dbFile);
+		Catalog catalog(dbFile);
 
 		// this is the query optimizer
 		// it is not invoked directly but rather passed to the query compiler
@@ -191,7 +192,7 @@ int main()
 			catalog.GetDataFile(tableTemp, yunPath);
 			char* yunPls = new char[yunPath.length() + 1];
 			strcpy(yunPls, yunPath.c_str());
-			bPlusFile.Open(4206969, yunPls);
+			bPlusFile.Open(1, yunPls);
 			createIndex(bPlusFile, attTemp, indexTemp, tableTemp);
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
 		}
