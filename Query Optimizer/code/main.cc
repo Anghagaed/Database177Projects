@@ -99,7 +99,7 @@ void loadData() {
 
 }
 
-
+int createIndex()
 
 int main()
 {

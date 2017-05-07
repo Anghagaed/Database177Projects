@@ -16,6 +16,8 @@ struct BNode {
 	void* key;
 	// count of how many keys are inserted into key array. Initialize to 0 at start
 	int keyCount;
+	// Parent Pointer
+	BNode* parent;
 };
 
 // B+ Tree Representation of Internal Node
@@ -27,7 +29,7 @@ struct internalNode : public BNode {
 	/* Array of pointers to BNode since children can either be internalNode or leafNode
 	 * Size of array is Base Class Member variable size + 1	
 	*/
-	BNode** children;
+	BNode* children;
 	// count of how many chilren are inserted into chilren array. Initialize to 0 at start
 	int childrenCount;
 };
@@ -67,5 +69,7 @@ public:
 	int Insert(void* key, int pageNum, int recordNum);
 	// Put the first leaf Node found that has matching into _leaf
 	// Return 1 if successful and 0 if fails
-	int Find(void*key, leafNode& _leaf);
+	int Find(void* key, leafNode& _leaf);
+
+	int writeToDisk(DBFile* file, string fileName);
 };

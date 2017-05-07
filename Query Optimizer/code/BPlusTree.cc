@@ -8,8 +8,9 @@ BPlusTree::BPlusTree(BKeyType type, int numKey) {
 	this->root.type = INTERNAL;
 	this->root.childrenCount = 0;
 	this->root.keyCount = 0;
-	this->root.children = new BNode*[numKey + 1];
+	this->root.children = new BNode[numKey + 1];
 	this->root.pageNum = new int[numKey + 1];
+	this->root.parent = NULL;
 }
 BPlusTree::~BPlusTree() {
 
@@ -36,13 +37,27 @@ int BPlusTree::Insert(void* key, int pageNum, int recordNum) {
 		root.children[root.childrenCount] = temp;
 		root.pageNum[root.childrenCount] = pageCount++;
 		root.childrenCount += 1;
+		temp->parent = root;
 		return 1;
 	}
 	else {
+		// Find the node that the key is to be inserted to
+		BNode* temp;
+		for (int i = 0; i < root.childrenCount; ++i) {
+			if (type == INT) {
+				if (*(int *)root.key[i] <= *(int *)key) {
+					temp = root.children[]
+				}
+			}
+			else if (type == FLOAT) {
 
+			}
+		}
 	}
 
 }
+
+
 
 int BPlusTree::Find(void* key, leafNode& _leaf) {
 
@@ -56,6 +71,7 @@ leafNode* BPlusTree::createLeafNode() {
 	temp->pageNum = new int[numKey];
 	temp->recordNum = new int[numKey];
 	// Values in BNode
+	temp->parent = NULL;
 	if (type == INT) {
 		temp->key = (void *) new int[numKey];
 		temp->keyCount = 0;
@@ -67,5 +83,21 @@ leafNode* BPlusTree::createLeafNode() {
 	return temp;
 }
 internalNode* BPlusTree::createInternalNode() {
-
+	internalNode* temp = new internalNode();
+	// Values in internalNode	
+	temp->type = INTERNAL;
+	temp->pageNum = new int[numKey + 1];
+	temp->children = new children*[numKey + 1];
+	temp->childrenCount = 0;
+	// Values in BNode
+	temp->parent = NULL;
+	if (type == INT) {
+		temp->key = (void *) new int[numKey];
+		temp->keyCount = 0;
+	}
+	else if (type == FLOAT) {
+		temp->key = (void *) new float[numKey];
+		temp->keyCount = 0;
+	}
+	return temp;
 }
