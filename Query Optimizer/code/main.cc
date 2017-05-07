@@ -105,14 +105,29 @@ void loadData() {
 
 }
 
-int createIndex()
+int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp)
+{
+	Page pageTemp;
+	int i = 0;
+	int counter = 0;
+	//BPlusTree bTemp();
+	while (_bPlusFile.GetPage(pageTemp, 0)!=-1)
+	{
+
+		if (FAIL)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
 
 int main()
 {
 		//cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
 		string dbFile = "catalog.sqlite";
-		//Catalog catalog(dbFile);
+		Catalog catalog(dbFile);
 
 		// this is the query optimizer
 		// it is not invoked directly but rather passed to the query compiler
@@ -133,9 +148,41 @@ int main()
 			//cout << "Error: Query is not correct!" << endl;
 			parse = -1;
 		}
-
+		
 		yylex_destroy();
-
+		cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
+		if (typeOfInput == 3)
+		{
+			cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;
+			File bPlusFile;
+			string tableTemp;
+			string indexTemp;
+			string attTemp;
+			GenericName * temp = genName;
+			while (temp != NULL)
+			{
+				if (temp->code == 0)
+				{
+					tableTemp = temp->name;
+				}
+				else if (temp->code == 1)
+				{
+					indexTemp = temp->name;
+				}
+				else if(temp->code == 3)
+				{
+					attTemp = temp->name;
+				}
+				temp = temp->next;
+			} 
+			string yunPath;
+			catalog.GetDataFile(tableTemp, yunPath);
+			char* yunPls = new char[yunPath.length() + 1];
+			strcpy(yunPls, yunPath.c_str());
+			bPlusFile.Open(4206969, yunPls);
+			createIndex(bPlusFile, attTemp, indexTemp);
+			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
+		}
 		/*
 		char result;
 
