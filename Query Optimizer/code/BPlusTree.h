@@ -2,8 +2,10 @@
  *	Handles Basic B+ Tree functionality
  *  Only supports Key of type int and float as defined by c++ 
  */
+#ifndef _BPLUSTREE_H
+#define _BPLUSTREE_H
 #include <cstddef>
-
+#include <iostream>
 enum nodeType {INTERNAL = 0, LEAF};
 
 /* Base B+ Tree Node
@@ -13,7 +15,9 @@ enum nodeType {INTERNAL = 0, LEAF};
 struct BNode {
 	// Generic Key array, size of the array is numKey
 	int* key;
-	// count of how many keys are inserted into key array. Initialize to 0 at start
+	/* count of how many keys are inserted into key array. Initialize to 0 at start
+	 * Max of keycount is numKey - 1
+	 */
 	int keyCount;
 	// Parent Pointer
 	BNode* parent;
@@ -22,6 +26,7 @@ struct BNode {
 
 	BNode(int size);
 	~BNode();
+	virtual void print();
 };
 
 // B+ Tree Representation of Internal Node
@@ -37,7 +42,7 @@ struct internalNode : public BNode {
 
 	internalNode(int size);
 	~internalNode();
-
+	virtual void print();
 };
 
 // B+ Tree Representation of Leaf Node
@@ -58,6 +63,7 @@ struct leafNode : public BNode {
 
 	leafNode(int size);
 	~leafNode();
+	virtual void print();
 };
 
 
@@ -89,3 +95,4 @@ public:
 
 	//int writeToDisk(DBFile* file, string fileName);
 };
+#endif //_BPLUSTREE_H
