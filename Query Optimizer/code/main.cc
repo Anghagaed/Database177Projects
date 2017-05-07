@@ -22,7 +22,13 @@ extern struct NameList* groupingAtts; // grouping attributes
 extern struct NameList* attsToSelect; // the attributes in SELECT
 extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
 // Hang's Stuff
-extern int isQuery;	  // 1 if input is a query. 
+/* typeOfInput
+ * 0 = query 
+ * 1 = create table
+ * 2 = load into table
+ * 3 = create index
+ */
+extern int typeOfInput;	   
 extern struct GenericName* genName;	// Name for non-query scenerio
 extern struct AttsList*	attsExpression;		// Atts Expression
 extern "C" int yyparse();
@@ -130,23 +136,6 @@ int main()
 
 		yylex_destroy();
 
-		if (parse != 0) return -1;
-		
-		if (isQuery == 0) {
-			cout << "ITS NOT A QUERY" << endl;
-			if (genName) {
-				cout << genName->name << endl;
-				cout << genName->code << endl;
-				genName = genName->next;
-				cout << genName->name << endl;
-				cout << genName->code << endl;
-			}
-			return 1;
-		}
-		else if (isQuery == 1) {
-			cout << "ITS A QUERY AND ITS WORKS" << endl;
-			return 1;
-		}
 		/*
 		char result;
 

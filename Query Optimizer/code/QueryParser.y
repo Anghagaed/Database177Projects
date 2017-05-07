@@ -16,7 +16,7 @@
 	struct NameList* groupingAtts; // grouping attributes
 	struct NameList* attsToSelect; // the attributes in SELECT
 	int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query 
-	int isQuery;	  // 1 if input is a query. 
+	int typeOfInput;	  // 0 = query 1 = create table 2 = load data into table 3 = create index
 	struct GenericName* genName;	// Name for non-query scenerio
 	struct AttsList*	attsExpression;		// Atts Expression
 %}
@@ -88,7 +88,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = NULL;
-	isQuery = 1;
+	typeOfInput = 0;
 }
 
 | SELECT SelectAtts FROM Tables WHERE AndList GROUP BY Atts
@@ -96,14 +96,14 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	tables = $4;
 	predicate = $6;	
 	groupingAtts = $9;
-	isQuery = 1;
+	typeOfInput = 0;
 }
 | CREATE TABLE NameGeneric '(' AttsExp ')'
 {
 	$3->code = 0;
 	genName = $3;
 	attsExpression = $5;
-	isQuery = 0;
+	typeOfInput = 1;
 }
 | LOAD DATA NameGeneric FROM FileGeneric
 {
@@ -111,7 +111,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	$5->code = 2;
 	$3->next = $5;
 	genName = $3;
-	isQuery = 0;
+	typeOfInput = 2;
 }
 |  CREATE INDEX NameGeneric FROM NameGeneric ON NameGeneric 
 {
@@ -121,7 +121,7 @@ SQL: SELECT SelectAtts FROM Tables WHERE AndList
 	$3->next = $5;
 	$5->next = $7;
 	genName = $3;
-	isQuery = 0;
+	typeOfInput = 3;
 }
 ;
 
