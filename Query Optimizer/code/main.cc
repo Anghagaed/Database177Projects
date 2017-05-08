@@ -39,6 +39,7 @@ extern "C" int yylex_destroy();
 string dbFile = "catalog.sqlite";
 Catalog catalog(dbFile);
 
+
 void loadData() {
 
 	FileType file_type;
@@ -109,6 +110,7 @@ void loadData() {
 
 int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &_tableName)
 {
+	//create B+ Tree
 	Page pageTemp; // temporary page value to not damage real page
 	int pageNumber = 0; // which page
 	BPlusTree bTemp(100); // needs to be modified later. value inserted will be page size
@@ -124,13 +126,49 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 		{
 			valTemp = recTemp.GetColumn(index);
 			int* intTemp = (int*)valTemp;
-			bTemp.Insert(*intTemp, pageNumber, RecCounter);
+			//bTemp.Insert(*intTemp, pageNumber, RecCounter);
+			cout << "IntTemp: " << *intTemp << endl;
+			cout << "RecCounter: " << RecCounter << endl;
+			cout << "PageCounter: " << pageNumber << endl;
 			++RecCounter;
-			delete intTemp;
 		}
-		delete valTemp;
 		++pageNumber;
 	}
+	// now export
+	/*FILE *filePtr;
+	string txtFile;
+	string seperator = convert('|');
+	while ()
+	{
+
+	}
+	int key;
+	int pageNum;*/
+	vector<string> attNames;
+	vector<string> attTypes;
+	vector<unsigned int> distincts;
+	attNames.push_back("index_key");
+	attNames.push_back("child_page_number");
+	attTypes.push_back("Integer");
+	attTypes.push_back("Integer");
+	distincts.push_back(1); // HANG SAYS SO
+	distincts.push_back(1); // HANG SAYS SO
+	Schema internalNode, leafNode;
+	internalNode = Schema(attNames, attTypes, distincts);
+	attNames.clear();
+	attNames.push_back("index_key");
+	attNames.push_back("data_page_number");
+	attNames.push_back("record_number");
+	attTypes.push_back("Integer");
+	distincts.push_back(1);
+	leafNode = Schema(attNames, attTypes, distincts);
+	DBFile * dbFilePtr;
+	string yunTemp = _indexTemp + ".bin";
+	char* fileName = new char[yunTemp.length() + 1];
+	strcpy(fileName, yunTemp.c_str());
+	dbFilePtr->Create(fileName, Heap);
+	dbFilePtr->Open(fileName);
+	bTemp.writeToDisk(dbFilePtr,internalNode,leafNode);
 	return 1;
 }
 
@@ -139,7 +177,7 @@ int main()
 		//cout << "Enter a query and hit ctrl+D when done: " << endl;
 		// this is the catalog
 		string dbFile = "catalog.sqlite";
-		static Catalog catalog(dbFile);
+		Catalog catalog(dbFile);
 
 		// this is the query optimizer
 		// it is not invoked directly but rather passed to the query compiler
@@ -191,8 +229,9 @@ int main()
 			catalog.GetDataFile(tableTemp, yunPath);
 			char* yunPls = new char[yunPath.length() + 1];
 			strcpy(yunPls, yunPath.c_str());
-			bPlusFile.Open(4206969, yunPls);
+			bPlusFile.Open(1, yunPls);
 			createIndex(bPlusFile, attTemp, indexTemp, tableTemp);
+			delete yunPls;
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
 		}
 		/*

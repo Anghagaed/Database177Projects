@@ -6,6 +6,12 @@
 #define _BPLUSTREE_H
 #include <cstddef>
 #include <iostream>
+#include "DBFile.h"
+#include <fstream>
+#include <sstream>			// used for var to str conversion
+#include <string.h>			// used for memcpy and memmove
+#include <stdio.h>
+#include <stdlib.h>
 enum nodeType {INTERNAL = 0, LEAF};
 
 /* Base B+ Tree Node
@@ -86,6 +92,7 @@ private:
 	int Insert(leafNode* leaf, int key, int pageNum, int recordNum);
 	// Return a leafNode (even if it is full) to insert the key into. Define recursively
 	leafNode* Find(int key, BNode* node);
+	int traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();
@@ -96,8 +103,9 @@ public:
 	// Put the first leaf Node found that has matching into _leaf
 	// Return 1 if successful and 0 if fails
 	int Find(int key, leafNode& _leaf);
-
-	//int writeToDisk(DBFile* file, string fileName);
+	// Print the root
 	void print();
+	// Yun stuff
+	int writeToDisk(DBFile* file, Schema iNode, Schema lNode);
 };
 #endif //_BPLUSTREE_H
