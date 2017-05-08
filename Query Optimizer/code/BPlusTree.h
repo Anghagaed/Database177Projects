@@ -82,8 +82,10 @@ private:
 	leafNode* createLeafNode();
 	/* Create an Empty Internal Node with start intialization*/
 	internalNode* createInternalNode();
-	//
+	// Insert (key, pageNum, recordNum) into leaf
 	int Insert(leafNode* leaf, int key, int pageNum, int recordNum);
+	// Return a leafNode (even if it is full) to insert the key into. Define recursively
+	leafNode* Find(int key, BNode* node);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();

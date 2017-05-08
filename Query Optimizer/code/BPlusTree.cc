@@ -89,7 +89,18 @@ BPlusTree::BPlusTree(int numKey) {
 BPlusTree::~BPlusTree() {
 	delete root;
 }
+leafNode* Find(int key, BNode* node) {
+	if (node->type == INTERNAL) {
+		// Figure out which child to use for next recursion
+		internalNode* temp = (internalNode*)node;
+		for (int i = 0; i < temp->childrenCount; ++i) {
 
+		}
+	}
+	else if (node->type == LEAF) {
+		return node;
+	}
+}
 int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 	// Handle the beginning case where the root also acts as a leafNode
 	// We automatically insert a leafNode into the children and does maintenance from there
@@ -148,7 +159,9 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 		} 
 	}
 	else if (root->type == INTERNAL) {
-		cout << "Root is internal" << endl;
+		// Check which leafNode to insert to
+		//BNode *temp = root;
+		return 0;
 	}
 	return 1;
 }
