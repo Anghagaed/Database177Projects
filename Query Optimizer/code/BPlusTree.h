@@ -82,6 +82,8 @@ private:
 	leafNode* createLeafNode();
 	/* Create an Empty Internal Node with start intialization*/
 	internalNode* createInternalNode();
+	//
+	int Insert(leafNode* leaf, int key, int pageNum, int recordNum);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();
@@ -94,5 +96,6 @@ public:
 	int Find(int key, leafNode& _leaf);
 
 	//int writeToDisk(DBFile* file, string fileName);
+	void print();
 };
 #endif //_BPLUSTREE_H

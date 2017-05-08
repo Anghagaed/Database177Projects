@@ -67,9 +67,9 @@ leafNode::~leafNode() {
 
 void leafNode::print() {
 	cout << "Leaf Node" << endl;
-	cout << "Keys ";
+	cout << "Keys:      ";
 	BNode::print();
-	cout << "pageNum: ";
+	cout << "pageNum:   ";
 	for (int i = 0; i < keyCount; ++i) {
 		cout << info->pageNum[i] << " ";
 	}
@@ -95,79 +95,161 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 	// We automatically insert a leafNode into the children and does maintenance from there
 	if (root->type == LEAF) {
 		// Leaf is not full
+		cout << root->keyCount << endl;
 		if (root->keyCount < numKey) {
 			// Insert First Element has no comparison
+			//Insert((leafNode*)root, key, pageNum, recordNum);
+			
 			if (root->keyCount == 0) {
 				root->key[root->keyCount] = key;
 				((leafNode*)root)->info->pageNum[root->keyCount] = pageNum;
 				((leafNode*)root)->info->recordNum[root->keyCount] = recordNum;
 				root->keyCount += 1;
 			}
+			
 			else {
-				// Figure out where to put it 
-				int index;
-				for (int i = 0; i < root->keyCount; ++i) {
-					if (root->key[i] > key) {
-						index = i;
-					}
-				}
-				// Insert to right
-				if (index == root->keyCount - 1) {
-					root->key[root->keyCount] = key;
-					((leafNode*)root)->info->pageNum[root->keyCount] = pageNum;
-					((leafNode*)root)->info->recordNum[root->keyCount] = recordNum;
-					root->keyCount += 1;
-				}
-				// Insert to left
-				else {
-					leafNode* rootTemp = ((leafNode*)root);
-					// Insert new stuff to end of array
-					rootTemp->key[root->keyCount] = key;
-					rootTemp->info->pageNum[root->keyCount] = pageNum;
-					rootTemp->info->recordNum[root->keyCount] = recordNum;
-					// Shift last element using insertion sort
-					for (int i = rootTemp->keyCount; i > index; --i) {
-						int temp;
-						// Keys
-						temp = rootTemp->key[i];
-						rootTemp->key[i] = root->key[i - 1];
-						rootTemp->key[i - 1] = temp;
-						// pageNum
-						temp = rootTemp->info->pageNum[i];
-						rootTemp->info->pageNum[i] = rootTemp->info->pageNum[i - 1];
-						rootTemp->info->pageNum[i - 1] = temp;
-						// recordNum
-						temp = rootTemp->info->recordNum[i];
-						rootTemp->info->recordNum[i] = rootTemp->info->recordNum[i - 1];
-						rootTemp->info->recordNum[i - 1] = temp;
-
-					}
-					rootTemp->keyCount += 1;
-				}
-
+				Insert((leafNode*)root, key, pageNum, recordNum);
 			}
 		}
-		// Leaf is full, Need to split
+		// Leaf is full, Need to split, and change root so its an internalNode
 		else {
-			cout << "Full" << endl;
+			cout << "Leaf is full" << endl;
+			internalNode* temp = new internalNode(numKey);
+			leafNode* newLeaf = new leafNode(numKey);
+			leafNode* rootTemp = (leafNode*)root;
+			// Calculate how many Node to steal
+			int minCap = numKey / 2;
+			for (int i = 0; i < minCap; ++i) {
+				newLeaf->key[i] = rootTemp->key[i + minCap];
+				newLeaf->info->pageNum[i] = rootTemp->info->pageNum[i + minCap];
+				newLeaf->info->recordNum[i] = rootTemp->info->recordNum[i + minCap];
+				newLeaf->keyCount += 1;
+			}
+			rootTemp->keyCount -= minCap;
+
+			// Key Belongs to newLeaf
+			if (key >= newLeaf->key[0]) {
+				Insert(newLeaf, key, pageNum, recordNum);
+			}
+			// Key belongs to rootTemp
+			else {
+				Insert(rootTemp, key, pageNum, recordNum);
+			}
+
+			// Connect the nodes
+			temp->children[0] = rootTemp;
+			temp->children[1] = newLeaf;
+			temp->childrenCount = 2;
+			temp->key[0] = newLeaf->key[0];
+			temp->keyCount++;
+			rootTemp->parent = temp;
+			newLeaf->parent = temp;
+			root = temp;
 		} 
 	}
 	else if (root->type == INTERNAL) {
-
+		cout << "Root is internal" << endl;
 	}
 	return 1;
 }
 
+int BPlusTree::Insert(leafNode* leaf, int key, int pageNum, int recordNum) {
+	// Figure out where to put it
+	int index = -1;
+	for (int i = 0; i < leaf->keyCount; ++i) {
+		//cout << "Iteration 0 ";
+		if (leaf->key[i] <= key) {
+			//cout << "In IF" << endl;
+			index = i;
+		}
+		else {
+			//cout << "In ELSE" << endl;
+			break; 
+		}
+	}
+	//cout << "Index: " << index << endl;
+	// Insert to Right
+	if (index == leaf->keyCount - 1) {
+		//cout << "Inserting to Right" << endl;
+		leaf->key[leaf->keyCount] = key;
+		leaf->info->pageNum[leaf->keyCount] = pageNum;
+		leaf->info->recordNum[leaf->keyCount] = recordNum;
+		leaf->keyCount += 1;
+	}
+	// Insert to Left
+	else {
+		//cout << "Inserting to Left" << endl;
+		// Insert new stuff to the end of array
+		leaf->key[leaf->keyCount] = key;
+		leaf->info->pageNum[leaf->keyCount] = pageNum;
+		leaf->info->recordNum[leaf->keyCount] = recordNum;
+		// Shift last element using insertion sort
+		for (int i = leaf->keyCount; i > index + 1; --i) {
+			int temp;
+			// Keys
+			temp = leaf->key[i];
+			leaf->key[i] = leaf->key[i - 1];
+			leaf->key[i - 1] = temp;
+			// pageNum
+			temp = leaf->info->pageNum[i];
+			leaf->info->pageNum[i] = leaf->info->pageNum[i - 1];
+			leaf->info->pageNum[i - 1] = temp;
+			// recordNum
+			temp = leaf->info->recordNum[i];
+			leaf->info->recordNum[i] = leaf->info->recordNum[i - 1];
+			leaf->info->recordNum[i - 1] = temp;
+		}
+		leaf->keyCount += 1;
+	}
+}
+/* FOR HANG DO NOT DELETE
+DO NOT DELETE
+DO NOT DELETE
+int index = -1;
+for (int i = 0; i < root->keyCount; ++i) {
+if (root->key[i] <= key) {
+index = i;
+}
+}
+leafNode* rootTemp = ((leafNode*)root);
+// Insert to right
+if (index == root->keyCount - 1) {
+root->key[root->keyCount] = key;
+rootTemp->info->pageNum[root->keyCount] = pageNum;
+rootTemp->info->recordNum[root->keyCount] = recordNum;
+root->keyCount += 1;
+}
+// Insert to left
+else {
+// Insert new stuff to end of array
+rootTemp->key[root->keyCount] = key;
+rootTemp->info->pageNum[root->keyCount] = pageNum;
+rootTemp->info->recordNum[root->keyCount] = recordNum;
+// Shift last element using insertion sort
+for (int i = rootTemp->keyCount; i > index + 1; --i) {
+int temp;
+// Keys
+temp = rootTemp->key[i];
+rootTemp->key[i] = root->key[i - 1];
+rootTemp->key[i - 1] = temp;
+// pageNum
+temp = rootTemp->info->pageNum[i];
+rootTemp->info->pageNum[i] = rootTemp->info->pageNum[i - 1];
+rootTemp->info->pageNum[i - 1] = temp;
+// recordNum
+temp = rootTemp->info->recordNum[i];
+rootTemp->info->recordNum[i] = rootTemp->info->recordNum[i - 1];
+rootTemp->info->recordNum[i - 1] = temp;
 
+}
+rootTemp->keyCount += 1;
 
+*/
 int BPlusTree::Find(int key, leafNode& _leaf) {
 
 }
 
-leafNode* BPlusTree::createLeafNode() {
-
-}
-
-internalNode* BPlusTree::createInternalNode() {
-
+void BPlusTree::print() {
+	cout << "Printing from Root" << endl;
+	root->print();
 }
