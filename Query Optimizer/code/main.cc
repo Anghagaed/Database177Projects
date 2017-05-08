@@ -227,6 +227,7 @@ int main()
 			createIndex(bPlusFile, attTemp, indexTemp, tableTemp);
 			delete yunPls;
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
+			exit(0);
 		}
 		/*
 		char result;

@@ -289,6 +289,7 @@ int BPlusTree::writeToDisk(DBFile* file, Schema iNode, Schema lNode)
 {
 	print();
 	traverseAndWrite(file, iNode, lNode, root);
+	file->AppendLast();
 	file->Close();
 }
 
@@ -316,6 +317,8 @@ int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode 
 			fp = fmemopen(text, str.length() * sizeof(char), "r");
 			Record recTemp;
 			recTemp.ExtractNextRecord(lNode, *fp);
+			/*cout << "LEAF: "; recTemp.print(cout, lNode);
+			cout << endl;*/
 			fclose(fp);
 			delete text;
 			file->AppendRecord(recTemp);
@@ -335,8 +338,10 @@ int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode 
 			FILE* fp;
 			fp = fmemopen(text, str.length() * sizeof(char), "r");
 			Record recTemp;
-			recTemp.ExtractNextRecord(lNode, *fp);
+			recTemp.ExtractNextRecord(iNode, *fp);
 			fclose(fp);
+			/*cout << "INTERNAL: ";  recTemp.print(cout, iNode);
+			cout << endl;*/
 			delete text;
 			file->AppendRecord(recTemp);
 		}
