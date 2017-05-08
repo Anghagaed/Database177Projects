@@ -98,7 +98,7 @@ leafNode* Find(int key, BNode* node) {
 		}
 	}
 	else if (node->type == LEAF) {
-		return node;
+		return (leafNode*)node;
 	}
 }
 int BPlusTree::Insert(int key, int pageNum, int recordNum) {
@@ -268,6 +268,7 @@ void BPlusTree::print() {
 }
 int BPlusTree::writeToDisk(DBFile* file, Schema iNode, Schema lNode)
 {
+	print();
 	traverseAndWrite(file, iNode, lNode, root);
 	file->Close();
 }
@@ -285,36 +286,41 @@ int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode 
 	// traverse the node
 	if (node->type == LEAF) {
 		// Write
-		int *ikey = node->key;
-		int *dpnum = ((leafNode*)node)->info->pageNum;
-		int *recnum = ((leafNode*)node)->info->recordNum;
-		string str = convert(*ikey) + convert('|') + convert(*dpnum) + convert('|') + convert(*recnum) + convert('|');
-		char* text = new char[str.length() + 1];
-		strcpy(text, str.c_str());
-		FILE* fp;
-		fp = fmemopen(text, str.length() * sizeof(char), "r");
-		Record recTemp;
-		recTemp.ExtractNextRecord(lNode, *fp);
-		fclose(fp);
-		delete text;
-		file->AppendRecord(recTemp);
+		for (int i = 0; i < node->keyCount; ++i) {
+			int ikey = node->key[i];
+			int dpnum = ((leafNode*)node)->info->pageNum[i];
+			int recnum = ((leafNode*)node)->info->recordNum[i];
+			string str = convert(ikey) + convert('|') + convert(dpnum) + convert('|') + convert(recnum) + convert('|');
+			char* text = new char[str.length() + 1];
+			strcpy(text, str.c_str());
+			FILE* fp;
+			fp = fmemopen(text, str.length() * sizeof(char), "r");
+			Record recTemp;
+			recTemp.ExtractNextRecord(lNode, *fp);
+			fclose(fp);
+			delete text;
+			file->AppendRecord(recTemp);
+		}
 		return 1;
 	}
 	else if (node->type == INTERNAL) {
 		// Write
-		int *ikey = node->key;
 		internalNode* temp = (internalNode*)node;
-		int *cpnum = temp->pageNum;
-		string str = convert(*ikey) + convert('|') + convert(*cpnum) + convert('|');
-		char* text = new char[str.length() + 1];
-		strcpy(text, str.c_str());
-		FILE* fp;
-		fp = fmemopen(text, str.length() * sizeof(char), "r");
-		Record recTemp;
-		recTemp.ExtractNextRecord(lNode, *fp);
-		fclose(fp);
-		delete text;
-		file->AppendRecord(recTemp);
+		for (int i = 0; i < node->keyCount; ++i)
+		{
+			int ikey = node->key[i];
+			int cpnum = temp->pageNum[i];
+			string str = convert(ikey) + convert('|') + convert(cpnum) + convert('|');
+			char* text = new char[str.length() + 1];
+			strcpy(text, str.c_str());
+			FILE* fp;
+			fp = fmemopen(text, str.length() * sizeof(char), "r");
+			Record recTemp;
+			recTemp.ExtractNextRecord(lNode, *fp);
+			fclose(fp);
+			delete text;
+			file->AppendRecord(recTemp);
+		}
 		//temp->recordNum;
 		for (int i = 0; i < temp->childrenCount; ++i) {
 			traverseAndWrite(file, iNode, lNode, (temp->children)[i]);

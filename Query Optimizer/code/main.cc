@@ -126,7 +126,7 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 		{
 			valTemp = recTemp.GetColumn(index);
 			int* intTemp = (int*)valTemp;
-			//bTemp.Insert(*intTemp, pageNumber, RecCounter);
+			bTemp.Insert(*intTemp, pageNumber, RecCounter);
 			cout << "IntTemp: " << *intTemp << endl;
 			cout << "RecCounter: " << RecCounter << endl;
 			cout << "PageCounter: " << pageNumber << endl;
@@ -135,15 +135,7 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 		++pageNumber;
 	}
 	// now export
-	/*FILE *filePtr;
-	string txtFile;
-	string seperator = convert('|');
-	while ()
-	{
-
-	}
-	int key;
-	int pageNum;*/
+	cout << "export" << endl;
 	vector<string> attNames;
 	vector<string> attTypes;
 	vector<unsigned int> distincts;
@@ -162,13 +154,15 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 	attTypes.push_back("Integer");
 	distincts.push_back(1);
 	leafNode = Schema(attNames, attTypes, distincts);
-	DBFile * dbFilePtr;
+	DBFile dbFilePtr;
 	string yunTemp = _indexTemp + ".bin";
 	char* fileName = new char[yunTemp.length() + 1];
 	strcpy(fileName, yunTemp.c_str());
-	dbFilePtr->Create(fileName, Heap);
-	dbFilePtr->Open(fileName);
-	bTemp.writeToDisk(dbFilePtr,internalNode,leafNode);
+	cout << yunTemp << endl;
+	dbFilePtr.Create(fileName, Heap);
+	dbFilePtr.Open(fileName);
+	bTemp.writeToDisk(&dbFilePtr,internalNode,leafNode);
+	
 	return 1;
 }
 
