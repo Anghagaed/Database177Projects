@@ -6,6 +6,12 @@
 #define _BPLUSTREE_H
 #include <cstddef>
 #include <iostream>
+#include "DBFile.h"
+#include <fstream>
+#include <sstream>			// used for var to str conversion
+#include <string.h>			// used for memcpy and memmove
+#include <stdio.h>
+#include <stdlib.h>
 enum nodeType {INTERNAL = 0, LEAF};
 
 /* Base B+ Tree Node
@@ -93,6 +99,8 @@ public:
 	// Return 1 if successful and 0 if fails
 	int Find(int key, leafNode& _leaf);
 
-	//int writeToDisk(DBFile* file, string fileName);
+	int writeToDisk(DBFile* file, Schema iNode, Schema lNode);
+
+	int traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node);
 };
 #endif //_BPLUSTREE_H

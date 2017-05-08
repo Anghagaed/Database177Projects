@@ -171,3 +171,60 @@ leafNode* BPlusTree::createLeafNode() {
 internalNode* BPlusTree::createInternalNode() {
 
 }
+
+int BPlusTree::writeToDisk(DBFile* file, Schema iNode, Schema lNode)
+{
+	traverseAndWrite(file, iNode, lNode, root);
+	file->Close();
+}
+
+template <typename T>
+string convert(T x)
+{
+	ostringstream convert;   			// stream used for the conversion
+	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
+	return convert.str(); 				// set 'Result' to the contents of the stream
+}
+
+int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node)
+{
+	// traverse the node
+	if (node->type == LEAF) {
+		// Write
+		int *ikey = node->key;
+		int *dpnum = ((leafNode*)node)->info->pageNum;
+		int *recnum = ((leafNode*)node)->info->recordNum;
+		string str = convert(*ikey) + convert('|') + convert(*dpnum) + convert('|') + convert(*recnum) + convert('|');
+		char* text = new char[str.length() + 1];
+		strcpy(text, str.c_str());
+		FILE* fp;
+		fp = fmemopen(text, str.length() * sizeof(char), "r");
+		Record recTemp;
+		recTemp.ExtractNextRecord(lNode, *fp);
+		fclose(fp);
+		delete text;
+		file->AppendRecord(recTemp);
+		return 1;
+	}
+	else if (node->type == INTERNAL) {
+		// Write
+		int *ikey = node->key;
+		internalNode* temp = (internalNode*)node;
+		int *cpnum = temp->pageNum;
+		string str = convert(*ikey) + convert('|') + convert(*cpnum) + convert('|');
+		char* text = new char[str.length() + 1];
+		strcpy(text, str.c_str());
+		FILE* fp;
+		fp = fmemopen(text, str.length() * sizeof(char), "r");
+		Record recTemp;
+		recTemp.ExtractNextRecord(lNode, *fp);
+		fclose(fp);
+		delete text;
+		file->AppendRecord(recTemp);
+		//temp->recordNum;
+		for (int i = 0; i < temp->childrenCount; ++i) {
+			traverseAndWrite(file, iNode, lNode, (temp->children)[i]);
+			return 1;
+		}
+	}
+}

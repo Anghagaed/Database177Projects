@@ -235,50 +235,28 @@ Join::~Join() {
 bool Join::GetNext(Record& _record) {
 	//std::cout << "lefttuples: "  << leftTuples << std::endl;
 	//std::cout << "righttuples: " << rightTuples << std::endl;
-
 	//std::cout << "memCapacity: " << memCapacity << std::endl;
-
-
 	if (buildCheck) {
-
 		buildCheck = false;
-
 		if (leftMem < rightMem) {
-
 			cout << "Left is Small\n";
-
 			cout << "Left Schema" << schemaLeft << endl;
 			cout << "Right Schema" << schemaRight << endl;
-
 			mergeJoin(memCapacity, 0);
-
 			if (!fitsInMemory) {
-
 				HangMerge();
-
 			}
-
 		}
-
 		else {
-
 			cout << "Right is Small\n";
-
 			cout << "Right Schema" << schemaRight << endl;
 			cout << "Left Schema" << schemaLeft << endl;
-
 			mergeJoin(memCapacity, 1);
-
 			if(!fitsInMemory) {
-
-				HangMerge();
-			
+				HangMerge();	
 			}
-
 		}
-
 	}
-
 	/*if (appendIndex < appendRecords.size())
 	{
 		_record = *appendRecords[appendIndex];
@@ -286,15 +264,11 @@ bool Join::GetNext(Record& _record) {
 		//cout << "Returned: " << appendIndex << endl;
 		return true;
 	}
-
 	else
 	{
 		return false;
 	}*/
-
-
 	if (fitsInMemory) {
-
 		if (appendIndex < appendRecords.size())
 		{
 			_record = *appendRecords[appendIndex];
@@ -302,26 +276,17 @@ bool Join::GetNext(Record& _record) {
 			//cout << "Returned: " << appendIndex << endl;
 			return true;
 		}
-
 		else
 		{
 			return false;
 		}
-
 	}
-
 	else {
-
 		if (appendedRecords.GetNext(_record) == 1) {
-
 			return true;
-
 		}
-
 		else {
-
 			appendedRecords.Close();
-
 			ostringstream oss;
 			string result;
 			string name = "appended";
@@ -329,13 +294,9 @@ bool Join::GetNext(Record& _record) {
 			oss << startLoc << name << joinCount << bin;
 			result = oss.str();
 			remove(result.c_str());
-
 			return false;
-
 		}
-
 	}
-
 }
 
 bool Join::writeDisk(RelationalOp* producer, OrderMaker side, int sideName) {
