@@ -94,7 +94,14 @@ leafNode* Find(int key, BNode* node) {
 		// Figure out which child to use for next recursion
 		internalNode* temp = (internalNode*)node;
 		for (int i = 0; i < temp->childrenCount; ++i) {
-
+			while (key >= node->key[i]) {
+				i++;
+			}
+			Find(key, node);
+			// If key is found, return this node
+			if (key == node->key[i]) {
+				return (leafNode*)node;
+			}			
 		}
 	}
 	else if (node->type == LEAF) {
@@ -260,6 +267,18 @@ rootTemp->keyCount += 1;
 */
 int BPlusTree::Find(int key, leafNode& _leaf) {
 
+	int i = 0;
+
+	while (i < _leaf.keyCount && key >= _leaf.key[i]) {
+		i++;
+	}
+	if (key == _leaf.key[i]) {
+		return 1;
+	}
+	if (_leaf.type == LEAF) {
+		return 0;
+	}
+	
 }
 
 void BPlusTree::print() {
