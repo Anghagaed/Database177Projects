@@ -40,6 +40,24 @@ string dbFile = "catalog.sqlite";
 Catalog catalog(dbFile);
 
 
+string parseType(string input) {
+
+	string integer1 = "Integer";
+	string float1 = "Float";
+	string string1 = "String";
+
+	if (input[0] == 'i') {
+		return integer1;
+	}
+
+	else if (input[0] == 'd') {
+		return float1;
+	}
+
+	return string1;
+
+}
+
 void loadData() {
 
 	FileType file_type;
@@ -211,7 +229,47 @@ int main()
 		
 		yylex_destroy();
 		//cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
-		if (typeOfInput == 3)
+		
+		if (typeOfInput == 1) {
+
+			string myNewTable;
+			vector<string> myAttNames;
+			vector<string> myAttTypes;
+
+			if (genName != NULL) {
+
+				//cout << genName->code << endl;
+				//cout << genName->name << endl;
+				//cout << endl;
+
+				myNewTable = genName->name;
+
+				genName = genName->next;
+
+			}
+
+			//cout << endl;
+
+			while (attsExpression != NULL) {
+
+				//cout << attsExpression->name << endl;
+				//cout << attsExpression->type << endl;
+				//cout << endl;
+
+				myAttNames.push_back(attsExpression->name);
+
+				myAttTypes.push_back(parseType(attsExpression->type));
+
+				attsExpression = attsExpression->next;
+
+			}
+
+			catalog.CreateTable(myNewTable, myAttNames, myAttTypes);
+			catalog.Save();
+
+		}
+		
+		else if (typeOfInput == 3)
 		{
 			//cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;
 			File bPlusFile;

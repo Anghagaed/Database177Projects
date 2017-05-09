@@ -175,14 +175,20 @@ void Catalog::saveAdd(string& t_name) {
 	rc = sqlite3_step(stmt);
 
 	vector <Attribute> attribute = toUse.getSchema().GetAtts();
-	sql = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) VALUES (?,?,?,?);";
-	query(sql.c_str());
+
 	for (int i = 0; i < attribute.size(); ++i)
 	{
+
+		sql = "INSERT INTO metaAttributes (t_name, a_name, type, totalDistinct) VALUES (?,?,?,?);";
+		query(sql.c_str());
+
 		sqlite3_bind_text(stmt, 1, t_name.c_str(), -1, NULL);
-		string test = attribute[i].name + " ";
+
+		string test = attribute[i].name;
+		string test2 = convertType(attribute[i].type);
+
 		sqlite3_bind_text(stmt, 2, test.c_str(), -1, NULL);
-		sqlite3_bind_text(stmt, 3, convertType(attribute[i].type).c_str(), -1 , NULL);
+		sqlite3_bind_text(stmt, 3, test2.c_str(), -1, NULL);
 		sqlite3_bind_int(stmt, 4, attribute[i].noDistinct);
 		rc = sqlite3_step(stmt);
 	}
@@ -382,7 +388,12 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 
 	tableData.setName(_table);
 	tableData.setTuples(0);
-	tableData.setPath("New Path");
+
+	string fileName = "../Binary Files/";
+	fileName += _table;
+	fileName += ".bin";
+
+	tableData.setPath(fileName);
 
 	tableData.setSchema(tableSchema);
 
@@ -391,10 +402,6 @@ bool Catalog::CreateTable(string& _table, vector<string>& _attributes, vector<st
 	currentTables.push_back(_table);
 
 	tables.Insert(tableKey, tableData);
-	
-	string fileName = "../Binary Files/";
-	fileName += _table;
-	fileName += ".bin";
 
 	ofstream newFile;
 	newFile.open(fileName.c_str(), ios::binary);

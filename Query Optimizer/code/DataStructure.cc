@@ -98,17 +98,21 @@ bool& tableInfo::getAdd() {
 }
 
 string convertType(Type typeI) {
+	string integer1 = "Integer";
+	string float1 = "Float";
+	string string1 = "String";
+
 	string typeS;
 
 	switch (typeI) {
 	case Integer:
-		typeS = "INTEGER";
+		typeS = integer1;
 		break;
 	case Float:
-		typeS = "FLOAT";
+		typeS = float1;
 		break;
 	case String:
-		typeS = "STRING";
+		typeS = string1;
 		break;
 	default:
 		typeS = "Unknown";
