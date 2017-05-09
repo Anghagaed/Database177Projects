@@ -6,12 +6,20 @@
 #define _BPLUSTREE_H
 #include <cstddef>
 #include <iostream>
+#include "DBFile.h"
+#include "Schema.h"
+#include <sstream>
+#include <stdio.h>
+#include <string.h>
 enum nodeType {INTERNAL = 0, LEAF};
 
 /* Base B+ Tree Node
  * internalNode and leafNode inherits from this base Node
  * How filled = keyCount / numKey (size of the array)
  */
+
+using namespace std;
+
 struct BNode {
 	// Generic Key array, size of the array is numKey
 	int* key;
@@ -90,7 +98,7 @@ private:
 	*/
 	void updateKey(BNode* node, int parentIndex);
 
-	//int traverseAndWrite(DBFile * file, Schema iNode, Schema lNode, BNode * node, int parent, int & lastType, int & lastParent);
+	int traverseAndWrite(DBFile * file, Schema iNode, Schema lNode, BNode * node, int parent, int & lastType, int & lastParent);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();
@@ -100,9 +108,9 @@ public:
 	int Insert(int key, int pageNum, int recordNum);
 	// Put the pageNum and recNum associated with a key
 	// Return 1 if successful and 0 if fails
-	int Find(int key, int& pageNum, int& recNum);
+	//int Find(int key, int& pageNum, int& recNum);
 
-	//int writeToDisk(DBFile* file, string fileName);
+	int writeToDisk(DBFile* file, Schema iNode, Schema lNode);
 	void print();
 };
 #endif //_BPLUSTREE_H
