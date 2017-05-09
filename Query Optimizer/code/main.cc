@@ -58,6 +58,34 @@ string parseType(string input) {
 
 }
 
+void loadSingleData(string tabName, string heapLoc, string textLoc) {
+
+	FileType file_type;
+	file_type = Heap;
+
+
+	DBFile myDBFile = DBFile();
+
+
+	// Create 
+	char* path = new char[heapLoc.length() + 1];
+	strcpy(path, heapLoc.c_str());
+	myDBFile.Create(path, file_type);
+
+	// Load 
+	Schema schema;
+	catalog.GetSchema(tabName, schema);
+
+	path = new char[textLoc.length() + 1];
+	strcpy(path, textLoc.c_str());
+	myDBFile.Load(schema, path);
+
+	catalog.SetDataFile(tabName, heapLoc);
+
+
+}
+
+
 void loadData() {
 
 	FileType file_type;
@@ -230,6 +258,7 @@ int main()
 		yylex_destroy();
 		//cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
 		
+		// Create
 		if (typeOfInput == 1) {
 
 			string myNewTable;
@@ -269,6 +298,37 @@ int main()
 
 		}
 		
+
+		// Load
+		else if (typeOfInput == 2) {
+
+			cout << "Holding this L" << endl;
+
+			string myLoadTable;
+			string myLoadBin = "../Binary Files/";
+			string myLoadText = "../TxtFiles/";
+
+			if (genName != NULL) {
+
+				myLoadTable = genName->name;
+
+				myLoadBin += myLoadTable;
+				myLoadBin += ".bin";
+
+
+				genName = genName->next;
+
+				myLoadText += genName->name;
+
+			}
+
+			//cout << myLoadTable << endl << myLoadBin << endl << myLoadText << endl;
+
+			loadSingleData(myLoadTable, myLoadBin, myLoadText);
+
+		}
+
+		// Index
 		else if (typeOfInput == 3)
 		{
 			//cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;

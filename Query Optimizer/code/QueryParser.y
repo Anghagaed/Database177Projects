@@ -44,6 +44,7 @@
 %token <actualChars> YY_INTEGER
 %token <actualChars> YY_STRING
 %token <actualChars> YY_FILE
+%token <actualChars> YY_ATTS
 %token SELECT
 %token GROUP 
 %token DISTINCT
@@ -144,6 +145,21 @@ FileGeneric : YY_FILE
 ;
 
 AttsExp : YY_NAME YY_NAME 
+{
+	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
+	$$->name = $1;
+	$$->type = $2;
+	$$->next = NULL;
+}
+
+| AttsExp ',' YY_NAME YY_ATTS
+{
+	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
+	$$->name = $3;
+	$$->type = $4;
+	$$->next = $1;
+}
+| YY_NAME YY_ATTS 
 {
 	$$ = (struct AttsList*) malloc(sizeof (struct AttsList));
 	$$->name = $1;
