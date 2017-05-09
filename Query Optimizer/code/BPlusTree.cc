@@ -293,7 +293,7 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 					// Connect them
 					// Check if parent exist
 					if (parent->parent != NULL) {
-						internalNode* grandParent = 
+						//internalNode* grandParent = 
 					}
 				//}
 			}
@@ -398,20 +398,22 @@ rootTemp->info->recordNum[i - 1] = temp;
 rootTemp->keyCount += 1;
 
 */
-int BPlusTree::Find(int key, leafNode& _leaf) {
+int BPlusTree::Find(int key, int& pageNum, int& recNum) { //leafNode& _leaf) {
 
 	int i = 0;
+	int x;
 
-	while (i < _leaf.keyCount && key >= _leaf.key[i]) {
-		i++;
+	leafNode * temp = Find(key, root, x);
+
+	for (int i = 0; i < temp->keyCount; i++) {
+		if (key == temp->key[i]) { 
+			pageNum = *temp->info->pageNum;
+			recNum = *temp->info->recordNum;
+			return 1;
+		}
 	}
-	if (key == _leaf.key[i]) {
-		return 1;
-	}
-	if (_leaf.type == LEAF) {
-		return 0;
-	}
-	
+
+	return 0;	
 }
 
 void BPlusTree::print() {
