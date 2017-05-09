@@ -113,7 +113,14 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 	//create B+ Tree
 	Page pageTemp; // temporary page value to not damage real page
 	int pageNumber = 0; // which page
-	BPlusTree bTemp(100); // needs to be modified later. value inserted will be page size
+	int keyLeaf = (PAGE_SIZE - sizeof(leafNode*)) / (3.0f * sizeof(int));
+	int keyInternal = (PAGE_SIZE - sizeof(leafNode*)) / ((float)(sizeof(int) + sizeof(leafNode*)));
+	if (keyLeaf != keyInternal) {
+		cout << "keyLeaf and keyInternal not the same\n";
+		cout << "keyLeaf: " << keyLeaf << "\nkeyInternal: " << keyInternal << endl;
+		return -1;
+	}
+	BPlusTree bTemp(keyLeaf); // needs to be modified later. value inserted will be page size
 	Schema schemaTemp; // building schema to correctly insert into b+ tree
 	catalog.GetSchema(_tableName, schemaTemp);
 	int index = schemaTemp.Index(_attTemp); //which attribute from schema
@@ -127,15 +134,15 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 			valTemp = recTemp.GetColumn(index);
 			int* intTemp = (int*)valTemp;
 			bTemp.Insert(*intTemp, pageNumber, RecCounter);
-			cout << "IntTemp: " << *intTemp << endl;
+			/*cout << "IntTemp: " << *intTemp << endl;
 			cout << "RecCounter: " << RecCounter << endl;
-			cout << "PageCounter: " << pageNumber << endl;
+			cout << "PageCounter: " << pageNumber << endl;*/
 			++RecCounter;
 		}
 		++pageNumber;
 	}
 	// now export
-	cout << "export" << endl;
+	//cout << "export" << endl;
 	vector<string> attNames;
 	vector<string> attTypes;
 	vector<unsigned int> distincts;
@@ -158,11 +165,20 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 	string yunTemp = _indexTemp + ".bin";
 	char* fileName = new char[yunTemp.length() + 1];
 	strcpy(fileName, yunTemp.c_str());
-	cout << yunTemp << endl;
-	dbFilePtr.Create(fileName, Heap);
+	dbFilePtr.Create(fileName, Index);
 	dbFilePtr.Open(fileName);
 	bTemp.writeToDisk(&dbFilePtr,internalNode,leafNode);
 	
+	// Testing 
+	dbFilePtr.Open(fileName);
+	Record rtemp;
+	cout << "Let's try accessing the file" << endl;
+	while (dbFilePtr.GetNext(rtemp))
+	{
+		rtemp.print(cout, leafNode); cout << endl;
+	}
+	dbFilePtr.Close();
+	cout << "Reading is successful" << endl;
 	return 1;
 }
 
@@ -194,10 +210,10 @@ int main()
 		}
 		
 		yylex_destroy();
-		cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
+		//cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
 		if (typeOfInput == 3)
 		{
-			cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;
+			//cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;
 			File bPlusFile;
 			string tableTemp;
 			string indexTemp;
@@ -224,8 +240,10 @@ int main()
 			char* yunPls = new char[yunPath.length() + 1];
 			strcpy(yunPls, yunPath.c_str());
 			bPlusFile.Open(1, yunPls);
-			createIndex(bPlusFile, attTemp, indexTemp, tableTemp);
+			int success = createIndex(bPlusFile, attTemp, indexTemp, tableTemp);
 			delete yunPls;
+			if (success == -1)
+				cout << "Hang screwed up math" << endl;
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
 			exit(0);
 		}

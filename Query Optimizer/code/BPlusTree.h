@@ -92,7 +92,7 @@ private:
 	int Insert(leafNode* leaf, int key, int pageNum, int recordNum);
 	// Return a leafNode (even if it is full) to insert the key into. Define recursively
 	leafNode* Find(int key, BNode* node);
-	int traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node);
+	int traverseAndWrite(DBFile * file, Schema iNode, Schema lNode, BNode * node, int parent, int & lastType, int & lastParent);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();

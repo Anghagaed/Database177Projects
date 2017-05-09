@@ -146,6 +146,25 @@ void DBFile::AppendRecord (Record& rec) {
 
 }
 
+// AppendRecord for index
+void DBFile::AppendRecordIndex(Record& rec, int& nodeType, int& parentNum) {
+	if (p.Append(rec)) {	//append record to the last page
+		//std::cout << "Appended Record\n";
+	}
+	else {	//if failed (page has not enough space) add a new page then append the record to the new page
+		//std::cout << p.curSizeInBytes << std::endl;
+		char* myFileName = new char[fileName.length() + 1];
+		strcpy(myFileName, fileName.c_str());
+		file.Open(1, myFileName);
+		file.AddPageIndex(p, file.GetLength(), nodeType, parentNum);
+		file.Close();
+		p.EmptyItOut();
+		p.Append(rec);
+		//std::cout << "Added a new page and appended record\n";
+	}
+
+}
+
 
 void DBFile::AppendLast() {
 
@@ -153,6 +172,17 @@ void DBFile::AppendLast() {
 	strcpy(myFileName, fileName.c_str());
 	file.Open(1, myFileName);
 	file.AddPage(p, file.GetLength());
+	file.Close();
+	p.EmptyItOut();
+
+}
+
+void DBFile::AppendLastIndex(int& nodeType, int& parentNum) {
+
+	char* myFileName = new char[fileName.length() + 1];
+	strcpy(myFileName, fileName.c_str());
+	file.Open(1, myFileName);
+	file.AddPageIndex(p, file.GetLength(), nodeType, parentNum);
 	file.Close();
 	p.EmptyItOut();
 

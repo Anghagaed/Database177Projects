@@ -35,7 +35,9 @@ public:
 
 	void MoveFirst ();
 	void AppendRecord (Record& _addMe);
+	void AppendRecordIndex (Record& _addMe, int& nodeType, int& parentNum);
 	void AppendLast();
+	void AppendLastIndex(int& nodeType, int& parentNum);
 	int GetNext (Record& _fetchMe);
 
 	// Index Function

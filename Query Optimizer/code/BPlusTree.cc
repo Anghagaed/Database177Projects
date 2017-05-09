@@ -287,9 +287,10 @@ void BPlusTree::print() {
 }
 int BPlusTree::writeToDisk(DBFile* file, Schema iNode, Schema lNode)
 {
+	int lastType, lastParent;
 	print();
-	traverseAndWrite(file, iNode, lNode, root);
-	file->AppendLast();
+	traverseAndWrite(file, iNode, lNode, root, -1, lastType, lastParent);
+	file->AppendLastIndex(lastType, lastParent);
 	file->Close();
 }
 
@@ -301,7 +302,7 @@ string convert(T x)
 	return convert.str(); 				// set 'Result' to the contents of the stream
 }
 
-int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node)
+int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node, int parent, int& lastType, int& lastParent)
 {
 	// traverse the node
 	if (node->type == LEAF) {
@@ -321,8 +322,11 @@ int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode 
 			cout << endl;*/
 			fclose(fp);
 			delete text;
-			file->AppendRecord(recTemp);
+			int type = 1;	// means Leaf
+			file->AppendRecordIndex(recTemp, type, parent);
 		}
+		lastType = LEAF;
+		lastParent = parent;
 		return 1;
 	}
 	else if (node->type == INTERNAL) {
@@ -343,12 +347,15 @@ int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode 
 			/*cout << "INTERNAL: ";  recTemp.print(cout, iNode);
 			cout << endl;*/
 			delete text;
-			file->AppendRecord(recTemp);
+			int type = 0;	// means Leaf
+			file->AppendRecordIndex(recTemp, type, parent);
 		}
 		//temp->recordNum;
 		for (int i = 0; i < temp->childrenCount; ++i) {
-			traverseAndWrite(file, iNode, lNode, (temp->children)[i]);
-			return 1;
+			traverseAndWrite(file, iNode, lNode, (temp->children)[i], (temp->pageNum)[i], lastType, lastParent);
+			//return 1;
 		}
+		lastType = INTERNAL;
+		lastParent = parent;
 	}
 }
