@@ -105,6 +105,11 @@ void yyerror(char* s);
   	return(YY_NAME);
 }     
 
+[A-Za-z][A-Za-z0-9_-]*['(']?[0-9]+[',']?[ \t\n]*[0-9]*[')']? {
+	yylval.actualChars = strdup(yytext);
+  	return(YY_ATTS);
+}     
+
 \'[^'\n]*\' {
 	/* take care of ' in a string */
 	if (yytext[yyleng-2] == '\\') yymore();

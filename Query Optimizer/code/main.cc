@@ -40,6 +40,52 @@ string dbFile = "catalog.sqlite";
 Catalog catalog(dbFile);
 
 
+string parseType(string input) {
+
+	string integer1 = "Integer";
+	string float1 = "Float";
+	string string1 = "String";
+
+	if (input[0] == 'i') {
+		return integer1;
+	}
+
+	else if (input[0] == 'd') {
+		return float1;
+	}
+
+	return string1;
+
+}
+
+void loadSingleData(string tabName, string heapLoc, string textLoc) {
+
+	FileType file_type;
+	file_type = Heap;
+
+
+	DBFile myDBFile = DBFile();
+
+
+	// Create 
+	char* path = new char[heapLoc.length() + 1];
+	strcpy(path, heapLoc.c_str());
+	myDBFile.Create(path, file_type);
+
+	// Load 
+	Schema schema;
+	catalog.GetSchema(tabName, schema);
+
+	path = new char[textLoc.length() + 1];
+	strcpy(path, textLoc.c_str());
+	myDBFile.Load(schema, path);
+
+	catalog.SetDataFile(tabName, heapLoc);
+
+
+}
+
+
 void loadData() {
 
 	FileType file_type;
@@ -211,7 +257,79 @@ int main()
 		
 		yylex_destroy();
 		//cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
-		if (typeOfInput == 3)
+		
+		// Create
+		if (typeOfInput == 1) {
+
+			string myNewTable;
+			vector<string> myAttNames;
+			vector<string> myAttTypes;
+
+			if (genName != NULL) {
+
+				//cout << genName->code << endl;
+				//cout << genName->name << endl;
+				//cout << endl;
+
+				myNewTable = genName->name;
+
+				genName = genName->next;
+
+			}
+
+			//cout << endl;
+
+			while (attsExpression != NULL) {
+
+				//cout << attsExpression->name << endl;
+				//cout << attsExpression->type << endl;
+				//cout << endl;
+
+				myAttNames.push_back(attsExpression->name);
+
+				myAttTypes.push_back(parseType(attsExpression->type));
+
+				attsExpression = attsExpression->next;
+
+			}
+
+			catalog.CreateTable(myNewTable, myAttNames, myAttTypes);
+			catalog.Save();
+
+		}
+		
+
+		// Load
+		else if (typeOfInput == 2) {
+
+			cout << "Holding this L" << endl;
+
+			string myLoadTable;
+			string myLoadBin = "../Binary Files/";
+			string myLoadText = "../TxtFiles/";
+
+			if (genName != NULL) {
+
+				myLoadTable = genName->name;
+
+				myLoadBin += myLoadTable;
+				myLoadBin += ".bin";
+
+
+				genName = genName->next;
+
+				myLoadText += genName->name;
+
+			}
+
+			//cout << myLoadTable << endl << myLoadBin << endl << myLoadText << endl;
+
+			loadSingleData(myLoadTable, myLoadBin, myLoadText);
+
+		}
+
+		// Index
+		else if (typeOfInput == 3)
 		{
 			//cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;
 			File bPlusFile;
