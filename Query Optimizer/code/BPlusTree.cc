@@ -187,6 +187,7 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 		}
 		// Need to split
 		else {
+			//return 1;
 			//cout << "Need to split" << endl;
 			internalNode* parent = (internalNode*) toInsert->parent;
 			leafNode* newLeaf = new leafNode(numKey);
@@ -398,7 +399,7 @@ rootTemp->info->recordNum[i - 1] = temp;
 rootTemp->keyCount += 1;
 
 */
-int BPlusTree::Find(int key, int& pageNum, int& recNum) { //leafNode& _leaf) {
+int BPlusTree::Find(int key, int& pageNum, int& recNum) { 
 
 	int i = 0;
 	int x;
@@ -407,8 +408,8 @@ int BPlusTree::Find(int key, int& pageNum, int& recNum) { //leafNode& _leaf) {
 
 	for (int i = 0; i < temp->keyCount; i++) {
 		if (key == temp->key[i]) { 
-			pageNum = *temp->info->pageNum;
-			recNum = *temp->info->recordNum;
+			*temp->info->pageNum = pageNum;
+			*temp->info->recordNum = recNum;
 			return 1;
 		}
 	}
