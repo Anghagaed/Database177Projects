@@ -6,12 +6,6 @@
 #define _BPLUSTREE_H
 #include <cstddef>
 #include <iostream>
-#include "DBFile.h"
-#include <fstream>
-#include <sstream>			// used for var to str conversion
-#include <string.h>			// used for memcpy and memmove
-#include <stdio.h>
-#include <stdlib.h>
 enum nodeType {INTERNAL = 0, LEAF};
 
 /* Base B+ Tree Node
@@ -83,16 +77,18 @@ private:
 	int pageCount;
 	// height of the tree
 	int height;
+	// number of Node in the tree
+	int numNode;
 private:
-	/* Create an Empty Leaf Node with start intialization*/
-	leafNode* createLeafNode();
-	/* Create an Empty Internal Node with start intialization*/
-	internalNode* createInternalNode();
 	// Insert (key, pageNum, recordNum) into leaf
 	int Insert(leafNode* leaf, int key, int pageNum, int recordNum);
-	// Return a leafNode (even if it is full) to insert the key into. Define recursively
-	leafNode* Find(int key, BNode* node);
-	int traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node);
+	/* Return a leafNode (even if it is full) to insert the key into. keyIndex is the index to leaf Node from parent Node
+		Set keyIndex to -1 before calling function and if still -1 then node has no parent
+	*/
+	leafNode* Find(int key, BNode* node, int& keyIndex);
+	/* Checks if the node parent key is correct for the current node. 
+	*/
+	void updateKey(BNode* node, int parentIndex);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();
@@ -103,9 +99,8 @@ public:
 	// Put the first leaf Node found that has matching into _leaf
 	// Return 1 if successful and 0 if fails
 	int Find(int key, leafNode& _leaf);
-	// Print the root
+
+	//int writeToDisk(DBFile* file, string fileName);
 	void print();
-	// Yun stuff
-	int writeToDisk(DBFile* file, Schema iNode, Schema lNode);
 };
 #endif //_BPLUSTREE_H
