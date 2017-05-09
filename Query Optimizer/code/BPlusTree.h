@@ -89,6 +89,8 @@ private:
 	/* Checks if the node parent key is correct for the current node. 
 	*/
 	void updateKey(BNode* node, int parentIndex);
+
+	int traverseAndWrite(DBFile * file, Schema iNode, Schema lNode, BNode * node, int parent, int & lastType, int & lastParent);
 public:
 	BPlusTree(int numKey);
 	~BPlusTree();

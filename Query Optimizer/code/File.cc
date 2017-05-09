@@ -82,6 +82,28 @@ void Page :: ToBinary (char* bits) {
 	}
 }
 
+// Header order:
+//	1) numRecs
+//	2) nodeType (0 = internal) (1 = leaf)
+//	3) parent page (page #)
+void Page::ToBinaryIndex(char* bits, int& nodeType, int& parentNum) {
+	// first write the number of records on the page
+	((int *)bits)[0] = numRecs;
+	((int *)bits)[1] = nodeType;
+	((int *)bits)[2] = parentNum;
+
+	char* curPos = bits + sizeof(int) + sizeof(int) + sizeof(int);
+
+	// and copy the records one-by-one
+	for (myRecs.MoveToStart(); !myRecs.AtEnd(); myRecs.Advance()) {
+		char* b = myRecs.Current().GetBits();
+
+		// copy over the bits of the current record
+		memcpy(curPos, b, ((int *)b)[0]);
+		curPos += ((int *)b)[0];
+	}
+}
+
 void Page :: FromBinary (char* bits) {
 	// first read the number of records on the page
 	numRecs = ((int *) bits)[0];
@@ -98,6 +120,40 @@ void Page :: FromBinary (char* bits) {
 	for (int i = 0; i < numRecs; i++) {
 		// get the length of the current record
 		int len = ((int *) curPos)[0];
+		curSizeInBytes += len;
+
+		// create the record
+		temp.CopyBits(curPos, len);
+
+		// add it
+		myRecs.Append(temp);
+		curPos += len;
+	}
+}
+
+// Header order:
+//	1) numRecs
+//	2) nodeType (0 = internal) (1 = leaf)
+//	3) parent page (page #)
+// Currently doesn't work as intended
+void Page::FromBinaryIndex(char* bits) {
+	// first read the number of records on the page
+	numRecs = ((int *)bits)[0];
+	//nodeType = ((int *)bits)[1];
+	//nodeType = ((int *)bits)[2];
+
+	// and now get the binary representations of each
+	char* curPos = bits + sizeof(int);
+
+	// first, empty out the list of current records
+	TwoWayList<Record> aux; aux.Swap(myRecs);
+
+	// now loop through and re-populate it
+	Record temp;
+	curSizeInBytes = sizeof(int);
+	for (int i = 0; i < numRecs; i++) {
+		// get the length of the current record
+		int len = ((int *)curPos)[0];
 		curSizeInBytes += len;
 
 		// create the record
@@ -189,6 +245,27 @@ int File :: GetPage (Page& putItHere, off_t whichPage) {
 	delete [] bits;
 }
 
+int File::GetPageIndex(Page& putItHere, off_t whichPage) {
+	if (whichPage >= curLength) {
+		//cerr << "ERROR: Read past end of the file " << fileName << ": ";
+		//cerr << "page = " << whichPage << " length = " << curLength << endl;
+		return -1;
+	}
+
+	// this is because the first page has no data
+	whichPage++;
+
+	// read in the specified page
+	char* bits = new char[PAGE_SIZE];
+
+	lseek(fileDescriptor, PAGE_SIZE * whichPage, SEEK_SET);
+	read(fileDescriptor, bits, PAGE_SIZE);
+	putItHere.FromBinaryIndex(bits);
+
+	delete[] bits;
+}
+
+
 void File :: AddPage (Page& addMe, off_t whichPage) {
 	// do the zeroing
 	for (off_t i = curLength; i < whichPage; i++) {
@@ -208,6 +285,27 @@ void File :: AddPage (Page& addMe, off_t whichPage) {
 	write (fileDescriptor, bits, PAGE_SIZE);
 
 	delete [] bits;
+}
+
+void File::AddPageIndex(Page& addMe, off_t whichPage, int& nodeType, int& parentNum) {
+	// do the zeroing
+	for (off_t i = curLength; i < whichPage; i++) {
+		char zero[PAGE_SIZE]; bzero(zero, PAGE_SIZE);
+		lseek(fileDescriptor, PAGE_SIZE * (i + 1), SEEK_SET);
+		write(fileDescriptor, &zero, PAGE_SIZE);
+	}
+
+	// now write the page
+	if (whichPage == curLength)
+		curLength = whichPage + 1;
+
+	char* bits = new char[PAGE_SIZE];
+
+	addMe.ToBinaryIndex(bits, nodeType, parentNum);
+	lseek(fileDescriptor, PAGE_SIZE * (whichPage + 1), SEEK_SET);
+	write(fileDescriptor, bits, PAGE_SIZE);
+
+	delete[] bits;
 }
 
 off_t File :: GetLength () {

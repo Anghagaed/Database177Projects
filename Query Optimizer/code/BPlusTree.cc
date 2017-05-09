@@ -102,6 +102,17 @@ leafNode* BPlusTree::Find(int key, BNode* node, int& keyIndex) {
 				keyIndex = i;
 				return Find(key, temp->children[i], keyIndex);
 			}
+/*
+		for (int i = 0; i < temp->childrenCount; ++i) {
+			while (key >= node->key[i]) {
+				i++;
+			}
+			Find(key, node);
+			// If key is found, return this node
+			if (key == node->key[i]) {
+				return (leafNode*)node;
+			}			
+*/
 		}
 		// Handle the case that key is greater then existing key
 		keyIndex = temp->keyCount;
@@ -385,10 +396,96 @@ rootTemp->keyCount += 1;
 */
 int BPlusTree::Find(int key, leafNode& _leaf) {
 
+	int i = 0;
+
+	while (i < _leaf.keyCount && key >= _leaf.key[i]) {
+		i++;
+	}
+	if (key == _leaf.key[i]) {
+		return 1;
+	}
+	if (_leaf.type == LEAF) {
+		return 0;
+	}
+	
 }
 
 void BPlusTree::print() {
 	cout << "Printing from Root" << endl;
 	cout << "Number of Key " << numKey << endl;
 	root->print();
+}
+int BPlusTree::writeToDisk(DBFile* file, Schema iNode, Schema lNode)
+{
+	int lastType, lastParent;
+	print();
+	traverseAndWrite(file, iNode, lNode, root, -1, lastType, lastParent);
+	file->AppendLastIndex(lastType, lastParent);
+	file->Close();
+}
+
+template <typename T>
+string convert(T x)
+{
+	ostringstream convert;   			// stream used for the conversion
+	convert << x;		      			// insert the textual representation of 'Number' in the characters in the stream
+	return convert.str(); 				// set 'Result' to the contents of the stream
+}
+
+int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node, int parent, int& lastType, int& lastParent)
+{
+	// traverse the node
+	if (node->type == LEAF) {
+		// Write
+		for (int i = 0; i < node->keyCount; ++i) {
+			int ikey = node->key[i];
+			int dpnum = ((leafNode*)node)->info->pageNum[i];
+			int recnum = ((leafNode*)node)->info->recordNum[i];
+			string str = convert(ikey) + convert('|') + convert(dpnum) + convert('|') + convert(recnum) + convert('|');
+			char* text = new char[str.length() + 1];
+			strcpy(text, str.c_str());
+			FILE* fp;
+			fp = fmemopen(text, str.length() * sizeof(char), "r");
+			Record recTemp;
+			recTemp.ExtractNextRecord(lNode, *fp);
+			/*cout << "LEAF: "; recTemp.print(cout, lNode);
+			cout << endl;*/
+			fclose(fp);
+			delete text;
+			int type = 1;	// means Leaf
+			file->AppendRecordIndex(recTemp, type, parent);
+		}
+		lastType = LEAF;
+		lastParent = parent;
+		return 1;
+	}
+	else if (node->type == INTERNAL) {
+		// Write
+		internalNode* temp = (internalNode*)node;
+		for (int i = 0; i < node->keyCount; ++i)
+		{
+			int ikey = node->key[i];
+			int cpnum = temp->pageNum[i];
+			string str = convert(ikey) + convert('|') + convert(cpnum) + convert('|');
+			char* text = new char[str.length() + 1];
+			strcpy(text, str.c_str());
+			FILE* fp;
+			fp = fmemopen(text, str.length() * sizeof(char), "r");
+			Record recTemp;
+			recTemp.ExtractNextRecord(iNode, *fp);
+			fclose(fp);
+			/*cout << "INTERNAL: ";  recTemp.print(cout, iNode);
+			cout << endl;*/
+			delete text;
+			int type = 0;	// means Leaf
+			file->AppendRecordIndex(recTemp, type, parent);
+		}
+		//temp->recordNum;
+		for (int i = 0; i < temp->childrenCount; ++i) {
+			traverseAndWrite(file, iNode, lNode, (temp->children)[i], (temp->pageNum)[i], lastType, lastParent);
+			//return 1;
+		}
+		lastType = INTERNAL;
+		lastParent = parent;
+	}
 }
