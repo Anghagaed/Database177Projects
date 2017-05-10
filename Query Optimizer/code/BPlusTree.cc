@@ -338,7 +338,9 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 		}
 		// Need to split
 		else {
-			internalNode* parent = (internalNode*)toInsert->parent;
+			//return 1;
+			//cout << "Need to split" << endl;
+			internalNode* parent = (internalNode*) toInsert->parent;
 			leafNode* newLeaf = new leafNode(numKey);
 			newLeaf->parent = parent;
 
@@ -586,22 +588,23 @@ rootTemp->info->recordNum[i - 1] = temp;
 rootTemp->keyCount += 1;
 
 */
-/*
-int BPlusTree::Find(int key, leafNode& _leaf) {
+int BPlusTree::Find(int key, int& pageNum, int& recNum) { 
 
 	int i = 0;
+	int x;
 
-	while (i < _leaf.keyCount && key >= _leaf.key[i]) {
-		i++;
+	leafNode * temp = Find(key, root, x);
+
+	for (int i = 0; i < temp->keyCount; i++) {
+		if (key == temp->key[i]) { 
+			*temp->info->pageNum = pageNum;
+			*temp->info->recordNum = recNum;
+			return 1;
+		}
 	}
-	if (key == _leaf.key[i]) {
-		return 1;
-	}
-	if (_leaf.type == LEAF) {
-		return 0;
-	}
-	
-}*/
+
+	return 0;	
+}
 
 void BPlusTree::print() {
 	cout << "Printing from Root" << endl;
