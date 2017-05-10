@@ -180,9 +180,9 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 			valTemp = recTemp.GetColumn(index);
 			int* intTemp = (int*)valTemp;
 			bTemp.Insert(*intTemp, pageNumber, RecCounter);
-			/*cout << "IntTemp: " << *intTemp << endl;
-			cout << "RecCounter: " << RecCounter << endl;
-			cout << "PageCounter: " << pageNumber << endl;*/
+			//cout << "IntTemp: " << *intTemp << endl;
+			//cout << "RecCounter: " << RecCounter << endl;
+			//cout << "PageCounter: " << pageNumber << endl;
 			++RecCounter;
 		}
 		++pageNumber;
@@ -207,24 +207,33 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 	attTypes.push_back("Integer");
 	distincts.push_back(1);
 	leafNode = Schema(attNames, attTypes, distincts);
-	DBFile dbFilePtr;
+	IndexFile indexFilePtr;
 	string yunTemp = _indexTemp + ".bin";
 	char* fileName = new char[yunTemp.length() + 1];
 	strcpy(fileName, yunTemp.c_str());
-	dbFilePtr.Create(fileName, Index);
-	dbFilePtr.Open(fileName);
-	bTemp.writeToDisk(&dbFilePtr,internalNode,leafNode);
-	
-	// Testing 
-	dbFilePtr.Open(fileName);
+	indexFilePtr.CreateIndex(fileName, Index);
+
+	indexFilePtr.OpenIndex(fileName);
+	bTemp.writeToDisk(&indexFilePtr,internalNode,leafNode);
+
+	// Error doesn't occur here so far (not sure about logic)
+
+	// Testing the .bin
+	/*indexFilePtr.OpenIndex(fileName);
 	Record rtemp;
+	int nodeType;
 	cout << "Let's try accessing the file" << endl;
-	while (dbFilePtr.GetNext(rtemp))
+	while (indexFilePtr.GetNextIndex(rtemp, nodeType))
 	{
-		rtemp.print(cout, leafNode); cout << endl;
+		if(nodeType == 0){
+			rtemp.print(cout, internalNode); cout<<"hi" << endl;
+		}
+		else {
+			rtemp.print(cout, leafNode); cout<<"bye" << endl;
+		}
 	}
-	dbFilePtr.Close();
-	cout << "Reading is successful" << endl;
+	indexFilePtr.CloseIndex();
+	cout << "Reading is successful" << endl;*/
 	return 1;
 }
 
@@ -333,6 +342,7 @@ int main()
 		{
 			//cout << "We are in B+ Tree, Hang is Bad and nothing works" << endl;
 			File bPlusFile;
+			File yunFile; //this is a file for IndexFile. It is named yun cuz he didn't set it up right.
 			string tableTemp;
 			string indexTemp;
 			string attTemp;
@@ -363,7 +373,7 @@ int main()
 			if (success == -1)
 				cout << "Hang screwed up math" << endl;
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
-			exit(0);
+			//exit(0);
 		}
 		/*
 		char result;
@@ -400,6 +410,33 @@ int main()
 
 		double memCapacity = numPages * PAGE_SIZE;
 
+		CNF temp;
+		OrderMaker left, right;
+		Record rec;
+		vector<int> toKeep;
+		toKeep.push_back(0);
+		Schema empty;
+		string lineitem = "lineitem";
+		catalog.GetSchema(lineitem, empty);
+		empty.Project(toKeep);
+		cout << empty << endl;
+		temp.ExtractCNF(*predicate, empty, rec);
+		cout << temp << endl;
+		cout << temp.GetSortOrders(left, right) << endl;
+		OrderMaker order;
+		vector<string> attNames;
+		attNames.push_back("int");
+		vector<string> attTypes;
+		attTypes.push_back("Integer");
+		vector<unsigned int> distincts;
+		distincts.push_back(1);
+		Schema sc(attNames, attTypes, distincts);
+		int* km = new int[1];
+		km[0] = 0;
+		int numkm = 1;
+		OrderMaker om(sc, km, numkm);
+		cout << om << endl;
+		//exit(0);
 		// at this point we have the parse tree in the ParseTree data structures
 		// we are ready to invoke the query compiler with the given query
 		// the result is the execution tree built from the parse tree and optimized

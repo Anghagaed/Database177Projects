@@ -147,7 +147,7 @@ void DBFile::AppendRecord (Record& rec) {
 }
 
 // AppendRecord for index
-void DBFile::AppendRecordIndex(Record& rec, int& nodeType, int& parentNum) {
+void IndexFile::AppendRecordIndex(Record& rec, int& nodeType, int& parentNum) {
 	if (p.Append(rec)) {	//append record to the last page
 		//std::cout << "Appended Record\n";
 	}
@@ -155,9 +155,9 @@ void DBFile::AppendRecordIndex(Record& rec, int& nodeType, int& parentNum) {
 		//std::cout << p.curSizeInBytes << std::endl;
 		char* myFileName = new char[fileName.length() + 1];
 		strcpy(myFileName, fileName.c_str());
-		file.Open(1, myFileName);
-		file.AddPageIndex(p, file.GetLength(), nodeType, parentNum);
-		file.Close();
+		myIndexFile.Open(1, myFileName);
+		myIndexFile.AddPageIndex(p, myIndexFile.GetLength(), nodeType, parentNum);
+		myIndexFile.Close();
 		p.EmptyItOut();
 		p.Append(rec);
 		//std::cout << "Added a new page and appended record\n";
@@ -177,13 +177,13 @@ void DBFile::AppendLast() {
 
 }
 
-void DBFile::AppendLastIndex(int& nodeType, int& parentNum) {
-
+void IndexFile::AppendLastIndex(int& nodeType, int& parentNum) {
+	//std::cout << "Added a new page and appended record\n";
 	char* myFileName = new char[fileName.length() + 1];
 	strcpy(myFileName, fileName.c_str());
-	file.Open(1, myFileName);
-	file.AddPageIndex(p, file.GetLength(), nodeType, parentNum);
-	file.Close();
+	myIndexFile.Open(1, myFileName);
+	myIndexFile.AddPageIndex(p, myIndexFile.GetLength(), nodeType, parentNum);
+	myIndexFile.Close();
 	p.EmptyItOut();
 
 }
@@ -216,6 +216,102 @@ int DBFile::GetNext (Record& rec) {
 
 }
 
-int DBFile::GetNextIndex(Record& _fetchMe) {
+int IndexFile::GetNextIndex(Record& rec, CNF& predicate) {
+	// Just find case
+
+	if (temp.GetFirst(rec) == 0)
+	{
+		myIndexFile.GetPageIndex(temp,count, predicate);		// Always start from the root
+		count++;
+		if (temp.GetFirst(rec) == 0) {
+			//cout << "db file get next false 1\n";
+			return 0;
+		}
+		else
+		{
+			return 1;
+		}
+	}
+	return 1;
+		
+	
+
+	/*
+	
+	Page temp;
+	Record rec;
+
+	file.GetPage(temp, desiredPage);
+
+	for (int i = 0; i < desiredRecord; i++) {
+
+		temp.GetFirst(rec)
+
+	}
+
+	
+	*/
+	
+	/*
+	//cout << file.GetLength() << endl;
+	//cout << "dbfile get next start\n";
+
+	//if (file.GetPage(page, count) != -1) {
+	if (temp.GetFirst(rec) == 0) {
+		myIndexFile.GetPageIndex(temp, count, nodeType);
+		count++;
+
+		if (temp.GetFirst(rec) == 0) {
+			//cout << "db file get next false 1\n";
+			return 0;
+		}
+
+		else {
+			//cout << "db file true 1\n";
+			//cout << "number of records: " << temp.numRecs << endl;
+			return 1;
+		}
+
+	}
+	//cout << "dbfile true 2\n";
+	//cout << "number of records: " << temp.numRecs << endl;
+	return 1;
+	*/
+}
+
+IndexFile::IndexFile() : fileName(""), count(0) {}
+
+IndexFile::IndexFile(File& f)
+{
+	file = f;
+}
+int IndexFile::CreateIndex(char* f_path, FileType f_type)
+{
+	if (f_type == Index) {
+		// create heap file
+
+		ofstream outFile;
+
+		outFile.open(f_path, std::ofstream::binary);
+		outFile.close();
+
+	}
+
+	fileName = f_path;
+}
+
+int IndexFile::OpenIndex(char* f_path) {
+
+	if (myIndexFile.Open(1, f_path) == -1) {
+
+		cout << "Error opening DBFile" << endl;
+
+	}
+
+}
+
+int IndexFile::CloseIndex() {
+
+	myIndexFile.Close();
 
 }

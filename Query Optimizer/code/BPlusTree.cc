@@ -40,8 +40,9 @@ void internalNode::print() {
 	cout << "Internal Node" << endl;
 	BNode::print();
 	for (int i = 0; i < childrenCount; ++i) {
-		cout << "Internal Node Child: " << i << " pageNum: " <<pageNum[i] << " Type: ";
+		cout << "Internal Node Child: " << i << " pageNum: " << pageNum[i] << " Type: ";
 		children[i]->print();
+		cout << endl;
 	}
 }
 
@@ -69,22 +70,25 @@ leafNode::~leafNode() {
 void leafNode::print() {
 	cout << "Leaf Node" << endl;
 	BNode::print();
+	/*
 	cout << "pageNum:   ";
 	for (int i = 0; i < keyCount; ++i) {
-		cout << info->pageNum[i] << " ";
+	cout << info->pageNum[i] << " ";
 	}
 	cout << endl;
 	cout << "recordNum: ";
 	for (int i = 0; i < keyCount; ++i) {
-		cout << info->recordNum[i] << " ";
+	cout << info->recordNum[i] << " ";
 	}
 	cout << endl;
+	*/
 }
 
 BPlusTree::BPlusTree(int numKey) {
 	this->numKey = numKey;
 	pageCount = 1;
 	root = new leafNode(numKey);
+	height = 1;
 }
 BPlusTree::~BPlusTree() {
 	delete root;
@@ -94,39 +98,191 @@ leafNode* BPlusTree::Find(int key, BNode* node, int& keyIndex) {
 	// Recursive case
 	if (node->type == INTERNAL) {
 		internalNode* temp = (internalNode*)node;
-		// Needs to figure out which child to use for next recursion
 		// Handles the case that key is less/equal then existing key in the node
 		for (int i = 0; i < temp->keyCount; ++i) {
-			if (key <= temp->key[i]) {
+			//cout << "Iteration " << i << endl;
+			if (key < temp->key[i]) {
+				//	cout << "key <= temp->key[i] " << key << " <= " << temp->key[i] << endl;
 				keyIndex = i;
 				return Find(key, temp->children[i], keyIndex);
 			}
+
+			else if (key == temp->key[i]) {
+				keyIndex = i;
+				return Find(key, temp->children[i + 1], keyIndex);
+			}
+
 		}
 		// Handle the case that key is greater then existing key
 		keyIndex = temp->keyCount;
+		//cout << "Other case" << endl;
 		return Find(key, temp->children[temp->keyCount], keyIndex);
 	}
 	// Base case
 	else if (node->type == LEAF) {
-		return (leafNode*) node;
+		return (leafNode*)node;
 	}
 }
+
+int BPlusTree::SplitInternal(internalNode* node) {
+	if (node->keyCount < numKey) {
+		internalNode* newNode = new internalNode(numKey);
+		newNode->parent = node->parent;
+
+		return 1;
+	}
+	return 0;
+}
+
+void BPlusTree::Connect(internalNode* parent, internalNode* child) {
+	/*
+	cout << "PARENT AHUASHIUASHAIUSDGHIUDG" << endl;
+	if (parent != NULL) parent->print();
+	cout << "CHILD ASUIHUAISHASUH" << endl;
+	child->print();
+	*/
+	if (parent == NULL) {
+		cout << "root key " << root->keyCount << endl;
+		/*
+		for (int i = 0; i < root-; ++i) {
+		cout << root->key[i] << " ";
+		}
+		cout << endl;
+		*/
+		cout << "BASHBAIUSBAI" << endl;
+		if ((root->keyCount) != numKey) {
+			cout << "Splitting Root in Connect" << endl;
+			internalNode* childFriend = (internalNode*)root;
+			internalNode* newRoot = new internalNode(numKey);
+			// Appoint New Root
+			newRoot->key[0] = child->key[0];
+			newRoot->keyCount += 1;
+
+			for (int i = 0; i < child->keyCount - 1; ++i) {
+				child->key[i] = child->key[i + 1];
+			}
+			child->keyCount -= 1;
+			// Connect the root
+			newRoot->children[0] = childFriend;
+			newRoot->children[1] = child;
+			newRoot->childrenCount += 2;
+
+			/*
+			int minCap = numKey / 2;
+			newRoot->key[0] = childFriend->key[minCap];
+			newRoot->keyCount += 1;
+			internalNode* newParent = new internalNode(numKey);
+			newParent->children[0] = childFriend->children[minCap + 1];
+			for (int i = 1; i < minCap; ++i) {
+			newParent->key[i - 1] = childFriend->key[minCap + i];
+			newParent->children[i] = childFriend->children[minCap + i + 1];
+			}
+			newParent->childrenCount = minCap;
+			newParent->keyCount = minCap - 1;
+			childFriend->childrenCount -= minCap;
+			childFriend->keyCount -= minCap;
+			return;
+			// Connect the root
+			newRoot->children[0] = childFriend;
+			newRoot->children[1] = newParent;
+			newRoot->childrenCount += 2;
+			// Add Child into Root
+			Insert((BNode*)child, newRoot);
+			*/
+			root = newRoot;
+			//root->print();
+			height++;
+		}
+		else {
+			cout << "IN HERE" << endl;
+			internalNode* rootIntern = (internalNode*)root;
+			rootIntern->key[rootIntern->keyCount] = child->key[0];
+			rootIntern->keyCount++;
+
+			for (int i = 0; i < child->keyCount - 1; ++i) {
+				child->key[i] = child->key[i + 1];
+			}
+			child->keyCount -= 1;
+
+			rootIntern->children[rootIntern->childrenCount] = child;
+			rootIntern->childrenCount += 1;
+		}
+	}
+	else {
+		// Parent is not Full Base Case
+		if (parent->keyCount != numKey) {
+			// Parent is not Full Base Case
+			parent->key[parent->keyCount] = child->key[0];
+			parent->keyCount += 1;
+			parent->children[parent->childrenCount] = child;
+			parent->childrenCount += 1;
+			// Need to remove key[0] from child
+			for (int i = 0; i < child->keyCount - 1; ++i) {
+				child->key[i] = child->key[i + 1];
+			}
+			child->keyCount -= 1;
+			child->key[child->keyCount] = 0;
+			// Sort the Parent so its key are sorted
+			for (int i = parent->keyCount - 1; i > 0; --i) {
+				if (parent->key[i] < parent->key[i - 1]) {
+					// Swap Key
+					int tempKey = parent->key[i];
+					parent->key[i] = parent->key[i - 1];
+					parent->key[i - 1] = tempKey;
+					// Swap Children
+					BNode* tempChild = parent->children[i + 1];
+					parent->children[i + 1] = parent->children[i];
+					parent->children[i] = tempChild;
+					// Most likely need to update pointers?
+				}
+				else {
+					break;
+				}
+			}
+		}
+		// Parent is Full Recursion Occurs
+		else {
+			// Split the parent
+			internalNode* newParent = new internalNode(numKey);
+
+			int minCap = numKey / 2;
+			for (int i = 0; i < minCap; ++i) {
+				newParent->key[i] = parent->key[i + minCap + numKey % 2];
+				newParent->pageNum[i] = parent->pageNum[i + minCap + 1 + numKey % 2];
+				newParent->children[i] = parent->children[i + minCap + 1 + numKey % 2];
+			}
+			newParent->childrenCount = minCap;
+			newParent->keyCount = minCap;
+			parent->childrenCount -= minCap;
+			parent->keyCount -= minCap;
+			// Insert child into one of the parent
+			if (child->key[0] <= parent->key[0]) {
+				Insert((BNode*)child, parent);
+			}
+			else {
+				Insert((BNode*)child, newParent);
+			}
+			// Need to connect the two parents with its parents
+			Connect((internalNode*)parent->parent, newParent);
+		}
+	}
+}
+
 int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 	// Handle the beginning case where the root also acts as a leafNode
-	// We automatically insert a leafNode into the children and does maintenance from there
 	if (root->type == LEAF) {
 		// Leaf is not full
 		if (root->keyCount < numKey) {
 			// Insert First Element has no comparison
 			//Insert((leafNode*)root, key, pageNum, recordNum);
-			
+
 			if (root->keyCount == 0) {
 				root->key[root->keyCount] = key;
 				((leafNode*)root)->info->pageNum[root->keyCount] = pageNum;
 				((leafNode*)root)->info->recordNum[root->keyCount] = recordNum;
 				root->keyCount += 1;
 			}
-			
+
 			else {
 				Insert((leafNode*)root, key, pageNum, recordNum);
 			}
@@ -139,9 +295,9 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 			// Calculate how many Node to steal and steal Node from rootTemp
 			int minCap = numKey / 2;
 			for (int i = 0; i < minCap; ++i) {
-				newLeaf->key[i] = rootTemp->key[i + minCap];
-				newLeaf->info->pageNum[i] = rootTemp->info->pageNum[i + minCap];
-				newLeaf->info->recordNum[i] = rootTemp->info->recordNum[i + minCap];
+				newLeaf->key[i] = rootTemp->key[i + minCap + numKey % 2];
+				newLeaf->info->pageNum[i] = rootTemp->info->pageNum[i + minCap + numKey % 2];
+				newLeaf->info->recordNum[i] = rootTemp->info->recordNum[i + minCap + numKey % 2];
 				newLeaf->keyCount += 1;
 			}
 			rootTemp->keyCount -= minCap;
@@ -169,62 +325,51 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 			newLeaf->parent = temp;
 			rootTemp->next = newLeaf;
 			root = temp;
-		} 
+			height++;
+		}
 	}
 	else if (root->type == INTERNAL) {
 		// Check which leafNode to insert to
-		//BNode *temp = root;
-		cout << "root is internal" << endl;
 		int toInsertIndex = -1;
 		leafNode* toInsert = Find(key, root, toInsertIndex);
-		//cout << "child Number " << toInsertIndex << endl;
-		//cout << "Key is " << key << endl;
-		//cout << "Printing to Insert" << endl;
-		//toInsert->print();
 		// Safe to Insert
 		if (toInsert->keyCount < numKey) {
 			return Insert(toInsert, key, pageNum, recordNum);
 		}
 		// Need to split
 		else {
-			//cout << "Need to split" << endl;
-			internalNode* parent = (internalNode*) toInsert->parent;
+			internalNode* parent = (internalNode*)toInsert->parent;
 			leafNode* newLeaf = new leafNode(numKey);
 			newLeaf->parent = parent;
-			toInsert->next = newLeaf;
 
 			// Calculate how many Node to steal and steal Node from toInsert
 			int minCap = numKey / 2;
 			for (int i = 0; i < minCap; ++i) {
-				newLeaf->key[i] = toInsert->key[i + minCap];
-				newLeaf->info->pageNum[i] = toInsert->info->pageNum[i + minCap];
-				newLeaf->info->recordNum[i] = toInsert->info->recordNum[i + minCap];
+				newLeaf->key[i] = toInsert->key[i + minCap + numKey % 2];
+				newLeaf->info->pageNum[i] = toInsert->info->pageNum[i + minCap + numKey % 2];
+				newLeaf->info->recordNum[i] = toInsert->info->recordNum[i + minCap + numKey % 2];
 				newLeaf->keyCount += 1;
 			}
 			toInsert->keyCount -= minCap;
-			//cout << "Finish splitting leaf" << endl;
-			// Key belongs to newLeaf
+
+
 			if (key >= newLeaf->key[0]) {
 				Insert(newLeaf, key, pageNum, recordNum);
 			}
-			// Key belongs to toInsert
 			else {
 				Insert(toInsert, key, pageNum, recordNum);
 			}
-			//cout << "Finish inserting key into leaf" << endl;
-			// Update internal Node
 			// Safe to update
-			//cout << parent << endl;
 			if (parent->keyCount < numKey) {
 				// Insert 
 				parent->children[parent->childrenCount] = newLeaf;
 				parent->pageNum[parent->childrenCount] = pageCount++;
 				parent->key[parent->keyCount] = newLeaf->key[0];
-
-				// Need to make sure that the keys are sorted
+				parent->childrenCount += 1;
+				parent->keyCount += 1;
 				// Insertion Sort Time
-				
-				for (int i = parent->keyCount; i >= 0; --i) {
+				int index = parent->keyCount;
+				for (int i = parent->keyCount - 1; i > 0; --i) {
 					if (parent->key[i] < parent->key[i - 1]) {
 						// Swap
 						int temp1;
@@ -237,74 +382,117 @@ int BPlusTree::Insert(int key, int pageNum, int recordNum) {
 						temp2 = parent->children[i + 1];
 						parent->children[i + 1] = parent->children[i];
 						parent->children[i] = temp2;
+						index = i;
 					}
 					else {
 						// Sorted Do Not Need To Continue
 						break;
 					}
 				}
-				parent->childrenCount += 1;
-				parent->keyCount += 1;
-
+				// Update the Leaf Next pointers
+				if (index == parent->childrenCount - 1) {
+					((leafNode*)parent->children[index])->next = ((leafNode*)parent->children[index - 1])->next;
+					((leafNode*)parent->children[index - 1])->next = (leafNode*)parent->children[index];
+				}
+				else {
+					((leafNode*)parent->children[index])->next = (leafNode*)parent->children[index + 1];
+					((leafNode*)parent->children[index - 1])->next = (leafNode*)parent->children[index];
+				}
 			}
 			// Need to split parent
 			else {
-				cout << "Parent is Full" << endl;
 				internalNode* temp = parent;
 				internalNode* newParent = new internalNode(numKey);
-				bool split = true;
-				//while (split) {
-					// need to split parent
-					int minCap = (numKey / 2);
+				int minCap = (numKey / 2);
+				for (int i = 0; i < minCap; ++i) {
+					newParent->key[i] = parent->key[i + minCap + numKey % 2];
+					newParent->pageNum[i] = parent->pageNum[i + minCap + 1 + numKey % 2];
+					newParent->children[i] = parent->children[i + minCap + 1 + numKey % 2];
+				}
+				newParent->childrenCount = minCap;
+				newParent->keyCount = minCap;
+				parent->childrenCount -= minCap;
+				parent->keyCount -= minCap;
 
-					int newKey = parent->key[minCap];
-					newParent->pageNum[0] = parent->pageNum[minCap + 1];
-					newParent->children[0] = parent->children[minCap + 1];
-					for (int i = 0; i < minCap; ++i) {
-						newParent->key[i] = parent->key[i + minCap + 1];
-						newParent->pageNum[i + 1] = parent->pageNum[i + minCap + 2];
-						newParent->children[i + 1] = parent->children[i + minCap + 2];
-					}
-					newParent->childrenCount = minCap;
-					newParent->keyCount = minCap - 1;
-					parent->childrenCount -= minCap;
-					parent->keyCount -= minCap;
-		
-					// Insert Left
-					leafNode *toInsert;
-					if (key < parent->key[0]) {
-						int indexNo;
-						toInsert = Find(key, parent, indexNo);
-						Insert(toInsert, key, pageNum, recordNum);
-					}
-					// Insert Right
-					else {
-						int indexNo;
-						toInsert = Find(key, newParent, indexNo);
-						Insert(toInsert, key, pageNum, recordNum);
-					}
-					/*
-					cout << "Printing parent" << endl;
-					parent->print();
-					cout << "Printing new Parent" << endl;
-					newParent->print();
-					cout << newParent->keyCount << endl;
-					*/
-					// Connect them
-					// Check if parent exist
-					if (parent->parent != NULL) {
-						//internalNode* grandParent = 
-					}
-				//}
+				/*
+				cout << "Printing parent" << endl;
+				parent->print();
+				cout << "Printing new Parent" << endl;
+				newParent->print();
+
+				return 1;
+				*/
+
+				// Insert newLeaf into one of the two internalNode
+				if (newLeaf->key[0] <= parent->key[0]) {
+					//cout << "left" << endl;
+					Insert(newLeaf, parent);
+					//parent->print();
+				}
+				else {
+					//cout << "right" << endl;
+					Insert(newLeaf, newParent);
+					//newParent->print();
+				}
+				// Connect them
+				Connect((internalNode*)parent->parent, newParent);
 			}
 
 		}
 	}
 	return 1;
 }
+
+int BPlusTree::Insert(BNode* child, internalNode* parent) {
+	// Insert leaf into internal
+	//cout << "At the Start" << endl;
+	//parent->print();
+	//cout << 1 << endl;
+	parent->key[parent->keyCount] = child->key[0];
+	parent->children[parent->childrenCount] = child;
+	parent->keyCount += 1;
+	parent->childrenCount += 1;
+	child->parent = parent;
+	//cout << 2 << endl;
+	// Insertion Sort the keys
+	int index = parent->keyCount - 1;
+	for (int i = parent->keyCount - 1; i > 0; --i) {
+		if (parent->key[i] < parent->key[i - 1]) {
+			cout << "IN LOOP " << i << endl;
+			// Keys
+			int temp = parent->key[i];
+			parent->key[i] = parent->key[i - 1];
+			parent->key[i - 1] = temp;
+			// Children Pointers
+			BNode* temp2 = parent->children[i + 1];
+			parent->children[i + 1] = parent->children[i];
+			parent->children[i] = temp2;
+			index = i;
+		}
+		else {
+			break;
+		}
+	}
+	//cout << 3 << endl;
+	// Update next pointers if children are leafs
+	if (child->type == LEAF) {
+		if (index == parent->childrenCount - 1) {
+			cout << "left" << endl;
+			((leafNode*)parent->children[index])->next = ((leafNode*)parent->children[index - 1])->next;
+			((leafNode*)parent->children[index - 1])->next = (leafNode*)parent->children[index];
+		}
+		else {
+			cout << "right" << endl;
+			((leafNode*)parent->children[index])->next = (leafNode*)parent->children[index + 1];
+			((leafNode*)parent->children[index - 1])->next = (leafNode*)parent->children[index];
+		}
+	}
+	return 1;
+}
+
 /*	Insert functions currently allows duplicate key to exist
-	To prevent duplicate key from existing, In the Loop of // Figure out where to put it
-	add an if statement that checks if the key is the same and don't insert if it does exist
+To prevent duplicate key from existing, In the Loop of // Figure out where to put it
+add an if statement that checks if the key is the same and don't insert if it does exist
 */
 int BPlusTree::Insert(leafNode* leaf, int key, int pageNum, int recordNum) {
 	// Figure out where to put it
@@ -314,7 +502,7 @@ int BPlusTree::Insert(leafNode* leaf, int key, int pageNum, int recordNum) {
 			index = i;
 		}
 		else {
-			break; 
+			break;
 		}
 	}
 	// Insert to Right
@@ -417,16 +605,36 @@ int BPlusTree::Find(int key, leafNode& _leaf) {
 
 void BPlusTree::print() {
 	cout << "Printing from Root" << endl;
-	cout << "Number of Key " << numKey << endl;
+	cout << "Height is " << height << endl;
+	//cout << "Number of Key " << numKey << endl;
 	root->print();
+
 }
-int BPlusTree::writeToDisk(DBFile* file, Schema iNode, Schema lNode)
+void BPlusTree::printLeaf() {
+	BNode* temp = root;
+	while (temp->type != LEAF) {
+		temp = ((internalNode*)temp)->children[0];
+	}
+	leafNode* leaf = (leafNode*)temp;
+	do {
+		cout << "Leaf Node with KeyCount " << leaf->keyCount << endl;
+		cout << "Keys ";
+		for (int i = 0; i < leaf->keyCount; ++i) {
+			cout << leaf->key[i] << " ";
+		}
+		cout << endl;
+		leaf = leaf->next;
+	} while (leaf != NULL);
+}
+int BPlusTree::writeToDisk(IndexFile* file, Schema iNode, Schema lNode)
 {
 	int lastType, lastParent;
 	print();
+	//cout << "Inside writeToDisk" << endl;
 	traverseAndWrite(file, iNode, lNode, root, -1, lastType, lastParent);
+	//cout << "Out of traverseAndWrite" << endl;
 	file->AppendLastIndex(lastType, lastParent);
-	file->Close();
+	file->CloseIndex();
 }
 
 template <typename T>
@@ -437,8 +645,9 @@ string convert(T x)
 	return convert.str(); 				// set 'Result' to the contents of the stream
 };
 
-int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode * node, int parent, int& lastType, int& lastParent)
+int BPlusTree::traverseAndWrite(IndexFile* file, Schema iNode, Schema lNode, BNode * node, int parent, int& lastType, int& lastParent)
 {
+	//cout << "In traversAndWrite" << endl;
 	// traverse the node
 	if (node->type == LEAF) {
 		// Write
@@ -456,6 +665,7 @@ int BPlusTree::traverseAndWrite(DBFile* file, Schema iNode, Schema lNode, BNode 
 			fclose(fp);
 			delete text;
 			int type = 1;	// means Leaf
+			//cout << "About to AppendRecordIndex" << endl;
 			file->AppendRecordIndex(recTemp, type, parent);
 		}
 		lastType = LEAF;

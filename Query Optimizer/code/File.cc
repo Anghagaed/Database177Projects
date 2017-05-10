@@ -136,14 +136,17 @@ void Page :: FromBinary (char* bits) {
 //	2) nodeType (0 = internal) (1 = leaf)
 //	3) parent page (page #)
 // Currently doesn't work as intended
-void Page::FromBinaryIndex(char* bits) {
+void Page::FromBinaryIndex(char* bits, CNF &predicate) {
 	// first read the number of records on the page
 	numRecs = ((int *)bits)[0];
+	std::cout << "numRecs" << numRecs << "\n";
 	//nodeType = ((int *)bits)[1];
-	//nodeType = ((int *)bits)[2];
+	//std::cout << "nodeType" << nodeType << "\n";
+	int parent = ((int *)bits)[2];
+	std::cout << "parent page #" << parent << "\n";
 
 	// and now get the binary representations of each
-	char* curPos = bits + sizeof(int);
+	char* curPos = bits + sizeof(int) + sizeof(int) + sizeof(int);
 
 	// first, empty out the list of current records
 	TwoWayList<Record> aux; aux.Swap(myRecs);
@@ -151,6 +154,22 @@ void Page::FromBinaryIndex(char* bits) {
 	// now loop through and re-populate it
 	Record temp;
 	curSizeInBytes = sizeof(int);
+	if (predicate.numAnds == 1 && predicate.andList[0].op == Equals)
+	{
+
+	}
+	else if (predicate.numAnds == 1 && predicate.andList[0].op == LessThan)
+	{
+
+	}
+	else if (predicate.numAnds == 1 && predicate.andList[0].op == GreaterThan)
+	{
+
+	}
+	//else if (predicate.numAnds == 2 && predicate.andList[0].op == LessThan && predicate.andList[0].op == GreaterThan) not done right
+	//{
+
+	//}
 	for (int i = 0; i < numRecs; i++) {
 		// get the length of the current record
 		int len = ((int *)curPos)[0];
@@ -245,7 +264,7 @@ int File :: GetPage (Page& putItHere, off_t whichPage) {
 	delete [] bits;
 }
 
-int File::GetPageIndex(Page& putItHere, off_t whichPage) {
+int File::GetPageIndex(Page& putItHere, off_t whichPage, CNF &predicate) { //if we want to get root call whichPage = 0 because whichPage++
 	if (whichPage >= curLength) {
 		//cerr << "ERROR: Read past end of the file " << fileName << ": ";
 		//cerr << "page = " << whichPage << " length = " << curLength << endl;
@@ -260,7 +279,7 @@ int File::GetPageIndex(Page& putItHere, off_t whichPage) {
 
 	lseek(fileDescriptor, PAGE_SIZE * whichPage, SEEK_SET);
 	read(fileDescriptor, bits, PAGE_SIZE);
-	putItHere.FromBinaryIndex(bits);
+	putItHere.FromBinaryIndex(bits, predicate);
 
 	delete[] bits;
 }

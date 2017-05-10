@@ -36,7 +36,7 @@ public:
 	void FromBinary(char* bits);
 
 	// index version of FromBinary
-	void FromBinaryIndex(char* bits);
+	void FromBinaryIndex(char* bits, CNF &predicate);
 
 	// delete current record from page and return it
 	// return 0 if there are no records in the page, something else otherwise
@@ -79,7 +79,7 @@ public:
 	int GetPage(Page& putItHere, off_t whichPage);
 
 	// index version of GetPage
-	int GetPageIndex(Page& putItHere, off_t whichPage);
+	int GetPageIndex(Page& putItHere, off_t whichPage, CNF &predicate);
 
 	// write page to file
 	// if write is past end of file (beyond length in pages), all new pages that

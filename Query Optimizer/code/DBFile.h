@@ -35,13 +35,35 @@ public:
 
 	void MoveFirst ();
 	void AppendRecord (Record& _addMe);
-	void AppendRecordIndex (Record& _addMe, int& nodeType, int& parentNum);
+	
 	void AppendLast();
-	void AppendLastIndex(int& nodeType, int& parentNum);
+	
 	int GetNext (Record& _fetchMe);
 
-	// Index Function
-	int GetNextIndex(Record& _fetchMe);
+	
+};
+
+class IndexFile : DBFile
+{
+private:
+	File myIndexFile;
+	File file;			// just there?
+	string fileName;	// for myIndexFile
+	Page temp;
+	int count;
+	ifstream inFile;
+	Page p;
+
+public:
+// Index Function
+	IndexFile();
+	IndexFile(File& f);
+	int GetNextIndex(Record& _fetchMe, CNF& predicate);
+	void AppendLastIndex(int& nodeType, int& parentNum);
+	void AppendRecordIndex(Record& _addMe, int& nodeType, int& parentNum);
+	int OpenIndex(char* f_path);	// index file version
+	int CloseIndex();
+	int CreateIndex(char* f_path, FileType f_type);
 };
 
 #endif //DBFILE_H
