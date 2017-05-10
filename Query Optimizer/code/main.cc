@@ -33,6 +33,11 @@ extern int distinctAtts; // 1 if there is a DISTINCT in a non-aggregate query
 extern int typeOfInput;	   
 extern struct GenericName* genName;	// Name for non-query scenerio
 extern struct AttsList*	attsExpression;		// Atts Expression
+
+typedef struct yy_buffer_state* YY_BUFFER_STATE;
+extern "C" YY_BUFFER_STATE yy_scan_string(char*);
+extern "C" void yy_delete_buffer(YY_BUFFER_STATE);
+
 extern "C" int yyparse();
 extern "C" int yylex_destroy();
 
@@ -230,8 +235,18 @@ int createIndex(File &_bPlusFile, string &_attTemp, string &_indexTemp, string &
 
 int main()
 {
-		//cout << "Enter a query and hit ctrl+D when done: " << endl;
-		// this is the catalog
+	string _stmt;
+
+	while (true) {
+
+		int numPages = 100;
+
+		//cout << "Enter number of pages:\n";
+		//cin >> numPages;
+
+		double memCapacity = numPages * PAGE_SIZE;
+
+
 		string dbFile = "catalog.sqlite";
 		Catalog catalog(dbFile);
 
@@ -242,9 +257,17 @@ int main()
 		// it includes the catalog and the query optimizer
 		QueryCompiler compiler(catalog, optimizer);
 
-
 		// the query parser is accessed directly through yyparse
 		// this populates the extern data structures
+
+		getline(cin, _stmt);
+
+		if (_stmt == "exit") {
+			break;
+		}
+		
+		YY_BUFFER_STATE buffer = yy_scan_string(const_cast<char*>(_stmt.c_str()));
+
 		int parse = -1;
 		if (yyparse() == 0) {
 			cout << "OK!" << endl;
@@ -254,10 +277,11 @@ int main()
 			//cout << "Error: Query is not correct!" << endl;
 			parse = -1;
 		}
-		
+
+		yy_delete_buffer(buffer);
 		yylex_destroy();
 		//cout<<"Yun is bad and this part is his fault: " << typeOfInput << endl;
-		
+
 		// Create
 		if (typeOfInput == 1) {
 
@@ -295,9 +319,10 @@ int main()
 
 			catalog.CreateTable(myNewTable, myAttNames, myAttTypes);
 			catalog.Save();
+			//exit(0);
 
 		}
-		
+
 
 		// Load
 		else if (typeOfInput == 2) {
@@ -325,6 +350,7 @@ int main()
 			//cout << myLoadTable << endl << myLoadBin << endl << myLoadText << endl;
 
 			loadSingleData(myLoadTable, myLoadBin, myLoadText);
+			//exit(0);
 
 		}
 
@@ -347,12 +373,12 @@ int main()
 				{
 					indexTemp = temp->name;
 				}
-				else if(temp->code == 3)
+				else if (temp->code == 3)
 				{
 					attTemp = temp->name;
 				}
 				temp = temp->next;
-			} 
+			}
 			string yunPath;
 			catalog.GetDataFile(tableTemp, yunPath);
 			char* yunPls = new char[yunPath.length() + 1];
@@ -365,58 +391,53 @@ int main()
 			cout << "Anything after this part isn't Yun/Jacob's fault" << endl;
 			exit(0);
 		}
-		/*
-		char result;
 
-		cout << "Create heap files (Make sure the Binary Files folder is empty)? y for yes, n for no: " << endl;
-		cin >> result;
 
-		if (result == 'y') {
-			loadData();
-		}*/
-/*
-		DBFile myDBFile;
+		else if (typeOfInput == 0) {
 
-		myDBFile.Open("../Binary Files/nation.bin");
+			// at this point we have the parse tree in the ParseTree data structures
+			// we are ready to invoke the query compiler with the given query
+			// the result is the execution tree built from the parse tree and optimized
+			QueryExecutionTree queryTree;
+			compiler.Compile(tables, attsToSelect, finalFunction, predicate,
+				groupingAtts, distinctAtts, queryTree, memCapacity);
 
-		Record myRec;
-		myDBFile.GetNext(myRec);
+			cout << queryTree << endl;
 
-		Schema schema;
+			queryTree.ExecuteQuery();
 
-		string tName = "nation";
 
-		catalog.GetSchema(tName, schema);
+			/*OptimizationTree ptr;
 
-		cout << myRec.GetSize() << endl;
+			optimizer.getUniqueOrder(tables, predicate);
+			optimizer.Optimize(tables, predicate, &ptr);
+			*/
 
-		myRec.print(cout, schema);
-*/
+			//exit(0);
 
-		int numPages = 100;
+		}
 
-		//cout << "Enter number of pages:\n";
-		//cin >> numPages;
-
-		double memCapacity = numPages * PAGE_SIZE;
-
-		// at this point we have the parse tree in the ParseTree data structures
-		// we are ready to invoke the query compiler with the given query
-		// the result is the execution tree built from the parse tree and optimized
-		QueryExecutionTree queryTree;
-		compiler.Compile(tables, attsToSelect, finalFunction, predicate,
-			groupingAtts, distinctAtts, queryTree, memCapacity);
-
-		cout << queryTree << endl;
-
-		queryTree.ExecuteQuery();
-/*
-		OptimizationTree ptr;
-		
-		optimizer.getUniqueOrder(tables, predicate);
-		optimizer.Optimize(tables, predicate, &ptr);
-		*/
+	}
 
 	return 0;
 
 }
+
+/*
+DBFile myDBFile;
+
+myDBFile.Open("../Binary Files/nation.bin");
+
+Record myRec;
+myDBFile.GetNext(myRec);
+
+Schema schema;
+
+string tName = "nation";
+
+catalog.GetSchema(tName, schema);
+
+cout << myRec.GetSize() << endl;
+
+myRec.print(cout, schema);
+*/
