@@ -22,10 +22,13 @@ void leafNodeData::Swap(leafNodeData* toSwap) {
 	SWAP(this->parent, toSwap->parent);
 }
 
+using namespace std;
+
 void leafNodeData::insert(leafNodeData* toInsert) {
 	// Case of only 1 Node in the list
 	if (this->next == NULL) {
-		if (toInsert->key > this->key) {
+		cout << "aaa" << endl;
+		if (toInsert->key < this->key) {
 			//cout << "LeafNodeData Insert Function cause temp->key > this->key error" << endl;
 			//exit(0);
 			this->Swap(toInsert);
@@ -39,6 +42,7 @@ void leafNodeData::insert(leafNodeData* toInsert) {
 	}
 	// Generic Case
 	else {
+		cout << "Bbb" << endl;
 		leafNodeData* temp = this->next;
 		if (toInsert->key < this->key) {
 			this->Swap(toInsert);
@@ -93,6 +97,7 @@ leafNode::leafNode() {
 	type = LEAF;
 	next = NULL;
 	keyCount = 0;
+	data = NULL;
 	parent = NULL;
 }
 leafNode::~leafNode() {
@@ -106,7 +111,7 @@ leafNode::~leafNode() {
 }
 
 void leafNode::print() {
-	std::cout << "Printing leafNode with keyCount" << keyCount << std::endl;
+	std::cout << "Printing leafNode with keyCount " << keyCount << std::endl;
 	if (data == NULL) {
 		std::cout << "leafNode is empty" << std::endl;
 		return;
@@ -128,6 +133,7 @@ void leafNode::insert(int key, int pageNum, int recordNum) {
 	}
 	else {
 		data = new leafNodeData(key, pageNum, recordNum);
+		++keyCount;
 	}
 }
 
