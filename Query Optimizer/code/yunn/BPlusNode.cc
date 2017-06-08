@@ -2,6 +2,8 @@
 
 BNode::BNode() {}
 
+void BNode::print() {}
+
 leafNodeData::leafNodeData(int key, int pageNum, int recordNum) {
 	update(key, pageNum, recordNum);
 }
@@ -22,12 +24,9 @@ void leafNodeData::Swap(leafNodeData* toSwap) {
 	SWAP(this->parent, toSwap->parent);
 }
 
-using namespace std;
-
 void leafNodeData::insert(leafNodeData* toInsert) {
 	// Case of only 1 Node in the list
 	if (this->next == NULL) {
-		cout << "aaa" << endl;
 		if (toInsert->key < this->key) {
 			//cout << "LeafNodeData Insert Function cause temp->key > this->key error" << endl;
 			//exit(0);
@@ -42,7 +41,6 @@ void leafNodeData::insert(leafNodeData* toInsert) {
 	}
 	// Generic Case
 	else {
-		cout << "Bbb" << endl;
 		leafNodeData* temp = this->next;
 		if (toInsert->key < this->key) {
 			this->Swap(toInsert);
@@ -93,6 +91,10 @@ leafNodeData* leafNodeData::steal(int keyCount, int stealCount)
 	return returnMe;
 }
 
+void leafNodeData::print() {
+	std::cout << "(" << key << ", " << pageNum << ", " << recordNum << ")";
+}
+
 leafNode::leafNode() {
 	type = LEAF;
 	next = NULL;
@@ -118,8 +120,11 @@ void leafNode::print() {
 	}
 	std::cout << "Pair Data (key, pageNum, recordNum): ";
 	leafNodeData* temp = data;
+	temp->print();
+	temp = temp->next;
 	while (temp != NULL) {
-		std::cout << "(" << temp->key << ", " << temp->pageNum << ", " << temp->recordNum << "), ";
+		std::cout << ", ";
+		temp->print();
 		temp = temp->next;
 	}
 	std::cout << std::endl;
@@ -141,14 +146,43 @@ leafNode* leafNode::split() {
 	int stealCount = keyCount / 2;
 	leafNode* returnMe = new leafNode();
 
+	// steal data from old one
+	returnMe->data = data->steal(keyCount, stealCount);
+
 	// update keyCount for both new leafNode and old one
 	keyCount -= stealCount;
 	returnMe->keyCount = stealCount;
-
-	// steal data from old one
-	returnMe->data = data->steal(keyCount, stealCount);
 
 	// return
 	return returnMe;
 }
 
+internNodeData::internNodeData(int key, int pageNum, BNode* child) {
+	this->key = key;
+	this->pageNum = pageNum;
+	this->child = child;
+	next = NULL;
+	parent = NULL;
+}
+
+internNodeData::~internNodeData() {
+
+}
+
+void internNodeData::update(int key, BNode* child, int pageNum) {
+	this->key = key;
+	this->child = child;
+	this->pageNum = pageNum;
+}
+
+void internNodeData::Swap(internNodeData* toSwap) {
+	SWAP(this->key, toSwap->key);
+	SWAP(this->pageNum, toSwap->pageNum);
+	SWAP(this->child, toSwap->child);
+	SWAP(this->next, toSwap->next);
+	SWAP(this->parent, toSwap->parent);
+}
+
+void inernNodeData::insert(internNodeData* head) {
+	
+}
