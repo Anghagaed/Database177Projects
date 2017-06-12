@@ -56,7 +56,7 @@ struct internNodeData {
 	internNodeData(int key = -1, int pageNum = -1, BNode* child = NULL);
 	~internNodeData();
 	void update(int key, BNode* child, int pageNum);
-	void insert(internNodeData* head);
+	void insert(internNodeData* toInsert);
 	void Swap(internNodeData* toSwap);
 	void print();
 };
@@ -64,7 +64,7 @@ struct internNodeData {
 // B+ Tree Representation of Internal Node
 struct internalNode : public BNode {
 	internNodeData* data;
-	BNode* first;
+	internNodeData* first;
 
 	internalNode(int size);
 	~internalNode();
