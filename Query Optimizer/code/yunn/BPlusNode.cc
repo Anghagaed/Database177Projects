@@ -183,6 +183,26 @@ void internNodeData::Swap(internNodeData* toSwap) {
 	SWAP(this->parent, toSwap->parent);
 }
 
-void inernNodeData::insert(internNodeData* head) {
+void internNodeData::insert(internNodeData* head) {
 	
+}
+
+internalNode::internalNode(int size) {
+
+}
+
+internalNode::~internalNode() {
+
+}
+
+virtual void internalNode::print() {
+
+}
+
+void internalNode::insert(int key, int pageNum, leafNode* child) {
+
+}
+
+internalNode* internalNode::split() {
+
 }
